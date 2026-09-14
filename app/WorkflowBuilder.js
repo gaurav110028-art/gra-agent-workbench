@@ -60,7 +60,6 @@ const nodeCatalog = [
       },
     ],
   },
-
   {
     group: 'Flow Control',
     items: [
@@ -108,7 +107,6 @@ const nodeCatalog = [
       },
     ],
   },
-
   {
     group: 'AI',
     items: [
@@ -142,7 +140,6 @@ const nodeCatalog = [
       },
     ],
   },
-
   {
     group: 'Connectors & Integrations',
     items: [
@@ -190,7 +187,6 @@ const nodeCatalog = [
       },
     ],
   },
-
   {
     group: 'Human',
     items: [
@@ -210,7 +206,6 @@ const nodeCatalog = [
       },
     ],
   },
-
   {
     group: 'Outputs',
     items: [
@@ -259,13 +254,7 @@ const configSchemas = {
       label: 'Frequency',
       type: 'select',
       required: true,
-      options: [
-        'Every Hour',
-        'Daily',
-        'Weekdays',
-        'Weekly',
-        'Monthly',
-      ],
+      options: ['Every Hour', 'Daily', 'Weekdays', 'Weekly', 'Monthly'],
     },
     {
       key: 'time',
@@ -356,10 +345,7 @@ const configSchemas = {
       label: 'Merge Mode',
       type: 'select',
       required: true,
-      options: [
-        'Wait for All',
-        'Continue on First',
-      ],
+      options: ['Wait for All', 'Continue on First'],
     },
   ],
 
@@ -376,11 +362,7 @@ const configSchemas = {
       label: 'Unit',
       type: 'select',
       required: true,
-      options: [
-        'Minutes',
-        'Hours',
-        'Days',
-      ],
+      options: ['Minutes', 'Hours', 'Days'],
     },
   ],
 
@@ -410,19 +392,14 @@ const configSchemas = {
       label: 'Prompt',
       type: 'textarea',
       required: true,
-      placeholder:
-        'Analyse the following information...',
+      placeholder: 'Analyse the following information...',
     },
     {
       key: 'outputFormat',
       label: 'Output Format',
       type: 'select',
       required: true,
-      options: [
-        'Text',
-        'JSON',
-        'Table',
-      ],
+      options: ['Text', 'JSON', 'Table'],
     },
   ],
 
@@ -432,8 +409,7 @@ const configSchemas = {
       label: 'Fields to Extract',
       type: 'textarea',
       required: true,
-      placeholder:
-        'Invoice No\nDate\nGSTIN\nTaxable Value',
+      placeholder: 'Invoice No\nDate\nGSTIN\nTaxable Value',
     },
   ],
 
@@ -443,8 +419,7 @@ const configSchemas = {
       label: 'Categories',
       type: 'textarea',
       required: true,
-      placeholder:
-        'Purchase\nSales\nBank\nExpense',
+      placeholder: 'Purchase\nSales\nBank\nExpense',
     },
   ],
 
@@ -454,8 +429,7 @@ const configSchemas = {
       label: 'Summary Instructions',
       type: 'textarea',
       required: true,
-      placeholder:
-        'Summarise key issues and exceptions...',
+      placeholder: 'Summarise key issues and exceptions...',
     },
   ],
 
@@ -465,8 +439,7 @@ const configSchemas = {
       label: 'Application',
       type: 'text',
       required: true,
-      placeholder:
-        'Tally / Outlook / GST Software',
+      placeholder: 'Tally / Outlook / GST Software',
     },
     {
       key: 'action',
@@ -483,13 +456,7 @@ const configSchemas = {
       label: 'Method',
       type: 'select',
       required: true,
-      options: [
-        'GET',
-        'POST',
-        'PUT',
-        'PATCH',
-        'DELETE',
-      ],
+      options: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     },
     {
       key: 'url',
@@ -503,8 +470,7 @@ const configSchemas = {
       label: 'Headers',
       type: 'textarea',
       required: false,
-      placeholder:
-        'Content-Type: application/json',
+      placeholder: 'Content-Type: application/json',
     },
     {
       key: 'body',
@@ -521,8 +487,7 @@ const configSchemas = {
       label: 'Plugin',
       type: 'text',
       required: true,
-      placeholder:
-        'Gmail / Drive / CRM',
+      placeholder: 'Gmail / Drive / CRM',
     },
     {
       key: 'action',
@@ -546,12 +511,7 @@ const configSchemas = {
       label: 'Operation',
       type: 'select',
       required: true,
-      options: [
-        'Read',
-        'Create',
-        'Update',
-        'Delete',
-      ],
+      options: ['Read', 'Create', 'Update', 'Delete'],
     },
   ],
 
@@ -575,12 +535,7 @@ const configSchemas = {
       label: 'Operation',
       type: 'select',
       required: true,
-      options: [
-        'Read Rows',
-        'Add Row',
-        'Update Row',
-        'Create Sheet',
-      ],
+      options: ['Read Rows', 'Add Row', 'Update Row', 'Create Sheet'],
     },
   ],
 
@@ -590,20 +545,14 @@ const configSchemas = {
       label: 'Folder / Location',
       type: 'text',
       required: true,
-      placeholder:
-        'Client/GST/FY2026',
+      placeholder: 'Client/GST/FY2026',
     },
     {
       key: 'operation',
       label: 'Operation',
       type: 'select',
       required: true,
-      options: [
-        'Read File',
-        'Save File',
-        'Move File',
-        'Rename File',
-      ],
+      options: ['Read File', 'Save File', 'Move File', 'Rename File'],
     },
   ],
 
@@ -620,8 +569,7 @@ const configSchemas = {
       label: 'Approval Message',
       type: 'textarea',
       required: false,
-      placeholder:
-        'Please review and approve...',
+      placeholder: 'Please review and approve...',
     },
   ],
 
@@ -706,38 +654,13 @@ const configSchemas = {
       label: 'Format',
       type: 'select',
       required: true,
-      options: [
-        'PDF',
-        'Excel',
-        'CSV',
-        'Word',
-      ],
+      options: ['PDF', 'Excel', 'CSV', 'Word'],
     },
   ],
 };
 
-/* =========================================================
-   TYPES
-========================================================= */
-
-const triggerTypes = [
-  'trigger',
-  'schedule',
-  'webhook',
-  'emailTrigger',
-];
-
-const terminalTypes = [
-  'stop',
-  'email',
-  'whatsapp',
-  'notification',
-  'file',
-];
-
-/* =========================================================
-   HELPERS
-========================================================= */
+const triggerTypes = ['trigger', 'schedule', 'webhook', 'emailTrigger'];
+const terminalTypes = ['stop', 'email', 'whatsapp', 'notification', 'file'];
 
 function getTheme(type) {
   const themes = {
@@ -745,29 +668,24 @@ function getTheme(type) {
     schedule: '#a855f7',
     webhook: '#3b82f6',
     emailTrigger: '#eab308',
-
     condition: '#22c55e',
     router: '#06b6d4',
     merge: '#14b8a6',
     delay: '#eab308',
     loop: '#0ea5e9',
     stop: '#ef4444',
-
     aiPrompt: '#8b5cf6',
     extract: '#ec4899',
     classify: '#6366f1',
     summarize: '#a855f7',
-
     connector: '#10b981',
     api: '#3b82f6',
     plugin: '#14b8a6',
     database: '#64748b',
     spreadsheet: '#16a34a',
     fileStorage: '#64748b',
-
     approval: '#f97316',
     review: '#f43f5e',
-
     email: '#eab308',
     whatsapp: '#22c55e',
     notification: '#06b6d4',
@@ -778,27 +696,21 @@ function getTheme(type) {
 }
 
 function getDefaultConfig(type) {
-  const fields =
-    configSchemas[type] || [];
-
+  const fields = configSchemas[type] || [];
   const config = {};
 
   fields.forEach((field) => {
-    if (field.type === 'select') {
-      config[field.key] =
-        field.options?.[0] || '';
-    } else {
-      config[field.key] = '';
-    }
+    config[field.key] =
+      field.type === 'select'
+        ? field.options?.[0] || ''
+        : '';
   });
 
   return config;
 }
 
 function sleep(ms) {
-  return new Promise((resolve) =>
-    setTimeout(resolve, ms)
-  );
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function isEmpty(value) {
@@ -809,37 +721,17 @@ function isEmpty(value) {
   );
 }
 
-/* =========================================================
-   NODE
-========================================================= */
-
-function WorkflowNode({
-  data,
-  selected,
-}) {
+function WorkflowNode({ data, selected }) {
   return (
     <div
       className={`
         workflowNode
-        ${
-          selected
-            ? 'selected'
-            : ''
-        }
-        ${
-          data.hasValidationError
-            ? 'invalid'
-            : ''
-        }
-        workflowNode-${
-          data.shape || 'rounded'
-        }
+        ${selected ? 'selected' : ''}
+        ${data.hasValidationError ? 'invalid' : ''}
+        workflowNode-${data.shape || 'rounded'}
       `}
       style={{
-        '--node-accent':
-          getTheme(
-            data.nodeType
-          ),
+        '--node-accent': getTheme(data.nodeType),
       }}
     >
       <Handle
@@ -852,29 +744,20 @@ function WorkflowNode({
         <div
           className={`
             workflowNodeIcon
-            workflowIcon-${
-              data.shape || 'rounded'
-            }
+            workflowIcon-${data.shape || 'rounded'}
           `}
         >
           {data.icon}
         </div>
 
         <div className="workflowNodeText">
-          <strong>
-            {data.name}
-          </strong>
-
-          <span>
-            {data.description}
-          </span>
+          <strong>{data.name}</strong>
+          <span>{data.description}</span>
         </div>
       </div>
 
       <div className="workflowNodeBottom">
-        <span className="workflowNodeChip">
-          {data.group}
-        </span>
+        <span className="workflowNodeChip">{data.group}</span>
       </div>
 
       <Handle
@@ -890,102 +773,41 @@ const nodeTypes = {
   workflowNode: WorkflowNode,
 };
 
-/* =========================================================
-   MAIN
-========================================================= */
+export default function WorkflowBuilder({ agentId }) {
+  const storageKey = `gra-workflow-${agentId}`;
 
-export default function WorkflowBuilder({
-  agentId,
-}) {
-  const storageKey =
-    `gra-workflow-${agentId}`;
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  const [
-    nodes,
-    setNodes,
-    onNodesChange,
-  ] = useNodesState([]);
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState(null);
 
-  const [
-    edges,
-    setEdges,
-    onEdgesChange,
-  ] = useEdgesState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [search, setSearch] = useState('');
 
-  const [
-    selectedNode,
-    setSelectedNode,
-  ] = useState(null);
+  const [panelMode, setPanelMode] = useState(null);
 
-  const [
-    reactFlowInstance,
-    setReactFlowInstance,
-  ] = useState(null);
+  const [validationIssues, setValidationIssues] = useState([]);
+  const [validationErrorIds, setValidationErrorIds] = useState([]);
 
-  const [
-    loaded,
-    setLoaded,
-  ] = useState(false);
+  const [runSteps, setRunSteps] = useState([]);
+  const [runStatus, setRunStatus] = useState('idle');
 
-  const [
-    search,
-    setSearch,
-  ] = useState('');
-
-  const [
-    panelMode,
-    setPanelMode,
-  ] = useState(null);
-
-  const [
-    validationIssues,
-    setValidationIssues,
-  ] = useState([]);
-
-  const [
-    validationErrorIds,
-    setValidationErrorIds,
-  ] = useState([]);
-
-  const [
-    runSteps,
-    setRunSteps,
-  ] = useState([]);
-
-  const [
-    runStatus,
-    setRunStatus,
-  ] = useState('idle');
-
-  /* =======================================================
-     LOAD
-  ======================================================= */
+  const [runPlan, setRunPlan] = useState([]);
+  const [waitingStepIndex, setWaitingStepIndex] = useState(null);
 
   useEffect(() => {
     setLoaded(false);
 
-    const saved =
-      localStorage.getItem(
-        storageKey
-      );
+    const saved = localStorage.getItem(storageKey);
 
     if (saved) {
       try {
-        const parsed =
-          JSON.parse(saved);
-
-        setNodes(
-          parsed.nodes || []
-        );
-
-        setEdges(
-          parsed.edges || []
-        );
+        const parsed = JSON.parse(saved);
+        setNodes(parsed.nodes || []);
+        setEdges(parsed.edges || []);
       } catch {
-        localStorage.removeItem(
-          storageKey
-        );
-
+        localStorage.removeItem(storageKey);
         setNodes([]);
         setEdges([]);
       }
@@ -996,17 +818,13 @@ export default function WorkflowBuilder({
 
     setSelectedNode(null);
     setPanelMode(null);
+    setRunSteps([]);
+    setRunPlan([]);
+    setWaitingStepIndex(null);
+    setRunStatus('idle');
 
     setLoaded(true);
-  }, [
-    storageKey,
-    setNodes,
-    setEdges,
-  ]);
-
-  /* =======================================================
-     AUTO SAVE
-  ======================================================= */
+  }, [storageKey, setNodes, setEdges]);
 
   useEffect(() => {
     if (!loaded) return;
@@ -1018,1132 +836,647 @@ export default function WorkflowBuilder({
         edges,
       })
     );
-  }, [
-    nodes,
-    edges,
-    loaded,
-    storageKey,
-  ]);
+  }, [nodes, edges, loaded, storageKey]);
 
-  /* =======================================================
-     DISPLAY NODES WITH VALIDATION STATE
-  ======================================================= */
+  const displayNodes = useMemo(
+    () =>
+      nodes.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          hasValidationError: validationErrorIds.includes(node.id),
+        },
+      })),
+    [nodes, validationErrorIds]
+  );
 
-  const displayNodes =
-    useMemo(
-      () =>
-        nodes.map((node) => ({
-          ...node,
-
-          data: {
-            ...node.data,
-
-            hasValidationError:
-              validationErrorIds.includes(
-                node.id
-              ),
-          },
-        })),
-      [
-        nodes,
-        validationErrorIds,
-      ]
-    );
-
-  /* =======================================================
-     CONNECTION
-  ======================================================= */
-
-  const onConnect =
-    useCallback(
-      (params) => {
-        setEdges((current) =>
-          addEdge(
-            {
-              ...params,
-
-              style: {
-                stroke:
-                  '#6a6a6a',
-
-                strokeWidth: 2,
-              },
-
-              markerEnd: {
-                type:
-                  MarkerType.ArrowClosed,
-
-                color:
-                  '#8a8a8a',
-              },
+  const onConnect = useCallback(
+    (params) => {
+      setEdges((current) =>
+        addEdge(
+          {
+            ...params,
+            style: {
+              stroke: '#6a6a6a',
+              strokeWidth: 2,
             },
-
-            current
-          )
-        );
-
-        setPanelMode(null);
-      },
-      [setEdges]
-    );
-
-  /* =======================================================
-     CREATE NODE
-  ======================================================= */
-
-  const createNode =
-    useCallback(
-      (
-        template,
-        position
-      ) => {
-        const parentGroup =
-          nodeCatalog.find(
-            (group) =>
-              group.items.some(
-                (item) =>
-                  item.type ===
-                  template.type
-              )
-          );
-
-        const newNode = {
-          id:
-            `${template.type}-${Date.now()}`,
-
-          type:
-            'workflowNode',
-
-          position,
-
-          data: {
-            name:
-              template.label,
-
-            description:
-              template.description,
-
-            nodeType:
-              template.type,
-
-            icon:
-              template.icon,
-
-            shape:
-              template.shape,
-
-            group:
-              parentGroup?.group ||
-              'Block',
-
-            config:
-              getDefaultConfig(
-                template.type
-              ),
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              color: '#8a8a8a',
+            },
           },
-        };
-
-        setNodes((current) => [
-          ...current,
-          newNode,
-        ]);
-
-        setPanelMode(null);
-      },
-      [setNodes]
-    );
-
-  /* =======================================================
-     CLICK ADD
-  ======================================================= */
-
-  const addNodeByClick =
-    (template) => {
-      createNode(
-        template,
-        {
-          x:
-            150 +
-            Math.random() *
-              300,
-
-          y:
-            100 +
-            Math.random() *
-              280,
-        }
-      );
-    };
-
-  /* =======================================================
-     DRAG DROP
-  ======================================================= */
-
-  const onDragStart =
-    (
-      event,
-      template
-    ) => {
-      event.dataTransfer.setData(
-        'application/gra-workflow-node',
-        JSON.stringify(
-          template
+          current
         )
-      );
-
-      event.dataTransfer.effectAllowed =
-        'move';
-    };
-
-  const onDragOver =
-    useCallback(
-      (event) => {
-        event.preventDefault();
-
-        event.dataTransfer.dropEffect =
-          'move';
-      },
-      []
-    );
-
-  const onDrop =
-    useCallback(
-      (event) => {
-        event.preventDefault();
-
-        if (
-          !reactFlowInstance
-        ) {
-          return;
-        }
-
-        const rawData =
-          event.dataTransfer.getData(
-            'application/gra-workflow-node'
-          );
-
-        if (!rawData) {
-          return;
-        }
-
-        try {
-          const template =
-            JSON.parse(
-              rawData
-            );
-
-          const position =
-            reactFlowInstance
-              .screenToFlowPosition(
-                {
-                  x:
-                    event.clientX,
-
-                  y:
-                    event.clientY,
-                }
-              );
-
-          createNode(
-            template,
-            position
-          );
-        } catch {
-          return;
-        }
-      },
-      [
-        reactFlowInstance,
-        createNode,
-      ]
-    );
-
-  /* =======================================================
-     EDIT NODE
-  ======================================================= */
-
-  const updateNodeField =
-    (
-      field,
-      value
-    ) => {
-      if (!selectedNode) {
-        return;
-      }
-
-      setNodes((current) =>
-        current.map(
-          (node) =>
-            node.id ===
-            selectedNode.id
-              ? {
-                  ...node,
-
-                  data: {
-                    ...node.data,
-
-                    [field]:
-                      value,
-                  },
-                }
-              : node
-        )
-      );
-
-      setSelectedNode(
-        (current) => ({
-          ...current,
-
-          data: {
-            ...current.data,
-
-            [field]:
-              value,
-          },
-        })
       );
 
       setPanelMode(null);
-    };
+    },
+    [setEdges]
+  );
 
-  const updateNodeConfig =
-    (
-      key,
-      value
-    ) => {
-      if (!selectedNode) {
-        return;
-      }
+  const createNode = useCallback(
+    (template, position) => {
+      const parentGroup = nodeCatalog.find((group) =>
+        group.items.some((item) => item.type === template.type)
+      );
 
-      const newConfig = {
-        ...(
-          selectedNode.data
-            .config || {}
-        ),
-
-        [key]:
-          value,
+      const newNode = {
+        id: `${template.type}-${Date.now()}`,
+        type: 'workflowNode',
+        position,
+        data: {
+          name: template.label,
+          description: template.description,
+          nodeType: template.type,
+          icon: template.icon,
+          shape: template.shape,
+          group: parentGroup?.group || 'Block',
+          config: getDefaultConfig(template.type),
+        },
       };
 
-      setNodes((current) =>
-        current.map(
-          (node) =>
-            node.id ===
-            selectedNode.id
-              ? {
-                  ...node,
-
-                  data: {
-                    ...node.data,
-
-                    config:
-                      newConfig,
-                  },
-                }
-              : node
-        )
-      );
-
-      setSelectedNode(
-        (current) => ({
-          ...current,
-
-          data: {
-            ...current.data,
-
-            config:
-              newConfig,
-          },
-        })
-      );
-
+      setNodes((current) => [...current, newNode]);
       setPanelMode(null);
-    };
+    },
+    [setNodes]
+  );
 
-  /* =======================================================
-     DELETE
-  ======================================================= */
+  const addNodeByClick = (template) => {
+    createNode(template, {
+      x: 150 + Math.random() * 300,
+      y: 100 + Math.random() * 280,
+    });
+  };
 
-  const deleteSelectedNode =
-    () => {
-      if (!selectedNode) {
+  const onDragStart = (event, template) => {
+    event.dataTransfer.setData(
+      'application/gra-workflow-node',
+      JSON.stringify(template)
+    );
+
+    event.dataTransfer.effectAllowed = 'move';
+  };
+
+  const onDragOver = useCallback((event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback(
+    (event) => {
+      event.preventDefault();
+
+      if (!reactFlowInstance) return;
+
+      const rawData = event.dataTransfer.getData(
+        'application/gra-workflow-node'
+      );
+
+      if (!rawData) return;
+
+      try {
+        const template = JSON.parse(rawData);
+
+        const position = reactFlowInstance.screenToFlowPosition({
+          x: event.clientX,
+          y: event.clientY,
+        });
+
+        createNode(template, position);
+      } catch {
         return;
       }
+    },
+    [reactFlowInstance, createNode]
+  );
 
-      setNodes((current) =>
-        current.filter(
-          (node) =>
-            node.id !==
-            selectedNode.id
-        )
-      );
+  const updateNodeField = (field, value) => {
+    if (!selectedNode) return;
 
-      setEdges((current) =>
-        current.filter(
-          (edge) =>
-            edge.source !==
-              selectedNode.id &&
-            edge.target !==
-              selectedNode.id
-        )
-      );
-
-      setSelectedNode(null);
-      setPanelMode(null);
-    };
-
-  /* =======================================================
-     CLEAR
-  ======================================================= */
-
-  const clearWorkflow =
-    () => {
-      const confirmed =
-        window.confirm(
-          'Clear this entire workflow?'
-        );
-
-      if (!confirmed) {
-        return;
-      }
-
-      setNodes([]);
-      setEdges([]);
-
-      setSelectedNode(null);
-
-      setValidationIssues([]);
-      setValidationErrorIds([]);
-
-      setRunSteps([]);
-
-      setPanelMode(null);
-      setRunStatus('idle');
-    };
-
-  /* =======================================================
-     VALIDATION ENGINE
-  ======================================================= */
-
-  const validateWorkflow =
-    (
-      openPanel = true
-    ) => {
-      const issues = [];
-
-      if (
-        nodes.length === 0
-      ) {
-        issues.push({
-          nodeId: null,
-
-          message:
-            'Workflow has no blocks.',
-        });
-      }
-
-      const triggers =
-        nodes.filter(
-          (node) =>
-            triggerTypes.includes(
-              node.data.nodeType
-            )
-        );
-
-      if (
-        nodes.length > 0 &&
-        triggers.length === 0
-      ) {
-        issues.push({
-          nodeId: null,
-
-          message:
-            'Add one trigger to start the workflow.',
-        });
-      }
-
-      if (
-        triggers.length > 1
-      ) {
-        triggers.forEach(
-          (trigger) => {
-            issues.push({
-              nodeId:
-                trigger.id,
-
-              message:
-                `${trigger.data.name}: only one trigger is allowed in this MVP.`,
-            });
-          }
-        );
-      }
-
-      const incomingMap = {};
-      const outgoingMap = {};
-
-      nodes.forEach(
-        (node) => {
-          incomingMap[
-            node.id
-          ] = [];
-
-          outgoingMap[
-            node.id
-          ] = [];
-        }
-      );
-
-      edges.forEach(
-        (edge) => {
-          if (
-            outgoingMap[
-              edge.source
-            ]
-          ) {
-            outgoingMap[
-              edge.source
-            ].push(
-              edge.target
-            );
-          }
-
-          if (
-            incomingMap[
-              edge.target
-            ]
-          ) {
-            incomingMap[
-              edge.target
-            ].push(
-              edge.source
-            );
-          }
-        }
-      );
-
-      nodes.forEach(
-        (node) => {
-          const type =
-            node.data.nodeType;
-
-          const incoming =
-            incomingMap[
-              node.id
-            ] || [];
-
-          const outgoing =
-            outgoingMap[
-              node.id
-            ] || [];
-
-          const isTrigger =
-            triggerTypes.includes(
-              type
-            );
-
-          if (
-            isTrigger &&
-            incoming.length > 0
-          ) {
-            issues.push({
-              nodeId:
-                node.id,
-
-              message:
-                `${node.data.name}: trigger cannot have an incoming connection.`,
-            });
-          }
-
-          if (
-            !isTrigger &&
-            incoming.length === 0
-          ) {
-            issues.push({
-              nodeId:
-                node.id,
-
-              message:
-                `${node.data.name}: block is not connected to a previous step.`,
-            });
-          }
-
-          if (
-            !terminalTypes.includes(
-              type
-            ) &&
-            outgoing.length === 0
-          ) {
-            issues.push({
-              nodeId:
-                node.id,
-
-              message:
-                `${node.data.name}: no next step is connected.`,
-            });
-          }
-
-          if (
-            (
-              type ===
-                'condition' ||
-              type ===
-                'router'
-            ) &&
-            outgoing.length < 2
-          ) {
-            issues.push({
-              nodeId:
-                node.id,
-
-              message:
-                `${node.data.name}: connect at least two output paths.`,
-            });
-          }
-
-          const schema =
-            configSchemas[
-              type
-            ] || [];
-
-          schema.forEach(
-            (field) => {
-              if (
-                field.required &&
-                isEmpty(
-                  node.data
-                    .config?.[
-                    field.key
-                  ]
-                )
-              ) {
-                issues.push({
-                  nodeId:
-                    node.id,
-
-                  message:
-                    `${node.data.name}: ${field.label} is required.`,
-                });
-              }
+    setNodes((current) =>
+      current.map((node) =>
+        node.id === selectedNode.id
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                [field]: value,
+              },
             }
-          );
-        }
-      );
+          : node
+      )
+    );
 
-      /* Reachability from trigger */
+    setSelectedNode((current) => ({
+      ...current,
+      data: {
+        ...current.data,
+        [field]: value,
+      },
+    }));
+
+    setPanelMode(null);
+  };
+
+  const updateNodeConfig = (key, value) => {
+    if (!selectedNode) return;
+
+    const newConfig = {
+      ...(selectedNode.data.config || {}),
+      [key]: value,
+    };
+
+    setNodes((current) =>
+      current.map((node) =>
+        node.id === selectedNode.id
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                config: newConfig,
+              },
+            }
+          : node
+      )
+    );
+
+    setSelectedNode((current) => ({
+      ...current,
+      data: {
+        ...current.data,
+        config: newConfig,
+      },
+    }));
+
+    setPanelMode(null);
+  };
+
+  const deleteSelectedNode = () => {
+    if (!selectedNode) return;
+
+    setNodes((current) =>
+      current.filter((node) => node.id !== selectedNode.id)
+    );
+
+    setEdges((current) =>
+      current.filter(
+        (edge) =>
+          edge.source !== selectedNode.id &&
+          edge.target !== selectedNode.id
+      )
+    );
+
+    setSelectedNode(null);
+    setPanelMode(null);
+  };
+
+  const clearWorkflow = () => {
+    const confirmed = window.confirm('Clear this entire workflow?');
+
+    if (!confirmed) return;
+
+    setNodes([]);
+    setEdges([]);
+    setSelectedNode(null);
+    setValidationIssues([]);
+    setValidationErrorIds([]);
+    setRunSteps([]);
+    setRunPlan([]);
+    setWaitingStepIndex(null);
+    setPanelMode(null);
+    setRunStatus('idle');
+  };
+
+  const validateWorkflow = (openPanel = true) => {
+    const issues = [];
+
+    if (nodes.length === 0) {
+      issues.push({
+        nodeId: null,
+        message: 'Workflow has no blocks.',
+      });
+    }
+
+    const triggers = nodes.filter((node) =>
+      triggerTypes.includes(node.data.nodeType)
+    );
+
+    if (nodes.length > 0 && triggers.length === 0) {
+      issues.push({
+        nodeId: null,
+        message: 'Add one trigger to start the workflow.',
+      });
+    }
+
+    if (triggers.length > 1) {
+      triggers.forEach((trigger) => {
+        issues.push({
+          nodeId: trigger.id,
+          message: `${trigger.data.name}: only one trigger is allowed in this MVP.`,
+        });
+      });
+    }
+
+    const incomingMap = {};
+    const outgoingMap = {};
+
+    nodes.forEach((node) => {
+      incomingMap[node.id] = [];
+      outgoingMap[node.id] = [];
+    });
+
+    edges.forEach((edge) => {
+      if (outgoingMap[edge.source]) {
+        outgoingMap[edge.source].push(edge.target);
+      }
+
+      if (incomingMap[edge.target]) {
+        incomingMap[edge.target].push(edge.source);
+      }
+    });
+
+    nodes.forEach((node) => {
+      const type = node.data.nodeType;
+      const incoming = incomingMap[node.id] || [];
+      const outgoing = outgoingMap[node.id] || [];
+      const isTrigger = triggerTypes.includes(type);
+
+      if (isTrigger && incoming.length > 0) {
+        issues.push({
+          nodeId: node.id,
+          message: `${node.data.name}: trigger cannot have an incoming connection.`,
+        });
+      }
+
+      if (!isTrigger && incoming.length === 0) {
+        issues.push({
+          nodeId: node.id,
+          message: `${node.data.name}: block is not connected to a previous step.`,
+        });
+      }
+
+      if (!terminalTypes.includes(type) && outgoing.length === 0) {
+        issues.push({
+          nodeId: node.id,
+          message: `${node.data.name}: no next step is connected.`,
+        });
+      }
 
       if (
-        triggers.length === 1
+        (type === 'condition' || type === 'router') &&
+        outgoing.length < 2
       ) {
-        const reachable =
-          new Set();
+        issues.push({
+          nodeId: node.id,
+          message: `${node.data.name}: connect at least two output paths.`,
+        });
+      }
 
-        const queue = [
-          triggers[0].id,
-        ];
+      const schema = configSchemas[type] || [];
 
-        while (
-          queue.length > 0
+      schema.forEach((field) => {
+        if (
+          field.required &&
+          isEmpty(node.data.config?.[field.key])
         ) {
-          const current =
-            queue.shift();
-
-          if (
-            reachable.has(
-              current
-            )
-          ) {
-            continue;
-          }
-
-          reachable.add(
-            current
-          );
-
-          const nextNodes =
-            outgoingMap[
-              current
-            ] || [];
-
-          nextNodes.forEach(
-            (nextId) => {
-              if (
-                !reachable.has(
-                  nextId
-                )
-              ) {
-                queue.push(
-                  nextId
-                );
-              }
-            }
-          );
+          issues.push({
+            nodeId: node.id,
+            message: `${node.data.name}: ${field.label} is required.`,
+          });
         }
+      });
+    });
 
-        nodes.forEach(
-          (node) => {
-            if (
-              !reachable.has(
-                node.id
-              )
-            ) {
-              issues.push({
-                nodeId:
-                  node.id,
+    if (triggers.length === 1) {
+      const reachable = new Set();
+      const queue = [triggers[0].id];
 
-                message:
-                  `${node.data.name}: block cannot be reached from the trigger.`,
-              });
-            }
+      while (queue.length > 0) {
+        const current = queue.shift();
+
+        if (reachable.has(current)) continue;
+
+        reachable.add(current);
+
+        const nextNodes = outgoingMap[current] || [];
+
+        nextNodes.forEach((nextId) => {
+          if (!reachable.has(nextId)) {
+            queue.push(nextId);
           }
-        );
+        });
       }
 
-      /* Remove duplicate messages */
+      nodes.forEach((node) => {
+        if (!reachable.has(node.id)) {
+          issues.push({
+            nodeId: node.id,
+            message: `${node.data.name}: block cannot be reached from the trigger.`,
+          });
+        }
+      });
+    }
 
-      const uniqueIssues =
-        issues.filter(
-          (
-            issue,
-            index,
-            array
-          ) =>
-            array.findIndex(
-              (other) =>
-                other.nodeId ===
-                  issue.nodeId &&
-                other.message ===
-                  issue.message
-            ) === index
-        );
+    const uniqueIssues = issues.filter(
+      (issue, index, array) =>
+        array.findIndex(
+          (other) =>
+            other.nodeId === issue.nodeId &&
+            other.message === issue.message
+        ) === index
+    );
 
-      setValidationIssues(
+    setValidationIssues(uniqueIssues);
+
+    setValidationErrorIds([
+      ...new Set(
         uniqueIssues
+          .map((issue) => issue.nodeId)
+          .filter(Boolean)
+      ),
+    ]);
+
+    if (openPanel) {
+      setPanelMode('validation');
+      setRunSteps([]);
+      setRunPlan([]);
+      setWaitingStepIndex(null);
+      setRunStatus('idle');
+    }
+
+    return uniqueIssues;
+  };
+
+  const buildExecutionOrder = () => {
+    const trigger = nodes.find((node) =>
+      triggerTypes.includes(node.data.nodeType)
+    );
+
+    if (!trigger) return [];
+
+    const nodeMap = Object.fromEntries(
+      nodes.map((node) => [node.id, node])
+    );
+
+    const adjacency = {};
+
+    nodes.forEach((node) => {
+      adjacency[node.id] = [];
+    });
+
+    edges.forEach((edge) => {
+      if (adjacency[edge.source]) {
+        adjacency[edge.source].push(edge.target);
+      }
+    });
+
+    const queue = [trigger.id];
+    const visited = new Set();
+    const ordered = [];
+
+    while (queue.length > 0) {
+      const id = queue.shift();
+
+      if (visited.has(id)) continue;
+
+      visited.add(id);
+
+      const node = nodeMap[id];
+
+      if (node) ordered.push(node);
+
+      (adjacency[id] || []).forEach((nextId) => {
+        if (!visited.has(nextId)) {
+          queue.push(nextId);
+        }
+      });
+    }
+
+    return ordered;
+  };
+
+  const getSimulationNote = (node) => {
+    const type = node.data.nodeType;
+
+    if (type === 'condition') {
+      return 'Simulated result: True';
+    }
+
+    if (
+      ['aiPrompt', 'extract', 'classify', 'summarize'].includes(type)
+    ) {
+      return 'AI step simulated. No model was called.';
+    }
+
+    if (
+      [
+        'connector',
+        'api',
+        'plugin',
+        'database',
+        'spreadsheet',
+        'fileStorage',
+        'email',
+        'whatsapp',
+        'notification',
+        'file',
+      ].includes(type)
+    ) {
+      return 'External action simulated. Nothing was sent or changed.';
+    }
+
+    if (type === 'delay') {
+      return 'Delay simulated. No real waiting occurred.';
+    }
+
+    return 'Simulated successfully';
+  };
+
+  const continueSimulation = async (orderedNodes, startIndex) => {
+    for (
+      let index = startIndex;
+      index < orderedNodes.length;
+      index += 1
+    ) {
+      const node = orderedNodes[index];
+      const type = node.data.nodeType;
+
+      setRunSteps((current) =>
+        current.map((step, stepIndex) =>
+          stepIndex === index
+            ? {
+                ...step,
+                status: 'running',
+                note: 'Simulating...',
+              }
+            : step
+        )
       );
 
-      setValidationErrorIds(
-        [
-          ...new Set(
-            uniqueIssues
-              .map(
-                (issue) =>
-                  issue.nodeId
-              )
-              .filter(Boolean)
-          ),
-        ]
-      );
+      await sleep(500);
 
-      if (openPanel) {
-        setPanelMode(
-          'validation'
-        );
-
-        setRunSteps([]);
-        setRunStatus('idle');
-      }
-
-      return uniqueIssues;
-    };
-
-  /* =======================================================
-     BUILD TEST EXECUTION ORDER
-  ======================================================= */
-
-  const buildExecutionOrder =
-    () => {
-      const trigger =
-        nodes.find(
-          (node) =>
-            triggerTypes.includes(
-              node.data.nodeType
-            )
-        );
-
-      if (!trigger) {
-        return [];
-      }
-
-      const nodeMap =
-        Object.fromEntries(
-          nodes.map(
-            (node) => [
-              node.id,
-              node,
-            ]
+      if (type === 'approval' || type === 'review') {
+        setRunSteps((current) =>
+          current.map((step, stepIndex) =>
+            stepIndex === index
+              ? {
+                  ...step,
+                  status: 'waiting',
+                  note: 'Waiting for human action',
+                }
+              : step
           )
         );
 
-      const adjacency = {};
-
-      nodes.forEach(
-        (node) => {
-          adjacency[
-            node.id
-          ] = [];
-        }
-      );
-
-      edges.forEach(
-        (edge) => {
-          if (
-            adjacency[
-              edge.source
-            ]
-          ) {
-            adjacency[
-              edge.source
-            ].push(
-              edge.target
-            );
-          }
-        }
-      );
-
-      const queue = [
-        trigger.id,
-      ];
-
-      const visited =
-        new Set();
-
-      const ordered = [];
-
-      while (
-        queue.length > 0
-      ) {
-        const id =
-          queue.shift();
-
-        if (
-          visited.has(id)
-        ) {
-          continue;
-        }
-
-        visited.add(id);
-
-        const node =
-          nodeMap[id];
-
-        if (node) {
-          ordered.push(
-            node
-          );
-        }
-
-        (
-          adjacency[id] ||
-          []
-        ).forEach(
-          (nextId) => {
-            if (
-              !visited.has(
-                nextId
-              )
-            ) {
-              queue.push(
-                nextId
-              );
-            }
-          }
-        );
-      }
-
-      return ordered;
-    };
-
-  /* =======================================================
-     TEST RUN
-  ======================================================= */
-
-  const testWorkflow =
-    async () => {
-      const issues =
-        validateWorkflow(
-          false
-        );
-
-      if (
-        issues.length > 0
-      ) {
-        setPanelMode(
-          'validation'
-        );
-
-        setRunStatus(
-          'blocked'
-        );
-
+        setWaitingStepIndex(index);
+        setRunStatus('waiting');
         return;
       }
 
-      const orderedNodes =
-        buildExecutionOrder();
-
-      const initialSteps =
-        orderedNodes.map(
-          (node) => ({
-            nodeId:
-              node.id,
-
-            name:
-              node.data.name,
-
-            type:
-              node.data.nodeType,
-
-            icon:
-              node.data.icon,
-
-            status:
-              'pending',
-
-            note: '',
-          })
-        );
-
-      setRunSteps(
-        initialSteps
-      );
-
-      setPanelMode(
-        'test'
-      );
-
-      setRunStatus(
-        'running'
-      );
-
-      setValidationErrorIds(
-        []
-      );
-
-      for (
-        let index = 0;
-        index <
-        orderedNodes.length;
-        index += 1
-      ) {
-        const node =
-          orderedNodes[
-            index
-          ];
-
-        setRunSteps(
-          (current) =>
-            current.map(
-              (
-                step,
-                stepIndex
-              ) =>
-                stepIndex ===
-                index
-                  ? {
-                      ...step,
-
-                      status:
-                        'running',
-
-                      note:
-                        'Simulating...',
-                    }
-                  : step
-            )
-        );
-
-        await sleep(500);
-
-        const type =
-          node.data.nodeType;
-
-        /* Human stops */
-
-        if (
-          type ===
-            'approval' ||
-          type ===
-            'review'
-        ) {
-          setRunSteps(
-            (current) =>
-              current.map(
-                (
-                  step,
-                  stepIndex
-                ) =>
-                  stepIndex ===
-                  index
-                    ? {
-                        ...step,
-
-                        status:
-                          'waiting',
-
-                        note:
-                          'Waiting for human action',
-                      }
-                    : step
-              )
-          );
-
-          setRunStatus(
-            'waiting'
-          );
-
-          return;
-        }
-
-        let note =
-          'Simulated successfully';
-
-        if (
-          type ===
-            'condition'
-        ) {
-          note =
-            'Simulated result: True';
-        }
-
-        if (
-          [
-            'aiPrompt',
-            'extract',
-            'classify',
-            'summarize',
-          ].includes(type)
-        ) {
-          note =
-            'AI step simulated. No model was called.';
-        }
-
-        if (
-          [
-            'connector',
-            'api',
-            'plugin',
-            'database',
-            'spreadsheet',
-            'fileStorage',
-            'email',
-            'whatsapp',
-            'notification',
-            'file',
-          ].includes(type)
-        ) {
-          note =
-            'External action simulated. Nothing was sent or changed.';
-        }
-
-        if (
-          type ===
-            'delay'
-        ) {
-          note =
-            'Delay simulated. No real waiting occurred.';
-        }
-
-        setRunSteps(
-          (current) =>
-            current.map(
-              (
-                step,
-                stepIndex
-              ) =>
-                stepIndex ===
-                index
-                  ? {
-                      ...step,
-
-                      status:
-                        'completed',
-
-                      note,
-                    }
-                  : step
-            )
-        );
-      }
-
-      setRunStatus(
-        'completed'
-      );
-    };
-
-  /* =======================================================
-     SEARCH
-  ======================================================= */
-
-  const filteredCatalog =
-    useMemo(() => {
-      if (!search.trim()) {
-        return nodeCatalog;
-      }
-
-      const query =
-        search.toLowerCase();
-
-      return nodeCatalog
-        .map(
-          (group) => ({
-            ...group,
-
-            items:
-              group.items.filter(
-                (item) =>
-                  item.label
-                    .toLowerCase()
-                    .includes(
-                      query
-                    ) ||
-                  item.description
-                    .toLowerCase()
-                    .includes(
-                      query
-                    ) ||
-                  group.group
-                    .toLowerCase()
-                    .includes(
-                      query
-                    )
-              ),
-          })
+      setRunSteps((current) =>
+        current.map((step, stepIndex) =>
+          stepIndex === index
+            ? {
+                ...step,
+                status: 'completed',
+                note: getSimulationNote(node),
+              }
+            : step
         )
-        .filter(
-          (group) =>
-            group.items
-              .length > 0
-        );
-    }, [search]);
+      );
+    }
 
-  const selectedSchema =
-    selectedNode
-      ? configSchemas[
-          selectedNode.data
-            .nodeType
-        ] || []
-      : [];
+    setWaitingStepIndex(null);
+    setRunStatus('completed');
+  };
 
-  const showExecutionPanel =
-    panelMode !== null;
+  const testWorkflow = async () => {
+    const issues = validateWorkflow(false);
 
-  /* =======================================================
-     UI
-  ======================================================= */
+    if (issues.length > 0) {
+      setPanelMode('validation');
+      setRunStatus('blocked');
+      return;
+    }
+
+    const orderedNodes = buildExecutionOrder();
+
+    const initialSteps = orderedNodes.map((node) => ({
+      nodeId: node.id,
+      name: node.data.name,
+      type: node.data.nodeType,
+      icon: node.data.icon,
+      status: 'pending',
+      note: '',
+    }));
+
+    setRunPlan(orderedNodes);
+    setRunSteps(initialSteps);
+    setPanelMode('test');
+    setRunStatus('running');
+    setWaitingStepIndex(null);
+    setValidationErrorIds([]);
+
+    await continueSimulation(orderedNodes, 0);
+  };
+
+  const approveHumanStep = async () => {
+    if (
+      waitingStepIndex === null ||
+      !runPlan.length ||
+      runStatus !== 'waiting'
+    ) {
+      return;
+    }
+
+    const approvedIndex = waitingStepIndex;
+
+    setRunSteps((current) =>
+      current.map((step, index) =>
+        index === approvedIndex
+          ? {
+              ...step,
+              status: 'completed',
+              note: 'Approved by human. Test resumed.',
+            }
+          : step
+      )
+    );
+
+    setWaitingStepIndex(null);
+    setRunStatus('running');
+
+    await sleep(250);
+
+    await continueSimulation(runPlan, approvedIndex + 1);
+  };
+
+  const rejectHumanStep = () => {
+    if (
+      waitingStepIndex === null ||
+      runStatus !== 'waiting'
+    ) {
+      return;
+    }
+
+    const rejectedIndex = waitingStepIndex;
+
+    setRunSteps((current) =>
+      current.map((step, index) => {
+        if (index === rejectedIndex) {
+          return {
+            ...step,
+            status: 'rejected',
+            note: 'Rejected by human. Workflow stopped.',
+          };
+        }
+
+        if (index > rejectedIndex && step.status === 'pending') {
+          return {
+            ...step,
+            status: 'skipped',
+            note: 'Skipped because approval was rejected.',
+          };
+        }
+
+        return step;
+      })
+    );
+
+    setWaitingStepIndex(null);
+    setRunStatus('rejected');
+  };
+
+  const filteredCatalog = useMemo(() => {
+    if (!search.trim()) return nodeCatalog;
+
+    const query = search.toLowerCase();
+
+    return nodeCatalog
+      .map((group) => ({
+        ...group,
+        items: group.items.filter(
+          (item) =>
+            item.label.toLowerCase().includes(query) ||
+            item.description.toLowerCase().includes(query) ||
+            group.group.toLowerCase().includes(query)
+        ),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [search]);
+
+  const selectedSchema = selectedNode
+    ? configSchemas[selectedNode.data.nodeType] || []
+    : [];
+
+  const showExecutionPanel = panelMode !== null;
 
   return (
     <div className="workflowBuilder">
-
-      {/* LEFT LIBRARY */}
-
       <aside className="workflowSidebar">
         <div className="workflowSidebarHeader">
-          <h3>
-            Workflow Blocks
-          </h3>
-
-          <span>
-            Drag onto canvas or click
-          </span>
+          <h3>Workflow Blocks</h3>
+          <span>Drag onto canvas or click</span>
         </div>
 
         <div className="workflowSearchBox">
@@ -2151,100 +1484,60 @@ export default function WorkflowBuilder({
             type="text"
             placeholder="Search triggers, AI, apps..."
             value={search}
-            onChange={(e) =>
-              setSearch(
-                e.target.value
-              )
-            }
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
         <div className="workflowGroups">
-          {filteredCatalog.map(
-            (group) => (
-              <div
-                className="workflowGroup"
-                key={group.group}
-              >
-                <div className="workflowGroupTitle">
-                  {group.group}
-                </div>
-
-                <div className="workflowGroupItems">
-                  {group.items.map(
-                    (item) => (
-                      <button
-                        key={
-                          item.type
-                        }
-                        className="workflowLibraryItem"
-                        draggable
-                        onDragStart={(
-                          event
-                        ) =>
-                          onDragStart(
-                            event,
-                            item
-                          )
-                        }
-                        onClick={() =>
-                          addNodeByClick(
-                            item
-                          )
-                        }
-                      >
-                        <div
-                          className={`
-                            workflowLibraryItemIcon
-                            workflowIcon-${item.shape}
-                          `}
-                        >
-                          {item.icon}
-                        </div>
-
-                        <div className="workflowLibraryItemText">
-                          <strong>
-                            {item.label}
-                          </strong>
-
-                          <span>
-                            {
-                              item.description
-                            }
-                          </span>
-                        </div>
-                      </button>
-                    )
-                  )}
-                </div>
+          {filteredCatalog.map((group) => (
+            <div className="workflowGroup" key={group.group}>
+              <div className="workflowGroupTitle">
+                {group.group}
               </div>
-            )
-          )}
+
+              <div className="workflowGroupItems">
+                {group.items.map((item) => (
+                  <button
+                    key={item.type}
+                    className="workflowLibraryItem"
+                    draggable
+                    onDragStart={(event) =>
+                      onDragStart(event, item)
+                    }
+                    onClick={() => addNodeByClick(item)}
+                  >
+                    <div
+                      className={`
+                        workflowLibraryItemIcon
+                        workflowIcon-${item.shape}
+                      `}
+                    >
+                      {item.icon}
+                    </div>
+
+                    <div className="workflowLibraryItemText">
+                      <strong>{item.label}</strong>
+                      <span>{item.description}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </aside>
-
-      {/* BOARD */}
 
       <section
         className={`
           workflowBoard
-          ${
-            showExecutionPanel
-              ? 'withExecutionPanel'
-              : ''
-          }
+          ${showExecutionPanel ? 'withExecutionPanel' : ''}
         `}
       >
         <div className="workflowBoardTopbar">
           <div className="workflowBoardTitle">
-            <strong>
-              Workflow Canvas
-            </strong>
-
+            <strong>Workflow Canvas</strong>
             <span>
-              {nodes.length} nodes
-              {' • '}
-              {edges.length} connections
+              {nodes.length} nodes • {edges.length} connections
             </span>
           </div>
 
@@ -2255,44 +1548,26 @@ export default function WorkflowBuilder({
 
             <button
               className="workflowActionButton"
-              onClick={() =>
-                validateWorkflow(
-                  true
-                )
-              }
-              disabled={
-                runStatus ===
-                'running'
-              }
+              onClick={() => validateWorkflow(true)}
+              disabled={runStatus === 'running'}
             >
               ✓ Validate
             </button>
 
             <button
               className="workflowActionButton workflowTestButton"
-              onClick={
-                testWorkflow
-              }
-              disabled={
-                runStatus ===
-                  'running'
-              }
+              onClick={testWorkflow}
+              disabled={runStatus === 'running'}
             >
-              {runStatus ===
-              'running'
+              {runStatus === 'running'
                 ? 'Running...'
                 : '▶ Test Run'}
             </button>
 
             <button
               className="workflowActionButton"
-              onClick={
-                clearWorkflow
-              }
-              disabled={
-                runStatus ===
-                  'running'
-              }
+              onClick={clearWorkflow}
+              disabled={runStatus === 'running'}
             >
               Clear
             </button>
@@ -2301,66 +1576,30 @@ export default function WorkflowBuilder({
 
         <div
           className="workflowCanvasShell"
-          onDragOver={
-            onDragOver
-          }
-          onDrop={
-            onDrop
-          }
+          onDragOver={onDragOver}
+          onDrop={onDrop}
         >
           <ReactFlow
-            nodes={
-              displayNodes
-            }
-            edges={
-              edges
-            }
-            nodeTypes={
-              nodeTypes
-            }
-            onInit={
-              setReactFlowInstance
-            }
-            onNodesChange={
-              onNodesChange
-            }
-            onEdgesChange={
-              onEdgesChange
-            }
-            onConnect={
-              onConnect
-            }
-            onNodeClick={(
-              event,
-              node
-            ) => {
-              setSelectedNode(
-                node
-              );
+            nodes={displayNodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onInit={setReactFlowInstance}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onNodeClick={(event, node) => {
+              setSelectedNode(node);
             }}
-            onPaneClick={() =>
-              setSelectedNode(
-                null
-              )
-            }
-            deleteKeyCode={[
-              'Backspace',
-              'Delete',
-            ]}
+            onPaneClick={() => setSelectedNode(null)}
+            deleteKeyCode={['Backspace', 'Delete']}
             defaultEdgeOptions={{
               style: {
-                stroke:
-                  '#666',
-
+                stroke: '#666',
                 strokeWidth: 2,
               },
-
               markerEnd: {
-                type:
-                  MarkerType.ArrowClosed,
-
-                color:
-                  '#888',
+                type: MarkerType.ArrowClosed,
+                color: '#888',
               },
             }}
             fitView
@@ -2374,43 +1613,30 @@ export default function WorkflowBuilder({
             <Controls />
 
             <MiniMap
-              nodeColor={(
-                node
-              ) =>
-                getTheme(
-                  node.data
-                    ?.nodeType
-                )
+              nodeColor={(node) =>
+                getTheme(node.data?.nodeType)
               }
               maskColor="rgba(0,0,0,0.65)"
               style={{
-                background:
-                  '#151515',
-
-                border:
-                  '1px solid #2e2e2e',
+                background: '#151515',
+                border: '1px solid #2e2e2e',
               }}
             />
           </ReactFlow>
         </div>
 
-        {/* VALIDATION / TEST PANEL */}
-
         {showExecutionPanel && (
           <div className="workflowExecutionPanel">
-
             <div className="workflowExecutionHeader">
               <div>
                 <strong>
-                  {panelMode ===
-                  'validation'
+                  {panelMode === 'validation'
                     ? 'Workflow Validation'
                     : 'Test Run'}
                 </strong>
 
                 <span>
-                  {panelMode ===
-                  'validation'
+                  {panelMode === 'validation'
                     ? 'Check workflow structure and required configuration'
                     : 'Safe simulation. No external actions will execute.'}
                 </span>
@@ -2418,28 +1644,18 @@ export default function WorkflowBuilder({
 
               <button
                 className="workflowExecutionClose"
-                onClick={() =>
-                  setPanelMode(
-                    null
-                  )
-                }
+                onClick={() => setPanelMode(null)}
               >
                 ×
               </button>
             </div>
 
             <div className="workflowExecutionBody">
-
-              {panelMode ===
-                'validation' && (
+              {panelMode === 'validation' && (
                 <>
-                  {validationIssues.length ===
-                  0 ? (
+                  {validationIssues.length === 0 ? (
                     <div className="workflowValidationSuccess">
-                      <strong>
-                        ✓ Workflow valid
-                      </strong>
-
+                      <strong>✓ Workflow valid</strong>
                       <span>
                         No blocking issues found. Ready for a test run.
                       </span>
@@ -2447,172 +1663,112 @@ export default function WorkflowBuilder({
                   ) : (
                     <div className="workflowValidationList">
                       <div className="workflowValidationSummary">
-                        {
-                          validationIssues.length
-                        }{' '}
+                        {validationIssues.length}{' '}
                         issue
-                        {validationIssues.length !==
-                        1
-                          ? 's'
-                          : ''}{' '}
+                        {validationIssues.length !== 1 ? 's' : ''}{' '}
                         found
                       </div>
 
-                      {validationIssues.map(
-                        (
-                          issue,
-                          index
-                        ) => (
-                          <button
-                            key={`${issue.nodeId}-${index}`}
-                            className="workflowValidationItem"
-                            onClick={() => {
-                              if (
-                                !issue.nodeId
-                              ) {
-                                return;
-                              }
+                      {validationIssues.map((issue, index) => (
+                        <button
+                          key={`${issue.nodeId}-${index}`}
+                          className="workflowValidationItem"
+                          onClick={() => {
+                            if (!issue.nodeId) return;
 
-                              const node =
-                                nodes.find(
-                                  (
-                                    item
-                                  ) =>
-                                    item.id ===
-                                    issue.nodeId
-                                );
+                            const node = nodes.find(
+                              (item) => item.id === issue.nodeId
+                            );
 
-                              if (
-                                node
-                              ) {
-                                setSelectedNode(
-                                  node
-                                );
-                              }
-                            }}
-                          >
-                            <span>
-                              !
-                            </span>
-
-                            <p>
-                              {
-                                issue.message
-                              }
-                            </p>
-                          </button>
-                        )
-                      )}
+                            if (node) {
+                              setSelectedNode(node);
+                            }
+                          }}
+                        >
+                          <span>!</span>
+                          <p>{issue.message}</p>
+                        </button>
+                      ))}
                     </div>
                   )}
                 </>
               )}
 
-              {panelMode ===
-                'test' && (
+              {panelMode === 'test' && (
                 <div className="workflowRunSteps">
-
                   <div
                     className={`
                       workflowRunStatus
                       workflowRunStatus-${runStatus}
                     `}
                   >
-                    {runStatus ===
-                      'running' &&
-                      '● Test running'}
-
-                    {runStatus ===
-                      'completed' &&
-                      '✓ Test completed'}
-
-                    {runStatus ===
-                      'waiting' &&
-                      '◷ Waiting for human action'}
-
-                    {runStatus ===
-                      'blocked' &&
-                      '✕ Test blocked'}
+                    {runStatus === 'running' && '● Test running'}
+                    {runStatus === 'completed' && '✓ Test completed'}
+                    {runStatus === 'waiting' && '◷ Waiting for human action'}
+                    {runStatus === 'blocked' && '✕ Test blocked'}
+                    {runStatus === 'rejected' && '✕ Workflow rejected'}
                   </div>
 
-                  {runSteps.map(
-                    (
-                      step,
-                      index
-                    ) => (
-                      <div
-                        className={`
-                          workflowRunStep
-                          workflowRunStep-${step.status}
-                        `}
-                        key={
-                          step.nodeId
-                        }
-                      >
-                        <div className="workflowRunStepNumber">
-                          {index + 1}
-                        </div>
-
-                        <div className="workflowRunStepIcon">
-                          {
-                            step.icon
-                          }
-                        </div>
-
-                        <div className="workflowRunStepText">
-                          <strong>
-                            {
-                              step.name
-                            }
-                          </strong>
-
-                          <span>
-                            {
-                              step.note ||
-                              'Waiting...'
-                            }
-                          </span>
-                        </div>
-
-                        <div className="workflowRunStepState">
-                          {step.status ===
-                            'pending' &&
-                            'Pending'}
-
-                          {step.status ===
-                            'running' &&
-                            'Running'}
-
-                          {step.status ===
-                            'completed' &&
-                            '✓'}
-
-                          {step.status ===
-                            'waiting' &&
-                            'Waiting'}
-                        </div>
+                  {runSteps.map((step, index) => (
+                    <div
+                      className={`
+                        workflowRunStep
+                        workflowRunStep-${step.status}
+                      `}
+                      key={step.nodeId}
+                    >
+                      <div className="workflowRunStepNumber">
+                        {index + 1}
                       </div>
-                    )
-                  )}
+
+                      <div className="workflowRunStepIcon">
+                        {step.icon}
+                      </div>
+
+                      <div className="workflowRunStepText">
+                        <strong>{step.name}</strong>
+                        <span>{step.note || 'Waiting...'}</span>
+
+                        {step.status === 'waiting' && (
+                          <div className="workflowApprovalActions">
+                            <button
+                              className="workflowApproveButton"
+                              onClick={approveHumanStep}
+                            >
+                              ✓ Approve & Continue
+                            </button>
+
+                            <button
+                              className="workflowRejectButton"
+                              onClick={rejectHumanStep}
+                            >
+                              × Reject
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="workflowRunStepState">
+                        {step.status === 'pending' && 'Pending'}
+                        {step.status === 'running' && 'Running'}
+                        {step.status === 'completed' && '✓'}
+                        {step.status === 'waiting' && 'Waiting'}
+                        {step.status === 'rejected' && 'Rejected'}
+                        {step.status === 'skipped' && 'Skipped'}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
-
             </div>
           </div>
         )}
       </section>
 
-      {/* PROPERTIES */}
-
       <aside className="workflowInspector">
         <div className="workflowInspectorHeader">
-          <h3>
-            Properties
-          </h3>
-
-          <span>
-            Configure selected block
-          </span>
+          <h3>Properties</h3>
+          <span>Configure selected block</span>
         </div>
 
         {!selectedNode ? (
@@ -2627,178 +1783,103 @@ export default function WorkflowBuilder({
           </div>
         ) : (
           <div className="workflowInspectorForm">
-
             <div className="workflowInspectorType">
-              {
-                selectedNode.data
-                  .icon
-              }
-
-              <span>
-                {
-                  selectedNode.data
-                    .group
-                }
-              </span>
+              {selectedNode.data.icon}
+              <span>{selectedNode.data.group}</span>
             </div>
 
-            <label>
-              Block Name
-            </label>
+            <label>Block Name</label>
 
             <input
-              value={
-                selectedNode.data
-                  .name || ''
-              }
+              value={selectedNode.data.name || ''}
               onChange={(e) =>
-                updateNodeField(
-                  'name',
-                  e.target.value
-                )
+                updateNodeField('name', e.target.value)
               }
             />
 
-            <label>
-              Description
-            </label>
+            <label>Description</label>
 
             <textarea
               rows={3}
-              value={
-                selectedNode.data
-                  .description ||
-                ''
-              }
+              value={selectedNode.data.description || ''}
               onChange={(e) =>
-                updateNodeField(
-                  'description',
-                  e.target.value
-                )
+                updateNodeField('description', e.target.value)
               }
             />
 
-            {selectedSchema.length >
-              0 && (
+            {selectedSchema.length > 0 && (
               <>
                 <div className="workflowInspectorDivider">
                   Configuration
                 </div>
 
-                {selectedSchema.map(
-                  (field) => (
-                    <div
-                      className="workflowConfigField"
-                      key={
-                        field.key
-                      }
-                    >
-                      <label>
-                        {
-                          field.label
+                {selectedSchema.map((field) => (
+                  <div
+                    className="workflowConfigField"
+                    key={field.key}
+                  >
+                    <label>
+                      {field.label}
+                      {field.required ? ' *' : ''}
+                    </label>
+
+                    {field.type === 'textarea' && (
+                      <textarea
+                        rows={4}
+                        placeholder={field.placeholder || ''}
+                        value={
+                          selectedNode.data.config?.[field.key] || ''
                         }
+                        onChange={(e) =>
+                          updateNodeConfig(
+                            field.key,
+                            e.target.value
+                          )
+                        }
+                      />
+                    )}
 
-                        {field.required
-                          ? ' *'
-                          : ''}
-                      </label>
+                    {field.type === 'select' && (
+                      <select
+                        value={
+                          selectedNode.data.config?.[field.key] || ''
+                        }
+                        onChange={(e) =>
+                          updateNodeConfig(
+                            field.key,
+                            e.target.value
+                          )
+                        }
+                      >
+                        {field.options?.map((option) => (
+                          <option
+                            key={option}
+                            value={option}
+                          >
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    )}
 
-                      {field.type ===
-                        'textarea' && (
-                        <textarea
-                          rows={4}
-                          placeholder={
-                            field.placeholder ||
-                            ''
-                          }
+                    {field.type !== 'textarea' &&
+                      field.type !== 'select' && (
+                        <input
+                          type={field.type || 'text'}
+                          placeholder={field.placeholder || ''}
                           value={
-                            selectedNode
-                              .data
-                              .config?.[
-                              field.key
-                            ] || ''
+                            selectedNode.data.config?.[field.key] || ''
                           }
                           onChange={(e) =>
                             updateNodeConfig(
                               field.key,
-                              e.target
-                                .value
+                              e.target.value
                             )
                           }
                         />
                       )}
-
-                      {field.type ===
-                        'select' && (
-                        <select
-                          value={
-                            selectedNode
-                              .data
-                              .config?.[
-                              field.key
-                            ] || ''
-                          }
-                          onChange={(e) =>
-                            updateNodeConfig(
-                              field.key,
-                              e.target
-                                .value
-                            )
-                          }
-                        >
-                          {field.options?.map(
-                            (
-                              option
-                            ) => (
-                              <option
-                                key={
-                                  option
-                                }
-                                value={
-                                  option
-                                }
-                              >
-                                {
-                                  option
-                                }
-                              </option>
-                            )
-                          )}
-                        </select>
-                      )}
-
-                      {field.type !==
-                        'textarea' &&
-                        field.type !==
-                          'select' && (
-                          <input
-                            type={
-                              field.type ||
-                              'text'
-                            }
-                            placeholder={
-                              field.placeholder ||
-                              ''
-                            }
-                            value={
-                              selectedNode
-                                .data
-                                .config?.[
-                                field.key
-                              ] || ''
-                            }
-                            onChange={(e) =>
-                              updateNodeConfig(
-                                field.key,
-                                e.target
-                                  .value
-                              )
-                            }
-                          />
-                        )}
-                    </div>
-                  )
-                )}
+                  </div>
+                ))}
               </>
             )}
 
@@ -2806,29 +1887,24 @@ export default function WorkflowBuilder({
               Technical
             </div>
 
-            <label>
-              Node ID
-            </label>
+            <label>Node ID</label>
 
             <div className="workflowReadonly workflowIdBox">
-              {
-                selectedNode.id
-              }
+              {selectedNode.id}
             </div>
 
             <div className="workflowConfigNotice">
-              Visual configuration only. Test Run is simulated and will not send emails, call APIs, change databases, or alter external systems.
+              Visual configuration only. Test Run is simulated and will
+              not send emails, call APIs, change databases, or alter
+              external systems.
             </div>
 
             <button
               className="workflowDangerButton"
-              onClick={
-                deleteSelectedNode
-              }
+              onClick={deleteSelectedNode}
             >
               Delete Block
             </button>
-
           </div>
         )}
       </aside>
