@@ -1,6 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+
 import '@xyflow/react/dist/style.css';
 
 import {
@@ -241,7 +247,7 @@ const nodeCatalog = [
 ];
 
 /* =========================================================
-   CONFIGURATION FIELDS FOR EACH BLOCK
+   CONFIGURATION SCHEMAS
 ========================================================= */
 
 const configSchemas = {
@@ -252,12 +258,20 @@ const configSchemas = {
       key: 'frequency',
       label: 'Frequency',
       type: 'select',
-      options: ['Every Hour', 'Daily', 'Weekdays', 'Weekly', 'Monthly'],
+      required: true,
+      options: [
+        'Every Hour',
+        'Daily',
+        'Weekdays',
+        'Weekly',
+        'Monthly',
+      ],
     },
     {
       key: 'time',
       label: 'Run Time',
       type: 'time',
+      required: true,
     },
   ],
 
@@ -266,12 +280,14 @@ const configSchemas = {
       key: 'method',
       label: 'Method',
       type: 'select',
+      required: true,
       options: ['POST', 'GET'],
     },
     {
       key: 'path',
       label: 'Webhook Path',
       type: 'text',
+      required: true,
       placeholder: '/gst-upload',
     },
   ],
@@ -281,12 +297,14 @@ const configSchemas = {
       key: 'mailbox',
       label: 'Mailbox',
       type: 'text',
+      required: true,
       placeholder: 'accounts@firm.com',
     },
     {
       key: 'subjectContains',
       label: 'Subject Contains',
       type: 'text',
+      required: false,
       placeholder: 'GST documents',
     },
   ],
@@ -296,12 +314,14 @@ const configSchemas = {
       key: 'field',
       label: 'Field',
       type: 'text',
+      required: true,
       placeholder: 'invoice.amount',
     },
     {
       key: 'operator',
       label: 'Operator',
       type: 'select',
+      required: true,
       options: [
         'Equals',
         'Not Equals',
@@ -316,6 +336,7 @@ const configSchemas = {
       key: 'value',
       label: 'Value',
       type: 'text',
+      required: true,
     },
   ],
 
@@ -324,6 +345,7 @@ const configSchemas = {
       key: 'paths',
       label: 'Number of Paths',
       type: 'number',
+      required: true,
       placeholder: '2',
     },
   ],
@@ -333,7 +355,11 @@ const configSchemas = {
       key: 'mode',
       label: 'Merge Mode',
       type: 'select',
-      options: ['Wait for All', 'Continue on First'],
+      required: true,
+      options: [
+        'Wait for All',
+        'Continue on First',
+      ],
     },
   ],
 
@@ -342,13 +368,19 @@ const configSchemas = {
       key: 'amount',
       label: 'Delay',
       type: 'number',
+      required: true,
       placeholder: '10',
     },
     {
       key: 'unit',
       label: 'Unit',
       type: 'select',
-      options: ['Minutes', 'Hours', 'Days'],
+      required: true,
+      options: [
+        'Minutes',
+        'Hours',
+        'Days',
+      ],
     },
   ],
 
@@ -357,6 +389,7 @@ const configSchemas = {
       key: 'source',
       label: 'Items Source',
       type: 'text',
+      required: true,
       placeholder: 'invoices',
     },
   ],
@@ -366,6 +399,7 @@ const configSchemas = {
       key: 'reason',
       label: 'Reason',
       type: 'text',
+      required: false,
       placeholder: 'Workflow complete',
     },
   ],
@@ -375,13 +409,20 @@ const configSchemas = {
       key: 'prompt',
       label: 'Prompt',
       type: 'textarea',
-      placeholder: 'Analyse the following information...',
+      required: true,
+      placeholder:
+        'Analyse the following information...',
     },
     {
       key: 'outputFormat',
       label: 'Output Format',
       type: 'select',
-      options: ['Text', 'JSON', 'Table'],
+      required: true,
+      options: [
+        'Text',
+        'JSON',
+        'Table',
+      ],
     },
   ],
 
@@ -390,7 +431,9 @@ const configSchemas = {
       key: 'fields',
       label: 'Fields to Extract',
       type: 'textarea',
-      placeholder: 'Invoice No\nDate\nGSTIN\nTaxable Value',
+      required: true,
+      placeholder:
+        'Invoice No\nDate\nGSTIN\nTaxable Value',
     },
   ],
 
@@ -399,7 +442,9 @@ const configSchemas = {
       key: 'categories',
       label: 'Categories',
       type: 'textarea',
-      placeholder: 'Purchase\nSales\nBank\nExpense',
+      required: true,
+      placeholder:
+        'Purchase\nSales\nBank\nExpense',
     },
   ],
 
@@ -408,7 +453,9 @@ const configSchemas = {
       key: 'instructions',
       label: 'Summary Instructions',
       type: 'textarea',
-      placeholder: 'Summarise key issues and exceptions...',
+      required: true,
+      placeholder:
+        'Summarise key issues and exceptions...',
     },
   ],
 
@@ -417,12 +464,15 @@ const configSchemas = {
       key: 'application',
       label: 'Application',
       type: 'text',
-      placeholder: 'Tally / Outlook / GST Software',
+      required: true,
+      placeholder:
+        'Tally / Outlook / GST Software',
     },
     {
       key: 'action',
       label: 'Action',
       type: 'text',
+      required: true,
       placeholder: 'Create voucher',
     },
   ],
@@ -432,24 +482,35 @@ const configSchemas = {
       key: 'method',
       label: 'Method',
       type: 'select',
-      options: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+      required: true,
+      options: [
+        'GET',
+        'POST',
+        'PUT',
+        'PATCH',
+        'DELETE',
+      ],
     },
     {
       key: 'url',
       label: 'URL',
       type: 'text',
+      required: true,
       placeholder: 'https://...',
     },
     {
       key: 'headers',
       label: 'Headers',
       type: 'textarea',
-      placeholder: 'Content-Type: application/json',
+      required: false,
+      placeholder:
+        'Content-Type: application/json',
     },
     {
       key: 'body',
       label: 'Request Body',
       type: 'textarea',
+      required: false,
       placeholder: '{ }',
     },
   ],
@@ -459,12 +520,15 @@ const configSchemas = {
       key: 'plugin',
       label: 'Plugin',
       type: 'text',
-      placeholder: 'Gmail / Drive / CRM',
+      required: true,
+      placeholder:
+        'Gmail / Drive / CRM',
     },
     {
       key: 'action',
       label: 'Action',
       type: 'text',
+      required: true,
       placeholder: 'Search emails',
     },
   ],
@@ -474,13 +538,20 @@ const configSchemas = {
       key: 'connection',
       label: 'Connection',
       type: 'text',
+      required: true,
       placeholder: 'Firm Database',
     },
     {
       key: 'operation',
       label: 'Operation',
       type: 'select',
-      options: ['Read', 'Create', 'Update', 'Delete'],
+      required: true,
+      options: [
+        'Read',
+        'Create',
+        'Update',
+        'Delete',
+      ],
     },
   ],
 
@@ -489,19 +560,27 @@ const configSchemas = {
       key: 'file',
       label: 'File',
       type: 'text',
+      required: true,
       placeholder: 'GST Working.xlsx',
     },
     {
       key: 'sheet',
       label: 'Sheet',
       type: 'text',
+      required: true,
       placeholder: 'Reconciliation',
     },
     {
       key: 'operation',
       label: 'Operation',
       type: 'select',
-      options: ['Read Rows', 'Add Row', 'Update Row', 'Create Sheet'],
+      required: true,
+      options: [
+        'Read Rows',
+        'Add Row',
+        'Update Row',
+        'Create Sheet',
+      ],
     },
   ],
 
@@ -510,13 +589,21 @@ const configSchemas = {
       key: 'location',
       label: 'Folder / Location',
       type: 'text',
-      placeholder: 'Client/GST/FY2026',
+      required: true,
+      placeholder:
+        'Client/GST/FY2026',
     },
     {
       key: 'operation',
       label: 'Operation',
       type: 'select',
-      options: ['Read File', 'Save File', 'Move File', 'Rename File'],
+      required: true,
+      options: [
+        'Read File',
+        'Save File',
+        'Move File',
+        'Rename File',
+      ],
     },
   ],
 
@@ -525,13 +612,16 @@ const configSchemas = {
       key: 'approver',
       label: 'Approver',
       type: 'text',
+      required: true,
       placeholder: 'Senior CA',
     },
     {
       key: 'message',
       label: 'Approval Message',
       type: 'textarea',
-      placeholder: 'Please review and approve...',
+      required: false,
+      placeholder:
+        'Please review and approve...',
     },
   ],
 
@@ -540,12 +630,14 @@ const configSchemas = {
       key: 'assignee',
       label: 'Reviewer',
       type: 'text',
+      required: true,
       placeholder: 'Team Member',
     },
     {
       key: 'instructions',
       label: 'Review Instructions',
       type: 'textarea',
+      required: false,
     },
   ],
 
@@ -554,17 +646,20 @@ const configSchemas = {
       key: 'to',
       label: 'To',
       type: 'text',
+      required: true,
       placeholder: 'client@example.com',
     },
     {
       key: 'subject',
       label: 'Subject',
       type: 'text',
+      required: true,
     },
     {
       key: 'body',
       label: 'Body',
       type: 'textarea',
+      required: true,
     },
   ],
 
@@ -573,11 +668,13 @@ const configSchemas = {
       key: 'to',
       label: 'Recipient',
       type: 'text',
+      required: true,
     },
     {
       key: 'message',
       label: 'Message',
       type: 'textarea',
+      required: true,
     },
   ],
 
@@ -586,11 +683,13 @@ const configSchemas = {
       key: 'recipient',
       label: 'Recipient',
       type: 'text',
+      required: true,
     },
     {
       key: 'message',
       label: 'Message',
       type: 'textarea',
+      required: true,
     },
   ],
 
@@ -599,16 +698,42 @@ const configSchemas = {
       key: 'fileName',
       label: 'File Name',
       type: 'text',
+      required: true,
       placeholder: 'GST Review Pack',
     },
     {
       key: 'format',
       label: 'Format',
       type: 'select',
-      options: ['PDF', 'Excel', 'CSV', 'Word'],
+      required: true,
+      options: [
+        'PDF',
+        'Excel',
+        'CSV',
+        'Word',
+      ],
     },
   ],
 };
+
+/* =========================================================
+   TYPES
+========================================================= */
+
+const triggerTypes = [
+  'trigger',
+  'schedule',
+  'webhook',
+  'emailTrigger',
+];
+
+const terminalTypes = [
+  'stop',
+  'email',
+  'whatsapp',
+  'notification',
+  'file',
+];
 
 /* =========================================================
    HELPERS
@@ -653,12 +778,15 @@ function getTheme(type) {
 }
 
 function getDefaultConfig(type) {
-  const fields = configSchemas[type] || {};
+  const fields =
+    configSchemas[type] || [];
+
   const config = {};
 
   fields.forEach((field) => {
     if (field.type === 'select') {
-      config[field.key] = field.options?.[0] || '';
+      config[field.key] =
+        field.options?.[0] || '';
     } else {
       config[field.key] = '';
     }
@@ -667,18 +795,51 @@ function getDefaultConfig(type) {
   return config;
 }
 
+function sleep(ms) {
+  return new Promise((resolve) =>
+    setTimeout(resolve, ms)
+  );
+}
+
+function isEmpty(value) {
+  return (
+    value === null ||
+    value === undefined ||
+    String(value).trim() === ''
+  );
+}
+
 /* =========================================================
-   CUSTOM NODE
+   NODE
 ========================================================= */
 
-function WorkflowNode({ data, selected }) {
+function WorkflowNode({
+  data,
+  selected,
+}) {
   return (
     <div
-      className={`workflowNode ${
-        selected ? 'selected' : ''
-      } workflowNode-${data.shape || 'rounded'}`}
+      className={`
+        workflowNode
+        ${
+          selected
+            ? 'selected'
+            : ''
+        }
+        ${
+          data.hasValidationError
+            ? 'invalid'
+            : ''
+        }
+        workflowNode-${
+          data.shape || 'rounded'
+        }
+      `}
       style={{
-        '--node-accent': getTheme(data.nodeType),
+        '--node-accent':
+          getTheme(
+            data.nodeType
+          ),
       }}
     >
       <Handle
@@ -689,14 +850,24 @@ function WorkflowNode({ data, selected }) {
 
       <div className="workflowNodeTop">
         <div
-          className={`workflowNodeIcon workflowIcon-${data.shape || 'rounded'}`}
+          className={`
+            workflowNodeIcon
+            workflowIcon-${
+              data.shape || 'rounded'
+            }
+          `}
         >
           {data.icon}
         </div>
 
         <div className="workflowNodeText">
-          <strong>{data.name}</strong>
-          <span>{data.description}</span>
+          <strong>
+            {data.name}
+          </strong>
+
+          <span>
+            {data.description}
+          </span>
         </div>
       </div>
 
@@ -720,41 +891,122 @@ const nodeTypes = {
 };
 
 /* =========================================================
-   WORKFLOW BUILDER
+   MAIN
 ========================================================= */
 
-export default function WorkflowBuilder({ agentId }) {
-  const storageKey = `gra-workflow-${agentId}`;
+export default function WorkflowBuilder({
+  agentId,
+}) {
+  const storageKey =
+    `gra-workflow-${agentId}`;
 
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [
+    nodes,
+    setNodes,
+    onNodesChange,
+  ] = useNodesState([]);
 
-  const [selectedNode, setSelectedNode] = useState(null);
-  const [reactFlowInstance, setReactFlowInstance] = useState(null);
+  const [
+    edges,
+    setEdges,
+    onEdgesChange,
+  ] = useEdgesState([]);
 
-  const [loaded, setLoaded] = useState(false);
-  const [search, setSearch] = useState('');
+  const [
+    selectedNode,
+    setSelectedNode,
+  ] = useState(null);
 
-  /* LOAD SAVED WORKFLOW */
+  const [
+    reactFlowInstance,
+    setReactFlowInstance,
+  ] = useState(null);
+
+  const [
+    loaded,
+    setLoaded,
+  ] = useState(false);
+
+  const [
+    search,
+    setSearch,
+  ] = useState('');
+
+  const [
+    panelMode,
+    setPanelMode,
+  ] = useState(null);
+
+  const [
+    validationIssues,
+    setValidationIssues,
+  ] = useState([]);
+
+  const [
+    validationErrorIds,
+    setValidationErrorIds,
+  ] = useState([]);
+
+  const [
+    runSteps,
+    setRunSteps,
+  ] = useState([]);
+
+  const [
+    runStatus,
+    setRunStatus,
+  ] = useState('idle');
+
+  /* =======================================================
+     LOAD
+  ======================================================= */
 
   useEffect(() => {
-    const saved = localStorage.getItem(storageKey);
+    setLoaded(false);
+
+    const saved =
+      localStorage.getItem(
+        storageKey
+      );
 
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
+        const parsed =
+          JSON.parse(saved);
 
-        setNodes(parsed.nodes || []);
-        setEdges(parsed.edges || []);
+        setNodes(
+          parsed.nodes || []
+        );
+
+        setEdges(
+          parsed.edges || []
+        );
       } catch {
-        localStorage.removeItem(storageKey);
+        localStorage.removeItem(
+          storageKey
+        );
+
+        setNodes([]);
+        setEdges([]);
       }
+    } else {
+      setNodes([]);
+      setEdges([]);
     }
 
-    setLoaded(true);
-  }, [storageKey, setNodes, setEdges]);
+    setSelectedNode(null);
+    setPanelMode(null);
 
-  /* AUTO SAVE */
+    setLoaded(true);
+  }, [
+    storageKey,
+    setNodes,
+    setEdges,
+  ]);
+
+  /* =======================================================
+     AUTO SAVE
+  ======================================================= */
 
   useEffect(() => {
     if (!loaded) return;
@@ -766,289 +1018,1128 @@ export default function WorkflowBuilder({ agentId }) {
         edges,
       })
     );
-  }, [nodes, edges, loaded, storageKey]);
+  }, [
+    nodes,
+    edges,
+    loaded,
+    storageKey,
+  ]);
 
-  /* CONNECT NODES */
+  /* =======================================================
+     DISPLAY NODES WITH VALIDATION STATE
+  ======================================================= */
 
-  const onConnect = useCallback(
-    (params) => {
-      setEdges((current) =>
-        addEdge(
-          {
-            ...params,
+  const displayNodes =
+    useMemo(
+      () =>
+        nodes.map((node) => ({
+          ...node,
 
-            style: {
-              stroke: '#6a6a6a',
-              strokeWidth: 2,
-            },
+          data: {
+            ...node.data,
 
-            markerEnd: {
-              type: MarkerType.ArrowClosed,
-              color: '#8a8a8a',
-            },
+            hasValidationError:
+              validationErrorIds.includes(
+                node.id
+              ),
           },
-          current
-        )
-      );
-    },
-    [setEdges]
-  );
-
-  /* CREATE NODE */
-
-  const createNode = useCallback(
-    (template, position) => {
-      const parentGroup = nodeCatalog.find((group) =>
-        group.items.some(
-          (item) => item.type === template.type
-        )
-      );
-
-      const newNode = {
-        id: `${template.type}-${Date.now()}`,
-
-        type: 'workflowNode',
-
-        position,
-
-        data: {
-          name: template.label,
-          description: template.description,
-
-          nodeType: template.type,
-
-          icon: template.icon,
-
-          shape: template.shape,
-
-          group: parentGroup?.group || 'Block',
-
-          config: getDefaultConfig(template.type),
-        },
-      };
-
-      setNodes((current) => [
-        ...current,
-        newNode,
-      ]);
-    },
-    [setNodes]
-  );
-
-  /* CLICK TO ADD */
-
-  const addNodeByClick = (template) => {
-    createNode(template, {
-      x: 150 + Math.random() * 300,
-      y: 100 + Math.random() * 280,
-    });
-  };
-
-  /* DRAG FROM SIDEBAR */
-
-  const onDragStart = (event, template) => {
-    event.dataTransfer.setData(
-      'application/gra-workflow-node',
-      JSON.stringify(template)
+        })),
+      [
+        nodes,
+        validationErrorIds,
+      ]
     );
 
-    event.dataTransfer.effectAllowed = 'move';
-  };
+  /* =======================================================
+     CONNECTION
+  ======================================================= */
 
-  /* DROP INTO CANVAS */
+  const onConnect =
+    useCallback(
+      (params) => {
+        setEdges((current) =>
+          addEdge(
+            {
+              ...params,
 
-  const onDragOver = useCallback((event) => {
-    event.preventDefault();
+              style: {
+                stroke:
+                  '#6a6a6a',
 
-    event.dataTransfer.dropEffect = 'move';
-  }, []);
+                strokeWidth: 2,
+              },
 
-  const onDrop = useCallback(
-    (event) => {
-      event.preventDefault();
+              markerEnd: {
+                type:
+                  MarkerType.ArrowClosed,
 
-      if (!reactFlowInstance) return;
+                color:
+                  '#8a8a8a',
+              },
+            },
 
-      const rawData =
-        event.dataTransfer.getData(
-          'application/gra-workflow-node'
+            current
+          )
         );
 
-      if (!rawData) return;
-
-      try {
-        const template = JSON.parse(rawData);
-
-        const position =
-          reactFlowInstance.screenToFlowPosition({
-            x: event.clientX,
-            y: event.clientY,
-          });
-
-        createNode(template, position);
-      } catch {
-        return;
-      }
-    },
-    [reactFlowInstance, createNode]
-  );
-
-  /* UPDATE BASIC NODE FIELD */
-
-  const updateNodeField = (field, value) => {
-    if (!selectedNode) return;
-
-    setNodes((current) =>
-      current.map((node) =>
-        node.id === selectedNode.id
-          ? {
-              ...node,
-
-              data: {
-                ...node.data,
-
-                [field]: value,
-              },
-            }
-          : node
-      )
+        setPanelMode(null);
+      },
+      [setEdges]
     );
 
-    setSelectedNode((current) => ({
-      ...current,
+  /* =======================================================
+     CREATE NODE
+  ======================================================= */
 
-      data: {
-        ...current.data,
+  const createNode =
+    useCallback(
+      (
+        template,
+        position
+      ) => {
+        const parentGroup =
+          nodeCatalog.find(
+            (group) =>
+              group.items.some(
+                (item) =>
+                  item.type ===
+                  template.type
+              )
+          );
 
-        [field]: value,
+        const newNode = {
+          id:
+            `${template.type}-${Date.now()}`,
+
+          type:
+            'workflowNode',
+
+          position,
+
+          data: {
+            name:
+              template.label,
+
+            description:
+              template.description,
+
+            nodeType:
+              template.type,
+
+            icon:
+              template.icon,
+
+            shape:
+              template.shape,
+
+            group:
+              parentGroup?.group ||
+              'Block',
+
+            config:
+              getDefaultConfig(
+                template.type
+              ),
+          },
+        };
+
+        setNodes((current) => [
+          ...current,
+          newNode,
+        ]);
+
+        setPanelMode(null);
       },
-    }));
-  };
+      [setNodes]
+    );
 
-  /* UPDATE CONFIG */
+  /* =======================================================
+     CLICK ADD
+  ======================================================= */
 
-  const updateNodeConfig = (key, value) => {
-    if (!selectedNode) return;
+  const addNodeByClick =
+    (template) => {
+      createNode(
+        template,
+        {
+          x:
+            150 +
+            Math.random() *
+              300,
 
-    const newConfig = {
-      ...(selectedNode.data.config || {}),
-      [key]: value,
+          y:
+            100 +
+            Math.random() *
+              280,
+        }
+      );
     };
 
-    setNodes((current) =>
-      current.map((node) =>
-        node.id === selectedNode.id
-          ? {
-              ...node,
+  /* =======================================================
+     DRAG DROP
+  ======================================================= */
 
-              data: {
-                ...node.data,
-
-                config: newConfig,
-              },
-            }
-          : node
-      )
-    );
-
-    setSelectedNode((current) => ({
-      ...current,
-
-      data: {
-        ...current.data,
-
-        config: newConfig,
-      },
-    }));
-  };
-
-  /* DELETE NODE */
-
-  const deleteSelectedNode = () => {
-    if (!selectedNode) return;
-
-    setNodes((current) =>
-      current.filter(
-        (node) =>
-          node.id !== selectedNode.id
-      )
-    );
-
-    setEdges((current) =>
-      current.filter(
-        (edge) =>
-          edge.source !== selectedNode.id &&
-          edge.target !== selectedNode.id
-      )
-    );
-
-    setSelectedNode(null);
-  };
-
-  /* CLEAR */
-
-  const clearWorkflow = () => {
-    const confirmed = window.confirm(
-      'Clear this entire workflow?'
-    );
-
-    if (!confirmed) return;
-
-    setNodes([]);
-    setEdges([]);
-    setSelectedNode(null);
-  };
-
-  /* SEARCH */
-
-  const filteredCatalog = useMemo(() => {
-    if (!search.trim()) return nodeCatalog;
-
-    const query = search.toLowerCase();
-
-    return nodeCatalog
-      .map((group) => ({
-        ...group,
-
-        items: group.items.filter(
-          (item) =>
-            item.label
-              .toLowerCase()
-              .includes(query) ||
-
-            item.description
-              .toLowerCase()
-              .includes(query) ||
-
-            group.group
-              .toLowerCase()
-              .includes(query)
-        ),
-      }))
-      .filter(
-        (group) =>
-          group.items.length > 0
+  const onDragStart =
+    (
+      event,
+      template
+    ) => {
+      event.dataTransfer.setData(
+        'application/gra-workflow-node',
+        JSON.stringify(
+          template
+        )
       );
-  }, [search]);
+
+      event.dataTransfer.effectAllowed =
+        'move';
+    };
+
+  const onDragOver =
+    useCallback(
+      (event) => {
+        event.preventDefault();
+
+        event.dataTransfer.dropEffect =
+          'move';
+      },
+      []
+    );
+
+  const onDrop =
+    useCallback(
+      (event) => {
+        event.preventDefault();
+
+        if (
+          !reactFlowInstance
+        ) {
+          return;
+        }
+
+        const rawData =
+          event.dataTransfer.getData(
+            'application/gra-workflow-node'
+          );
+
+        if (!rawData) {
+          return;
+        }
+
+        try {
+          const template =
+            JSON.parse(
+              rawData
+            );
+
+          const position =
+            reactFlowInstance
+              .screenToFlowPosition(
+                {
+                  x:
+                    event.clientX,
+
+                  y:
+                    event.clientY,
+                }
+              );
+
+          createNode(
+            template,
+            position
+          );
+        } catch {
+          return;
+        }
+      },
+      [
+        reactFlowInstance,
+        createNode,
+      ]
+    );
+
+  /* =======================================================
+     EDIT NODE
+  ======================================================= */
+
+  const updateNodeField =
+    (
+      field,
+      value
+    ) => {
+      if (!selectedNode) {
+        return;
+      }
+
+      setNodes((current) =>
+        current.map(
+          (node) =>
+            node.id ===
+            selectedNode.id
+              ? {
+                  ...node,
+
+                  data: {
+                    ...node.data,
+
+                    [field]:
+                      value,
+                  },
+                }
+              : node
+        )
+      );
+
+      setSelectedNode(
+        (current) => ({
+          ...current,
+
+          data: {
+            ...current.data,
+
+            [field]:
+              value,
+          },
+        })
+      );
+
+      setPanelMode(null);
+    };
+
+  const updateNodeConfig =
+    (
+      key,
+      value
+    ) => {
+      if (!selectedNode) {
+        return;
+      }
+
+      const newConfig = {
+        ...(
+          selectedNode.data
+            .config || {}
+        ),
+
+        [key]:
+          value,
+      };
+
+      setNodes((current) =>
+        current.map(
+          (node) =>
+            node.id ===
+            selectedNode.id
+              ? {
+                  ...node,
+
+                  data: {
+                    ...node.data,
+
+                    config:
+                      newConfig,
+                  },
+                }
+              : node
+        )
+      );
+
+      setSelectedNode(
+        (current) => ({
+          ...current,
+
+          data: {
+            ...current.data,
+
+            config:
+              newConfig,
+          },
+        })
+      );
+
+      setPanelMode(null);
+    };
+
+  /* =======================================================
+     DELETE
+  ======================================================= */
+
+  const deleteSelectedNode =
+    () => {
+      if (!selectedNode) {
+        return;
+      }
+
+      setNodes((current) =>
+        current.filter(
+          (node) =>
+            node.id !==
+            selectedNode.id
+        )
+      );
+
+      setEdges((current) =>
+        current.filter(
+          (edge) =>
+            edge.source !==
+              selectedNode.id &&
+            edge.target !==
+              selectedNode.id
+        )
+      );
+
+      setSelectedNode(null);
+      setPanelMode(null);
+    };
+
+  /* =======================================================
+     CLEAR
+  ======================================================= */
+
+  const clearWorkflow =
+    () => {
+      const confirmed =
+        window.confirm(
+          'Clear this entire workflow?'
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setNodes([]);
+      setEdges([]);
+
+      setSelectedNode(null);
+
+      setValidationIssues([]);
+      setValidationErrorIds([]);
+
+      setRunSteps([]);
+
+      setPanelMode(null);
+      setRunStatus('idle');
+    };
+
+  /* =======================================================
+     VALIDATION ENGINE
+  ======================================================= */
+
+  const validateWorkflow =
+    (
+      openPanel = true
+    ) => {
+      const issues = [];
+
+      if (
+        nodes.length === 0
+      ) {
+        issues.push({
+          nodeId: null,
+
+          message:
+            'Workflow has no blocks.',
+        });
+      }
+
+      const triggers =
+        nodes.filter(
+          (node) =>
+            triggerTypes.includes(
+              node.data.nodeType
+            )
+        );
+
+      if (
+        nodes.length > 0 &&
+        triggers.length === 0
+      ) {
+        issues.push({
+          nodeId: null,
+
+          message:
+            'Add one trigger to start the workflow.',
+        });
+      }
+
+      if (
+        triggers.length > 1
+      ) {
+        triggers.forEach(
+          (trigger) => {
+            issues.push({
+              nodeId:
+                trigger.id,
+
+              message:
+                `${trigger.data.name}: only one trigger is allowed in this MVP.`,
+            });
+          }
+        );
+      }
+
+      const incomingMap = {};
+      const outgoingMap = {};
+
+      nodes.forEach(
+        (node) => {
+          incomingMap[
+            node.id
+          ] = [];
+
+          outgoingMap[
+            node.id
+          ] = [];
+        }
+      );
+
+      edges.forEach(
+        (edge) => {
+          if (
+            outgoingMap[
+              edge.source
+            ]
+          ) {
+            outgoingMap[
+              edge.source
+            ].push(
+              edge.target
+            );
+          }
+
+          if (
+            incomingMap[
+              edge.target
+            ]
+          ) {
+            incomingMap[
+              edge.target
+            ].push(
+              edge.source
+            );
+          }
+        }
+      );
+
+      nodes.forEach(
+        (node) => {
+          const type =
+            node.data.nodeType;
+
+          const incoming =
+            incomingMap[
+              node.id
+            ] || [];
+
+          const outgoing =
+            outgoingMap[
+              node.id
+            ] || [];
+
+          const isTrigger =
+            triggerTypes.includes(
+              type
+            );
+
+          if (
+            isTrigger &&
+            incoming.length > 0
+          ) {
+            issues.push({
+              nodeId:
+                node.id,
+
+              message:
+                `${node.data.name}: trigger cannot have an incoming connection.`,
+            });
+          }
+
+          if (
+            !isTrigger &&
+            incoming.length === 0
+          ) {
+            issues.push({
+              nodeId:
+                node.id,
+
+              message:
+                `${node.data.name}: block is not connected to a previous step.`,
+            });
+          }
+
+          if (
+            !terminalTypes.includes(
+              type
+            ) &&
+            outgoing.length === 0
+          ) {
+            issues.push({
+              nodeId:
+                node.id,
+
+              message:
+                `${node.data.name}: no next step is connected.`,
+            });
+          }
+
+          if (
+            (
+              type ===
+                'condition' ||
+              type ===
+                'router'
+            ) &&
+            outgoing.length < 2
+          ) {
+            issues.push({
+              nodeId:
+                node.id,
+
+              message:
+                `${node.data.name}: connect at least two output paths.`,
+            });
+          }
+
+          const schema =
+            configSchemas[
+              type
+            ] || [];
+
+          schema.forEach(
+            (field) => {
+              if (
+                field.required &&
+                isEmpty(
+                  node.data
+                    .config?.[
+                    field.key
+                  ]
+                )
+              ) {
+                issues.push({
+                  nodeId:
+                    node.id,
+
+                  message:
+                    `${node.data.name}: ${field.label} is required.`,
+                });
+              }
+            }
+          );
+        }
+      );
+
+      /* Reachability from trigger */
+
+      if (
+        triggers.length === 1
+      ) {
+        const reachable =
+          new Set();
+
+        const queue = [
+          triggers[0].id,
+        ];
+
+        while (
+          queue.length > 0
+        ) {
+          const current =
+            queue.shift();
+
+          if (
+            reachable.has(
+              current
+            )
+          ) {
+            continue;
+          }
+
+          reachable.add(
+            current
+          );
+
+          const nextNodes =
+            outgoingMap[
+              current
+            ] || [];
+
+          nextNodes.forEach(
+            (nextId) => {
+              if (
+                !reachable.has(
+                  nextId
+                )
+              ) {
+                queue.push(
+                  nextId
+                );
+              }
+            }
+          );
+        }
+
+        nodes.forEach(
+          (node) => {
+            if (
+              !reachable.has(
+                node.id
+              )
+            ) {
+              issues.push({
+                nodeId:
+                  node.id,
+
+                message:
+                  `${node.data.name}: block cannot be reached from the trigger.`,
+              });
+            }
+          }
+        );
+      }
+
+      /* Remove duplicate messages */
+
+      const uniqueIssues =
+        issues.filter(
+          (
+            issue,
+            index,
+            array
+          ) =>
+            array.findIndex(
+              (other) =>
+                other.nodeId ===
+                  issue.nodeId &&
+                other.message ===
+                  issue.message
+            ) === index
+        );
+
+      setValidationIssues(
+        uniqueIssues
+      );
+
+      setValidationErrorIds(
+        [
+          ...new Set(
+            uniqueIssues
+              .map(
+                (issue) =>
+                  issue.nodeId
+              )
+              .filter(Boolean)
+          ),
+        ]
+      );
+
+      if (openPanel) {
+        setPanelMode(
+          'validation'
+        );
+
+        setRunSteps([]);
+        setRunStatus('idle');
+      }
+
+      return uniqueIssues;
+    };
+
+  /* =======================================================
+     BUILD TEST EXECUTION ORDER
+  ======================================================= */
+
+  const buildExecutionOrder =
+    () => {
+      const trigger =
+        nodes.find(
+          (node) =>
+            triggerTypes.includes(
+              node.data.nodeType
+            )
+        );
+
+      if (!trigger) {
+        return [];
+      }
+
+      const nodeMap =
+        Object.fromEntries(
+          nodes.map(
+            (node) => [
+              node.id,
+              node,
+            ]
+          )
+        );
+
+      const adjacency = {};
+
+      nodes.forEach(
+        (node) => {
+          adjacency[
+            node.id
+          ] = [];
+        }
+      );
+
+      edges.forEach(
+        (edge) => {
+          if (
+            adjacency[
+              edge.source
+            ]
+          ) {
+            adjacency[
+              edge.source
+            ].push(
+              edge.target
+            );
+          }
+        }
+      );
+
+      const queue = [
+        trigger.id,
+      ];
+
+      const visited =
+        new Set();
+
+      const ordered = [];
+
+      while (
+        queue.length > 0
+      ) {
+        const id =
+          queue.shift();
+
+        if (
+          visited.has(id)
+        ) {
+          continue;
+        }
+
+        visited.add(id);
+
+        const node =
+          nodeMap[id];
+
+        if (node) {
+          ordered.push(
+            node
+          );
+        }
+
+        (
+          adjacency[id] ||
+          []
+        ).forEach(
+          (nextId) => {
+            if (
+              !visited.has(
+                nextId
+              )
+            ) {
+              queue.push(
+                nextId
+              );
+            }
+          }
+        );
+      }
+
+      return ordered;
+    };
+
+  /* =======================================================
+     TEST RUN
+  ======================================================= */
+
+  const testWorkflow =
+    async () => {
+      const issues =
+        validateWorkflow(
+          false
+        );
+
+      if (
+        issues.length > 0
+      ) {
+        setPanelMode(
+          'validation'
+        );
+
+        setRunStatus(
+          'blocked'
+        );
+
+        return;
+      }
+
+      const orderedNodes =
+        buildExecutionOrder();
+
+      const initialSteps =
+        orderedNodes.map(
+          (node) => ({
+            nodeId:
+              node.id,
+
+            name:
+              node.data.name,
+
+            type:
+              node.data.nodeType,
+
+            icon:
+              node.data.icon,
+
+            status:
+              'pending',
+
+            note: '',
+          })
+        );
+
+      setRunSteps(
+        initialSteps
+      );
+
+      setPanelMode(
+        'test'
+      );
+
+      setRunStatus(
+        'running'
+      );
+
+      setValidationErrorIds(
+        []
+      );
+
+      for (
+        let index = 0;
+        index <
+        orderedNodes.length;
+        index += 1
+      ) {
+        const node =
+          orderedNodes[
+            index
+          ];
+
+        setRunSteps(
+          (current) =>
+            current.map(
+              (
+                step,
+                stepIndex
+              ) =>
+                stepIndex ===
+                index
+                  ? {
+                      ...step,
+
+                      status:
+                        'running',
+
+                      note:
+                        'Simulating...',
+                    }
+                  : step
+            )
+        );
+
+        await sleep(500);
+
+        const type =
+          node.data.nodeType;
+
+        /* Human stops */
+
+        if (
+          type ===
+            'approval' ||
+          type ===
+            'review'
+        ) {
+          setRunSteps(
+            (current) =>
+              current.map(
+                (
+                  step,
+                  stepIndex
+                ) =>
+                  stepIndex ===
+                  index
+                    ? {
+                        ...step,
+
+                        status:
+                          'waiting',
+
+                        note:
+                          'Waiting for human action',
+                      }
+                    : step
+              )
+          );
+
+          setRunStatus(
+            'waiting'
+          );
+
+          return;
+        }
+
+        let note =
+          'Simulated successfully';
+
+        if (
+          type ===
+            'condition'
+        ) {
+          note =
+            'Simulated result: True';
+        }
+
+        if (
+          [
+            'aiPrompt',
+            'extract',
+            'classify',
+            'summarize',
+          ].includes(type)
+        ) {
+          note =
+            'AI step simulated. No model was called.';
+        }
+
+        if (
+          [
+            'connector',
+            'api',
+            'plugin',
+            'database',
+            'spreadsheet',
+            'fileStorage',
+            'email',
+            'whatsapp',
+            'notification',
+            'file',
+          ].includes(type)
+        ) {
+          note =
+            'External action simulated. Nothing was sent or changed.';
+        }
+
+        if (
+          type ===
+            'delay'
+        ) {
+          note =
+            'Delay simulated. No real waiting occurred.';
+        }
+
+        setRunSteps(
+          (current) =>
+            current.map(
+              (
+                step,
+                stepIndex
+              ) =>
+                stepIndex ===
+                index
+                  ? {
+                      ...step,
+
+                      status:
+                        'completed',
+
+                      note,
+                    }
+                  : step
+            )
+        );
+      }
+
+      setRunStatus(
+        'completed'
+      );
+    };
+
+  /* =======================================================
+     SEARCH
+  ======================================================= */
+
+  const filteredCatalog =
+    useMemo(() => {
+      if (!search.trim()) {
+        return nodeCatalog;
+      }
+
+      const query =
+        search.toLowerCase();
+
+      return nodeCatalog
+        .map(
+          (group) => ({
+            ...group,
+
+            items:
+              group.items.filter(
+                (item) =>
+                  item.label
+                    .toLowerCase()
+                    .includes(
+                      query
+                    ) ||
+                  item.description
+                    .toLowerCase()
+                    .includes(
+                      query
+                    ) ||
+                  group.group
+                    .toLowerCase()
+                    .includes(
+                      query
+                    )
+              ),
+          })
+        )
+        .filter(
+          (group) =>
+            group.items
+              .length > 0
+        );
+    }, [search]);
 
   const selectedSchema =
     selectedNode
       ? configSchemas[
-          selectedNode.data.nodeType
+          selectedNode.data
+            .nodeType
         ] || []
       : [];
+
+  const showExecutionPanel =
+    panelMode !== null;
+
+  /* =======================================================
+     UI
+  ======================================================= */
 
   return (
     <div className="workflowBuilder">
 
-      {/* =====================================================
-          LEFT BLOCK LIBRARY
-      ===================================================== */}
+      {/* LEFT LIBRARY */}
 
       <aside className="workflowSidebar">
-
         <div className="workflowSidebarHeader">
-          <h3>Workflow Blocks</h3>
+          <h3>
+            Workflow Blocks
+          </h3>
 
           <span>
             Drag onto canvas or click
@@ -1058,75 +2149,93 @@ export default function WorkflowBuilder({ agentId }) {
         <div className="workflowSearchBox">
           <input
             type="text"
-
             placeholder="Search triggers, AI, apps..."
-
             value={search}
-
             onChange={(e) =>
-              setSearch(e.target.value)
+              setSearch(
+                e.target.value
+              )
             }
           />
         </div>
 
         <div className="workflowGroups">
-          {filteredCatalog.map((group) => (
-            <div
-              className="workflowGroup"
-              key={group.group}
-            >
-              <div className="workflowGroupTitle">
-                {group.group}
+          {filteredCatalog.map(
+            (group) => (
+              <div
+                className="workflowGroup"
+                key={group.group}
+              >
+                <div className="workflowGroupTitle">
+                  {group.group}
+                </div>
+
+                <div className="workflowGroupItems">
+                  {group.items.map(
+                    (item) => (
+                      <button
+                        key={
+                          item.type
+                        }
+                        className="workflowLibraryItem"
+                        draggable
+                        onDragStart={(
+                          event
+                        ) =>
+                          onDragStart(
+                            event,
+                            item
+                          )
+                        }
+                        onClick={() =>
+                          addNodeByClick(
+                            item
+                          )
+                        }
+                      >
+                        <div
+                          className={`
+                            workflowLibraryItemIcon
+                            workflowIcon-${item.shape}
+                          `}
+                        >
+                          {item.icon}
+                        </div>
+
+                        <div className="workflowLibraryItemText">
+                          <strong>
+                            {item.label}
+                          </strong>
+
+                          <span>
+                            {
+                              item.description
+                            }
+                          </span>
+                        </div>
+                      </button>
+                    )
+                  )}
+                </div>
               </div>
-
-              <div className="workflowGroupItems">
-                {group.items.map((item) => (
-                  <button
-                    key={item.type}
-
-                    className="workflowLibraryItem"
-
-                    draggable
-
-                    onDragStart={(event) =>
-                      onDragStart(event, item)
-                    }
-
-                    onClick={() =>
-                      addNodeByClick(item)
-                    }
-                  >
-                    <div
-                      className={`workflowLibraryItemIcon workflowIcon-${item.shape}`}
-                    >
-                      {item.icon}
-                    </div>
-
-                    <div className="workflowLibraryItemText">
-                      <strong>
-                        {item.label}
-                      </strong>
-
-                      <span>
-                        {item.description}
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
+            )
+          )}
         </div>
       </aside>
 
-      {/* =====================================================
-          CENTER WORKFLOW BOARD
-      ===================================================== */}
+      {/* BOARD */}
 
-      <section className="workflowBoard">
-
+      <section
+        className={`
+          workflowBoard
+          ${
+            showExecutionPanel
+              ? 'withExecutionPanel'
+              : ''
+          }
+        `}
+      >
         <div className="workflowBoardTopbar">
-
           <div className="workflowBoardTitle">
             <strong>
               Workflow Canvas
@@ -1140,67 +2249,109 @@ export default function WorkflowBuilder({ agentId }) {
           </div>
 
           <div className="workflowBoardActions">
-
             <span className="workflowDraftStatus">
               Saved locally
             </span>
 
             <button
-              onClick={clearWorkflow}
+              className="workflowActionButton"
+              onClick={() =>
+                validateWorkflow(
+                  true
+                )
+              }
+              disabled={
+                runStatus ===
+                'running'
+              }
+            >
+              ✓ Validate
+            </button>
+
+            <button
+              className="workflowActionButton workflowTestButton"
+              onClick={
+                testWorkflow
+              }
+              disabled={
+                runStatus ===
+                  'running'
+              }
+            >
+              {runStatus ===
+              'running'
+                ? 'Running...'
+                : '▶ Test Run'}
+            </button>
+
+            <button
+              className="workflowActionButton"
+              onClick={
+                clearWorkflow
+              }
+              disabled={
+                runStatus ===
+                  'running'
+              }
             >
               Clear
             </button>
-
           </div>
-
         </div>
 
         <div
           className="workflowCanvasShell"
-
-          onDragOver={onDragOver}
-
-          onDrop={onDrop}
+          onDragOver={
+            onDragOver
+          }
+          onDrop={
+            onDrop
+          }
         >
-
           <ReactFlow
-            nodes={nodes}
-
-            edges={edges}
-
-            nodeTypes={nodeTypes}
-
-            onInit={setReactFlowInstance}
-
+            nodes={
+              displayNodes
+            }
+            edges={
+              edges
+            }
+            nodeTypes={
+              nodeTypes
+            }
+            onInit={
+              setReactFlowInstance
+            }
             onNodesChange={
               onNodesChange
             }
-
             onEdgesChange={
               onEdgesChange
             }
-
-            onConnect={onConnect}
-
+            onConnect={
+              onConnect
+            }
             onNodeClick={(
               event,
               node
             ) => {
-              setSelectedNode(node);
+              setSelectedNode(
+                node
+              );
             }}
-
             onPaneClick={() =>
-              setSelectedNode(null)
+              setSelectedNode(
+                null
+              )
             }
-
             deleteKeyCode={[
               'Backspace',
               'Delete',
             ]}
-
             defaultEdgeOptions={{
               style: {
-                stroke: '#666',
+                stroke:
+                  '#666',
+
                 strokeWidth: 2,
               },
 
@@ -1208,13 +2359,12 @@ export default function WorkflowBuilder({ agentId }) {
                 type:
                   MarkerType.ArrowClosed,
 
-                color: '#888',
+                color:
+                  '#888',
               },
             }}
-
             fitView
           >
-
             <Background
               gap={22}
               size={1}
@@ -1224,34 +2374,241 @@ export default function WorkflowBuilder({ agentId }) {
             <Controls />
 
             <MiniMap
-              nodeColor={(node) =>
+              nodeColor={(
+                node
+              ) =>
                 getTheme(
-                  node.data?.nodeType
+                  node.data
+                    ?.nodeType
                 )
               }
-
               maskColor="rgba(0,0,0,0.65)"
-
               style={{
-                background: '#151515',
+                background:
+                  '#151515',
+
                 border:
                   '1px solid #2e2e2e',
               }}
             />
-
           </ReactFlow>
-
         </div>
+
+        {/* VALIDATION / TEST PANEL */}
+
+        {showExecutionPanel && (
+          <div className="workflowExecutionPanel">
+
+            <div className="workflowExecutionHeader">
+              <div>
+                <strong>
+                  {panelMode ===
+                  'validation'
+                    ? 'Workflow Validation'
+                    : 'Test Run'}
+                </strong>
+
+                <span>
+                  {panelMode ===
+                  'validation'
+                    ? 'Check workflow structure and required configuration'
+                    : 'Safe simulation. No external actions will execute.'}
+                </span>
+              </div>
+
+              <button
+                className="workflowExecutionClose"
+                onClick={() =>
+                  setPanelMode(
+                    null
+                  )
+                }
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="workflowExecutionBody">
+
+              {panelMode ===
+                'validation' && (
+                <>
+                  {validationIssues.length ===
+                  0 ? (
+                    <div className="workflowValidationSuccess">
+                      <strong>
+                        ✓ Workflow valid
+                      </strong>
+
+                      <span>
+                        No blocking issues found. Ready for a test run.
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="workflowValidationList">
+                      <div className="workflowValidationSummary">
+                        {
+                          validationIssues.length
+                        }{' '}
+                        issue
+                        {validationIssues.length !==
+                        1
+                          ? 's'
+                          : ''}{' '}
+                        found
+                      </div>
+
+                      {validationIssues.map(
+                        (
+                          issue,
+                          index
+                        ) => (
+                          <button
+                            key={`${issue.nodeId}-${index}`}
+                            className="workflowValidationItem"
+                            onClick={() => {
+                              if (
+                                !issue.nodeId
+                              ) {
+                                return;
+                              }
+
+                              const node =
+                                nodes.find(
+                                  (
+                                    item
+                                  ) =>
+                                    item.id ===
+                                    issue.nodeId
+                                );
+
+                              if (
+                                node
+                              ) {
+                                setSelectedNode(
+                                  node
+                                );
+                              }
+                            }}
+                          >
+                            <span>
+                              !
+                            </span>
+
+                            <p>
+                              {
+                                issue.message
+                              }
+                            </p>
+                          </button>
+                        )
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {panelMode ===
+                'test' && (
+                <div className="workflowRunSteps">
+
+                  <div
+                    className={`
+                      workflowRunStatus
+                      workflowRunStatus-${runStatus}
+                    `}
+                  >
+                    {runStatus ===
+                      'running' &&
+                      '● Test running'}
+
+                    {runStatus ===
+                      'completed' &&
+                      '✓ Test completed'}
+
+                    {runStatus ===
+                      'waiting' &&
+                      '◷ Waiting for human action'}
+
+                    {runStatus ===
+                      'blocked' &&
+                      '✕ Test blocked'}
+                  </div>
+
+                  {runSteps.map(
+                    (
+                      step,
+                      index
+                    ) => (
+                      <div
+                        className={`
+                          workflowRunStep
+                          workflowRunStep-${step.status}
+                        `}
+                        key={
+                          step.nodeId
+                        }
+                      >
+                        <div className="workflowRunStepNumber">
+                          {index + 1}
+                        </div>
+
+                        <div className="workflowRunStepIcon">
+                          {
+                            step.icon
+                          }
+                        </div>
+
+                        <div className="workflowRunStepText">
+                          <strong>
+                            {
+                              step.name
+                            }
+                          </strong>
+
+                          <span>
+                            {
+                              step.note ||
+                              'Waiting...'
+                            }
+                          </span>
+                        </div>
+
+                        <div className="workflowRunStepState">
+                          {step.status ===
+                            'pending' &&
+                            'Pending'}
+
+                          {step.status ===
+                            'running' &&
+                            'Running'}
+
+                          {step.status ===
+                            'completed' &&
+                            '✓'}
+
+                          {step.status ===
+                            'waiting' &&
+                            'Waiting'}
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+              )}
+
+            </div>
+          </div>
+        )}
       </section>
 
-      {/* =====================================================
-          RIGHT PROPERTIES
-      ===================================================== */}
+      {/* PROPERTIES */}
 
       <aside className="workflowInspector">
-
         <div className="workflowInspectorHeader">
-          <h3>Properties</h3>
+          <h3>
+            Properties
+          </h3>
 
           <span>
             Configure selected block
@@ -1259,26 +2616,23 @@ export default function WorkflowBuilder({ agentId }) {
         </div>
 
         {!selectedNode ? (
-
           <div className="workflowEmptyInspector">
-
             <div className="workflowEmptyInspectorIcon">
               ◇
             </div>
 
             <p>
-              Select a block from the
-              canvas to configure it.
+              Select a block from the canvas to configure it.
             </p>
-
           </div>
-
         ) : (
-
           <div className="workflowInspectorForm">
 
             <div className="workflowInspectorType">
-              {selectedNode.data.icon}
+              {
+                selectedNode.data
+                  .icon
+              }
 
               <span>
                 {
@@ -1294,10 +2648,9 @@ export default function WorkflowBuilder({ agentId }) {
 
             <input
               value={
-                selectedNode.data.name ||
-                ''
+                selectedNode.data
+                  .name || ''
               }
-
               onChange={(e) =>
                 updateNodeField(
                   'name',
@@ -1312,12 +2665,11 @@ export default function WorkflowBuilder({ agentId }) {
 
             <textarea
               rows={3}
-
               value={
                 selectedNode.data
-                  .description || ''
+                  .description ||
+                ''
               }
-
               onChange={(e) =>
                 updateNodeField(
                   'description',
@@ -1326,7 +2678,8 @@ export default function WorkflowBuilder({ agentId }) {
               }
             />
 
-            {selectedSchema.length > 0 && (
+            {selectedSchema.length >
+              0 && (
               <>
                 <div className="workflowInspectorDivider">
                   Configuration
@@ -1336,33 +2689,40 @@ export default function WorkflowBuilder({ agentId }) {
                   (field) => (
                     <div
                       className="workflowConfigField"
-                      key={field.key}
+                      key={
+                        field.key
+                      }
                     >
                       <label>
-                        {field.label}
+                        {
+                          field.label
+                        }
+
+                        {field.required
+                          ? ' *'
+                          : ''}
                       </label>
 
                       {field.type ===
                         'textarea' && (
                         <textarea
                           rows={4}
-
                           placeholder={
                             field.placeholder ||
                             ''
                           }
-
                           value={
-                            selectedNode.data
+                            selectedNode
+                              .data
                               .config?.[
                               field.key
                             ] || ''
                           }
-
                           onChange={(e) =>
                             updateNodeConfig(
                               field.key,
-                              e.target.value
+                              e.target
+                                .value
                             )
                           }
                         />
@@ -1372,21 +2732,24 @@ export default function WorkflowBuilder({ agentId }) {
                         'select' && (
                         <select
                           value={
-                            selectedNode.data
+                            selectedNode
+                              .data
                               .config?.[
                               field.key
                             ] || ''
                           }
-
                           onChange={(e) =>
                             updateNodeConfig(
                               field.key,
-                              e.target.value
+                              e.target
+                                .value
                             )
                           }
                         >
                           {field.options?.map(
-                            (option) => (
+                            (
+                              option
+                            ) => (
                               <option
                                 key={
                                   option
@@ -1395,7 +2758,9 @@ export default function WorkflowBuilder({ agentId }) {
                                   option
                                 }
                               >
-                                {option}
+                                {
+                                  option
+                                }
                               </option>
                             )
                           )}
@@ -1411,23 +2776,22 @@ export default function WorkflowBuilder({ agentId }) {
                               field.type ||
                               'text'
                             }
-
                             placeholder={
                               field.placeholder ||
                               ''
                             }
-
                             value={
-                              selectedNode.data
+                              selectedNode
+                                .data
                                 .config?.[
                                 field.key
                               ] || ''
                             }
-
                             onChange={(e) =>
                               updateNodeConfig(
                                 field.key,
-                                e.target.value
+                                e.target
+                                  .value
                               )
                             }
                           />
@@ -1447,18 +2811,17 @@ export default function WorkflowBuilder({ agentId }) {
             </label>
 
             <div className="workflowReadonly workflowIdBox">
-              {selectedNode.id}
+              {
+                selectedNode.id
+              }
             </div>
 
             <div className="workflowConfigNotice">
-              Visual configuration only.
-              This block will not perform
-              any external action yet.
+              Visual configuration only. Test Run is simulated and will not send emails, call APIs, change databases, or alter external systems.
             </div>
 
             <button
               className="workflowDangerButton"
-
               onClick={
                 deleteSelectedNode
               }
@@ -1467,11 +2830,8 @@ export default function WorkflowBuilder({ agentId }) {
             </button>
 
           </div>
-
         )}
-
       </aside>
-
     </div>
   );
 }
