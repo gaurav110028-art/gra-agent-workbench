@@ -17,7 +17,11 @@ export default function Home() {
     const savedAgents = localStorage.getItem('gra-agents');
 
     if (savedAgents) {
-      setAgents(JSON.parse(savedAgents));
+      try {
+        setAgents(JSON.parse(savedAgents));
+      } catch {
+        localStorage.removeItem('gra-agents');
+      }
     }
   }, []);
 
@@ -59,6 +63,14 @@ export default function Home() {
     );
 
     saveAgents(updatedAgents);
+
+    if (selectedAgent?.id === agent.id) {
+      setSelectedAgent({
+        ...selectedAgent,
+        status: updatedStatus,
+      });
+    }
+
     setOpenMenuId(null);
   };
 
@@ -67,13 +79,23 @@ export default function Home() {
 
     if (!newName || !newName.trim()) return;
 
+    const cleanName = newName.trim();
+
     const updatedAgents = agents.map((item) =>
       item.id === agent.id
-        ? { ...item, name: newName.trim() }
+        ? { ...item, name: cleanName }
         : item
     );
 
     saveAgents(updatedAgents);
+
+    if (selectedAgent?.id === agent.id) {
+      setSelectedAgent({
+        ...selectedAgent,
+        name: cleanName,
+      });
+    }
+
     setOpenMenuId(null);
   };
 
@@ -100,28 +122,32 @@ export default function Home() {
   return (
     <main className="workbench">
       <aside className="sidebar">
-        <div className="brand">
-          <div className="brandTitle">GRA AGENT WORKBENCH</div>
-        </div>
+
+        {/* GRA FIRM LOGO ONLY */}
+        <div className="brand" />
 
         <nav className="nav">
           <button
             className={`navItem ${!selectedAgent ? 'active' : ''}`}
-            onClick={() => setSelectedAgent(null)}
+            onClick={() => {
+              setSelectedAgent(null);
+              setOpenMenuId(null);
+            }}
           >
             Dashboard
           </button>
 
-          <button
-            className="navItem addAgentNav"
-            onClick={() => setShowAddAgent(true)}
-          >
-            + Add Agent
+          <button className="navItem">
+            Runs
           </button>
 
-          <button className="navItem">Runs</button>
-          <button className="navItem">Approvals</button>
-          <button className="navItem">Settings</button>
+          <button className="navItem">
+            Approvals
+          </button>
+
+          <button className="navItem">
+            Settings
+          </button>
         </nav>
 
         <div className="sidebarBottom">
@@ -134,125 +160,168 @@ export default function Home() {
         </div>
       </aside>
 
-      <section className="workspace">
+      <section
+        className="workspace"
+        onClick={() => {
+          if (openMenuId) {
+            setOpenMenuId(null);
+          }
+        }}
+      >
         {!selectedAgent ? (
-          agents.length === 0 ? (
-            <div className="emptyDashboard">
-              <img
-                src="/ai-automation-logo.png"
-                alt=""
-                className="emptyDashboardLogo"
-              />
+          <>
+            {/* AGENTS HEADER */}
+            <div className="workspaceTopbar">
+              <div className="workspaceHeading">
+                <h1>Agents</h1>
 
-              <h2>No agents added yet</h2>
+                <span>
+                  {agents.length}{' '}
+                  {agents.length === 1 ? 'agent' : 'agents'}
+                </span>
+              </div>
 
-              <p>
-                Add your first agent to start building workflows and actions.
-              </p>
-
-              <button onClick={() => setShowAddAgent(true)}>
+              <button
+                className="workspaceAddAgent"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAddAgent(true);
+                }}
+              >
                 + Add Agent
               </button>
             </div>
-          ) : (
-            <div className="agentGrid">
-              {agents.map((agent) => (
-                <article
-                  className="agentPanel clickable"
-                  key={agent.id}
-                  onClick={() => openAgent(agent)}
+
+            {agents.length === 0 ? (
+              <div className="emptyDashboard">
+                <img
+                  src="/ai-automation-logo.png"
+                  alt="AI & Automation"
+                  className="emptyDashboardLogo"
+                />
+
+                <h2>No agents added yet</h2>
+
+                <p>
+                  Add your first agent to start building workflows
+                  and actions.
+                </p>
+
+                <button
+                  onClick={() => setShowAddAgent(true)}
                 >
-                  <div className="panelHeader">
-                    <div>
-                      <strong>{agent.name}</strong>
+                  + Add Agent
+                </button>
+              </div>
+            ) : (
+              <div className="agentGrid">
+                {agents.map((agent) => (
+                  <article
+                    className="agentPanel clickable"
+                    key={agent.id}
+                    onClick={() => openAgent(agent)}
+                  >
+                    <div className="panelHeader">
+                      <div>
+                        <strong>{agent.name}</strong>
 
-                      <span
-                        className={`statusPill ${
-                          agent.status === 'running'
-                            ? 'running'
-                            : 'paused'
-                        }`}
-                      >
-                        <i />
-                        {agent.status === 'running'
-                          ? 'Running'
-                          : 'Paused'}
-                      </span>
-                    </div>
-
-                    <div className="agentMenuWrapper">
-                      <button
-                        className="panelMenu"
-                        onClick={(e) => {
-                          e.stopPropagation();
-
-                          setOpenMenuId(
-                            openMenuId === agent.id
-                              ? null
-                              : agent.id
-                          );
-                        }}
-                      >
-                        •••
-                      </button>
-
-                      {openMenuId === agent.id && (
-                        <div
-                          className="agentMenu"
-                          onClick={(e) => e.stopPropagation()}
+                        <span
+                          className={`statusPill ${
+                            agent.status === 'running'
+                              ? 'running'
+                              : 'paused'
+                          }`}
                         >
-                          <button
-                            onClick={() =>
-                              toggleAgentStatus(agent)
+                          <i />
+
+                          {agent.status === 'running'
+                            ? 'Running'
+                            : 'Paused'}
+                        </span>
+                      </div>
+
+                      <div className="agentMenuWrapper">
+                        <button
+                          className="panelMenu"
+                          aria-label="Agent menu"
+                          onClick={(e) => {
+                            e.stopPropagation();
+
+                            setOpenMenuId(
+                              openMenuId === agent.id
+                                ? null
+                                : agent.id
+                            );
+                          }}
+                        >
+                          •••
+                        </button>
+
+                        {openMenuId === agent.id && (
+                          <div
+                            className="agentMenu"
+                            onClick={(e) =>
+                              e.stopPropagation()
                             }
                           >
-                            {agent.status === 'running'
-                              ? 'Pause Agent'
-                              : 'Start Agent'}
-                          </button>
+                            <button
+                              onClick={() =>
+                                toggleAgentStatus(agent)
+                              }
+                            >
+                              {agent.status === 'running'
+                                ? 'Pause Agent'
+                                : 'Start Agent'}
+                            </button>
 
-                          <button
-                            onClick={() => renameAgent(agent)}
-                          >
-                            Rename
-                          </button>
+                            <button
+                              onClick={() =>
+                                renameAgent(agent)
+                              }
+                            >
+                              Rename
+                            </button>
 
-                          <button
-                            className="deleteMenuItem"
-                            onClick={() => deleteAgent(agent)}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      )}
+                            <button
+                              className="deleteMenuItem"
+                              onClick={() =>
+                                deleteAgent(agent)
+                              }
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="panelBody">
-                    <img
-                      src="/ai-automation-logo.png"
-                      alt="AI & Automation"
-                      className="agentLogo"
-                    />
-                  </div>
+                    <div className="panelBody">
+                      <img
+                        src="/ai-automation-logo.png"
+                        alt="AI & Automation"
+                        className="agentLogo"
+                      />
+                    </div>
 
-                  <div className="panelFooter">
-                    <span>Agent workspace</span>
-                    <span className="openAgentText">
-                      Open Agent →
-                    </span>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )
+                    <div className="panelFooter">
+                      <span>Agent workspace</span>
+
+                      <span className="openAgentText">
+                        Open Agent →
+                      </span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </>
         ) : (
           <div className="agentWorkspace">
             <div className="agentWorkspaceHeader">
               <div className="agentIdentity">
                 <img
                   src="/ai-automation-logo.png"
-                  alt=""
+                  alt="AI & Automation"
                   className="agentSmallLogo"
                 />
 
@@ -267,6 +336,7 @@ export default function Home() {
                     }`}
                   >
                     <i />
+
                     {selectedAgent.status === 'running'
                       ? 'Running'
                       : 'Paused'}
@@ -285,18 +355,26 @@ export default function Home() {
             <div className="agentTabs">
               <button
                 className={
-                  activeTab === 'workflow' ? 'activeTab' : ''
+                  activeTab === 'workflow'
+                    ? 'activeTab'
+                    : ''
                 }
-                onClick={() => setActiveTab('workflow')}
+                onClick={() =>
+                  setActiveTab('workflow')
+                }
               >
                 Workflow
               </button>
 
               <button
                 className={
-                  activeTab === 'code' ? 'activeTab' : ''
+                  activeTab === 'code'
+                    ? 'activeTab'
+                    : ''
                 }
-                onClick={() => setActiveTab('code')}
+                onClick={() =>
+                  setActiveTab('code')
+                }
               >
                 Code
               </button>
@@ -306,15 +384,19 @@ export default function Home() {
               {activeTab === 'workflow' ? (
                 <div className="emptyState">
                   <h2>Workflow</h2>
+
                   <p>
-                    Build and manage this agent&apos;s workflow here.
+                    Build and manage this agent&apos;s workflow,
+                    tools, actions and approvals here.
                   </p>
                 </div>
               ) : (
                 <div className="emptyState">
                   <h2>Code</h2>
+
                   <p>
-                    Code and configuration for this agent will live here.
+                    Code and configuration for this agent will
+                    live here.
                   </p>
                 </div>
               )}
@@ -323,6 +405,7 @@ export default function Home() {
         )}
       </section>
 
+      {/* ADD AGENT MODAL */}
       {showAddAgent && (
         <div
           className="modalOverlay"
@@ -345,7 +428,12 @@ export default function Home() {
 
             <input
               value={agentName}
-              onChange={(e) => setAgentName(e.target.value)}
+              onChange={(e) =>
+                setAgentName(e.target.value)
+              }
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') addAgent();
+              }}
               placeholder="Example: GST Reconciliation Agent"
               autoFocus
             />
@@ -354,10 +442,17 @@ export default function Home() {
 
             <select
               value={agentStatus}
-              onChange={(e) => setAgentStatus(e.target.value)}
+              onChange={(e) =>
+                setAgentStatus(e.target.value)
+              }
             >
-              <option value="paused">Paused</option>
-              <option value="running">Running</option>
+              <option value="paused">
+                Paused
+              </option>
+
+              <option value="running">
+                Running
+              </option>
             </select>
 
             <button
@@ -370,6 +465,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* SITE INFO */}
       {showSiteInfo && (
         <div
           className="modalOverlay"
@@ -395,6 +491,7 @@ export default function Home() {
             <h2>GRA AGENT WORKBENCH</h2>
 
             <p>Created by</p>
+
             <h3>Gaurav Sharma</h3>
 
             <a
