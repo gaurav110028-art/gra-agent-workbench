@@ -1155,3 +1155,95 @@ button {
     min-height: 560px;
   }
 }
+
+/* =====================================
+   WORKFLOW INTERNAL SCROLL FIX
+===================================== */
+
+/* Workflow area stays inside the screen */
+.agentWorkspaceBody {
+  height: calc(100vh - 165px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Entire workflow builder fixed inside available space */
+.workflowBuilder {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  grid-template-columns: 280px minmax(0, 1fr) 300px;
+}
+
+/* LEFT BLOCK LIBRARY */
+.workflowSidebar {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header and search remain fixed */
+.workflowSidebarHeader,
+.workflowSearchBox {
+  flex-shrink: 0;
+}
+
+/* ONLY the blocks list scrolls */
+.workflowGroups {
+  flex: 1;
+  min-height: 0;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #444 transparent;
+}
+
+/* Chrome / Edge scrollbar */
+.workflowGroups::-webkit-scrollbar {
+  width: 7px;
+}
+
+.workflowGroups::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.workflowGroups::-webkit-scrollbar-thumb {
+  background: #3b3b3b;
+  border-radius: 10px;
+}
+
+.workflowGroups::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* CENTER CANVAS also stays contained */
+.workflowBoard {
+  height: 100%;
+  min-height: 0;
+
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.workflowCanvasShell {
+  height: 100%;
+  min-height: 0;
+}
+
+/* RIGHT PROPERTIES PANEL */
+.workflowInspector {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.workflowInspectorForm {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
