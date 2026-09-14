@@ -647,3 +647,70 @@ button {
     height: 68px;
   }
 }
+
+/* ===== AGENTS TOP BAR ===== */
+
+.workspaceTopbar {
+  width: 100%;
+  min-height: 58px;
+  margin-bottom: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 4px;
+}
+
+.workspaceHeading {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.workspaceHeading h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f5f5f5;
+}
+
+.workspaceHeading span {
+  font-size: 11px;
+  color: #777;
+}
+
+.workspaceAddAgent {
+  padding: 9px 14px;
+
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+
+  background: #1b1b1b;
+  color: #f1f1f1;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  transition: 0.15s ease;
+}
+
+.workspaceAddAgent:hover {
+  background: #252525;
+  border-color: #505050;
+  color: #ffffff;
+}
+
+/* Sidebar brand now only contains GRA logo */
+
+.brand {
+  padding-bottom: 18px;
+}
+
+.brandTitle {
+  display: none;
+}
+
+.addAgentNav {
+  display: none;
+}
