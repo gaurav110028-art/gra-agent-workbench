@@ -2217,3 +2217,54 @@ button {
 
   color: #999;
 }
+
+/* =========================================================
+   HUMAN APPROVAL CONTROLS
+========================================================= */
+
+.workflowApprovalActions {
+  margin-top: 9px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.workflowApprovalActions button {
+  border-radius: 7px;
+  padding: 7px 10px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.workflowApproveButton {
+  border: 1px solid rgba(86, 213, 138, 0.35);
+  background: rgba(86, 213, 138, 0.1);
+  color: #78e2a4;
+}
+
+.workflowApproveButton:hover {
+  background: rgba(86, 213, 138, 0.17);
+}
+
+.workflowRejectButton {
+  border: 1px solid rgba(239, 119, 119, 0.35);
+  background: rgba(239, 119, 119, 0.08);
+  color: #ef8c8c;
+}
+
+.workflowRejectButton:hover {
+  background: rgba(239, 119, 119, 0.15);
+}
+
+.workflowRunStep-rejected {
+  border-color: rgba(239, 119, 119, 0.4);
+  background: rgba(239, 119, 119, 0.06);
+}
+
+.workflowRunStep-skipped {
+  opacity: 0.55;
+}
+
+.workflowRunStatus-rejected {
+  color: #ef7777;
+}
