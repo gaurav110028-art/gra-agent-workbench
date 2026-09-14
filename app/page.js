@@ -8,6 +8,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('workflow');
   const [showAddAgent, setShowAddAgent] = useState(false);
   const [showSiteInfo, setShowSiteInfo] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   const [agentName, setAgentName] = useState('');
   const [agentStatus, setAgentStatus] = useState('paused');
@@ -44,6 +45,56 @@ export default function Home() {
   const openAgent = (agent) => {
     setSelectedAgent(agent);
     setActiveTab('workflow');
+    setOpenMenuId(null);
+  };
+
+  const toggleAgentStatus = (agent) => {
+    const updatedStatus =
+      agent.status === 'running' ? 'paused' : 'running';
+
+    const updatedAgents = agents.map((item) =>
+      item.id === agent.id
+        ? { ...item, status: updatedStatus }
+        : item
+    );
+
+    saveAgents(updatedAgents);
+    setOpenMenuId(null);
+  };
+
+  const renameAgent = (agent) => {
+    const newName = window.prompt('Rename agent', agent.name);
+
+    if (!newName || !newName.trim()) return;
+
+    const updatedAgents = agents.map((item) =>
+      item.id === agent.id
+        ? { ...item, name: newName.trim() }
+        : item
+    );
+
+    saveAgents(updatedAgents);
+    setOpenMenuId(null);
+  };
+
+  const deleteAgent = (agent) => {
+    const confirmed = window.confirm(
+      `Delete "${agent.name}"?`
+    );
+
+    if (!confirmed) return;
+
+    const updatedAgents = agents.filter(
+      (item) => item.id !== agent.id
+    );
+
+    saveAgents(updatedAgents);
+
+    if (selectedAgent?.id === agent.id) {
+      setSelectedAgent(null);
+    }
+
+    setOpenMenuId(null);
   };
 
   return (
@@ -129,12 +180,52 @@ export default function Home() {
                       </span>
                     </div>
 
-                    <button
-                      className="panelMenu"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      •••
-                    </button>
+                    <div className="agentMenuWrapper">
+                      <button
+                        className="panelMenu"
+                        onClick={(e) => {
+                          e.stopPropagation();
+
+                          setOpenMenuId(
+                            openMenuId === agent.id
+                              ? null
+                              : agent.id
+                          );
+                        }}
+                      >
+                        •••
+                      </button>
+
+                      {openMenuId === agent.id && (
+                        <div
+                          className="agentMenu"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            onClick={() =>
+                              toggleAgentStatus(agent)
+                            }
+                          >
+                            {agent.status === 'running'
+                              ? 'Pause Agent'
+                              : 'Start Agent'}
+                          </button>
+
+                          <button
+                            onClick={() => renameAgent(agent)}
+                          >
+                            Rename
+                          </button>
+
+                          <button
+                            className="deleteMenuItem"
+                            onClick={() => deleteAgent(agent)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="panelBody">
@@ -223,8 +314,7 @@ export default function Home() {
                 <div className="emptyState">
                   <h2>Code</h2>
                   <p>
-                    Code and configuration for this agent will live
-                    here.
+                    Code and configuration for this agent will live here.
                   </p>
                 </div>
               )}
