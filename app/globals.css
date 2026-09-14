@@ -472,19 +472,21 @@ button {
   .agentGrid {
     grid-template-columns: 1fr;
   }
-}
-/* ===== GRA BRANDING ===== */
-
 .brand::before {
   content: "";
   display: block;
   width: 100%;
-  height: 62px;
-  margin-bottom: 14px;
+  height: 76px;
+  margin-bottom: 16px;
+
+  background-color: #f4f4f4;
   background-image: url("/gra-firm-logo.png");
   background-repeat: no-repeat;
-  background-position: left center;
-  background-size: contain;
+  background-position: center;
+  background-size: 92% auto;
+
+  border-radius: 8px;
+  border: 1px solid #343434;
 }
 
 .brandTitle {
