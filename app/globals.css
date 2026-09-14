@@ -1874,3 +1874,346 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   VALIDATE + TEST RUN
+========================================================= */
+
+.workflowBoard.withExecutionPanel {
+  grid-template-rows:
+    auto
+    minmax(0, 1fr)
+    220px;
+}
+
+.workflowActionButton {
+  white-space: nowrap;
+}
+
+.workflowActionButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.workflowTestButton {
+  background: #efdfdf !important;
+  border-color: #efdfdf !important;
+  color: #111 !important;
+  font-weight: 700;
+}
+
+.workflowTestButton:hover:not(:disabled) {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+/* Invalid block */
+
+.workflowNode.invalid {
+  border-color: #e45d5d !important;
+
+  box-shadow:
+    0 0 0 1px rgba(228, 93, 93, 0.55),
+    0 12px 34px rgba(0, 0, 0, 0.42);
+}
+
+/* Bottom execution drawer */
+
+.workflowExecutionPanel {
+  min-height: 0;
+
+  background: #121214;
+
+  border-top: 1px solid #303033;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+}
+
+.workflowExecutionHeader {
+  min-height: 56px;
+
+  padding: 10px 14px;
+
+  border-bottom: 1px solid #29292c;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  flex-shrink: 0;
+}
+
+.workflowExecutionHeader > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.workflowExecutionHeader strong {
+  font-size: 13px;
+
+  color: #f2f2f2;
+}
+
+.workflowExecutionHeader span {
+  font-size: 10px;
+
+  color: #7f7f83;
+}
+
+.workflowExecutionClose {
+  width: 30px;
+  height: 30px;
+
+  border: 1px solid #343438;
+  border-radius: 7px;
+
+  background: #1b1b1e;
+  color: #999;
+
+  font-size: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.workflowExecutionClose:hover {
+  background: #252529;
+  color: #fff;
+}
+
+.workflowExecutionBody {
+  flex: 1;
+
+  min-height: 0;
+
+  padding: 12px 14px;
+
+  overflow-y: auto;
+
+  overscroll-behavior: contain;
+
+  scrollbar-width: thin;
+  scrollbar-color: #444 transparent;
+}
+
+/* Validation */
+
+.workflowValidationSuccess {
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  text-align: center;
+}
+
+.workflowValidationSuccess strong {
+  color: #56d58a;
+
+  font-size: 15px;
+}
+
+.workflowValidationSuccess span {
+  color: #888;
+
+  font-size: 11px;
+}
+
+.workflowValidationSummary {
+  margin-bottom: 8px;
+
+  color: #ef7777;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.workflowValidationList {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+}
+
+.workflowValidationItem {
+  width: 100%;
+
+  padding: 9px 11px;
+
+  border: 1px solid rgba(239, 119, 119, 0.22);
+  border-radius: 8px;
+
+  background: rgba(239, 119, 119, 0.055);
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  text-align: left;
+
+  color: #d7d7d7;
+}
+
+.workflowValidationItem:hover {
+  background: rgba(239, 119, 119, 0.1);
+}
+
+.workflowValidationItem > span {
+  width: 22px;
+  height: 22px;
+
+  flex-shrink: 0;
+
+  border-radius: 999px;
+
+  background: rgba(239, 119, 119, 0.13);
+
+  color: #ef7777;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: 800;
+}
+
+.workflowValidationItem p {
+  margin: 0;
+
+  font-size: 11px;
+
+  color: #c9c9c9;
+}
+
+/* Test run */
+
+.workflowRunSteps {
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+}
+
+.workflowRunStatus {
+  margin-bottom: 3px;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.workflowRunStatus-running {
+  color: #eab308;
+}
+
+.workflowRunStatus-completed {
+  color: #56d58a;
+}
+
+.workflowRunStatus-waiting {
+  color: #f0a64a;
+}
+
+.workflowRunStatus-blocked {
+  color: #ef7777;
+}
+
+.workflowRunStep {
+  min-height: 45px;
+
+  padding: 8px 10px;
+
+  border: 1px solid #2c2c2f;
+  border-radius: 8px;
+
+  background: #171719;
+
+  display: grid;
+
+  grid-template-columns:
+    26px
+    32px
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 8px;
+}
+
+.workflowRunStep-running {
+  border-color: #a38233;
+
+  background: rgba(234, 179, 8, 0.05);
+}
+
+.workflowRunStep-completed {
+  border-color: rgba(86, 213, 138, 0.3);
+}
+
+.workflowRunStep-waiting {
+  border-color: rgba(240, 166, 74, 0.35);
+}
+
+.workflowRunStepNumber {
+  color: #666;
+
+  font-size: 10px;
+
+  text-align: center;
+}
+
+.workflowRunStepIcon {
+  width: 30px;
+  height: 30px;
+
+  border: 1px solid #333;
+  border-radius: 7px;
+
+  background: #101012;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.workflowRunStepText {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.workflowRunStepText strong {
+  font-size: 11px;
+
+  color: #e6e6e6;
+}
+
+.workflowRunStepText span {
+  font-size: 9px;
+
+  color: #7f7f83;
+}
+
+.workflowRunStepState {
+  font-size: 10px;
+
+  color: #999;
+}
