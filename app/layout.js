@@ -1,3 +1,5 @@
+import "./globals.css";
+
 export const metadata = {
   title: "GRA Agent Workbench",
   description: "Created by Gaurav Sharma | AI & Automation",
