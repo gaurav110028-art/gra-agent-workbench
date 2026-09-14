@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import WorkflowBuilder from './WorkflowBuilder';
 
 export default function Home() {
   const [agents, setAgents] = useState([]);
@@ -122,8 +123,6 @@ export default function Home() {
   return (
     <main className="workbench">
       <aside className="sidebar">
-
-        {/* GRA FIRM LOGO ONLY */}
         <div className="brand" />
 
         <nav className="nav">
@@ -170,7 +169,6 @@ export default function Home() {
       >
         {!selectedAgent ? (
           <>
-            {/* AGENTS HEADER */}
             <div className="workspaceTopbar">
               <div className="workspaceHeading">
                 <h1>Agents</h1>
@@ -382,14 +380,7 @@ export default function Home() {
 
             <div className="agentWorkspaceBody">
               {activeTab === 'workflow' ? (
-                <div className="emptyState">
-                  <h2>Workflow</h2>
-
-                  <p>
-                    Build and manage this agent&apos;s workflow,
-                    tools, actions and approvals here.
-                  </p>
-                </div>
+                <WorkflowBuilder agentId={selectedAgent.id} />
               ) : (
                 <div className="emptyState">
                   <h2>Code</h2>
@@ -405,7 +396,6 @@ export default function Home() {
         )}
       </section>
 
-      {/* ADD AGENT MODAL */}
       {showAddAgent && (
         <div
           className="modalOverlay"
@@ -465,7 +455,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* SITE INFO */}
       {showSiteInfo && (
         <div
           className="modalOverlay"
