@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import WorkflowBuilder from './WorkflowBuilder';
 import RunsView from './RunsView';
+import ApprovalsView from './ApprovalsView';
 
 export default function Home() {
   const [agents, setAgents] = useState([]);
@@ -70,6 +71,12 @@ export default function Home() {
 
   const goToRuns = () => {
     setActiveView('runs');
+    setSelectedAgent(null);
+    setOpenMenuId(null);
+  };
+
+  const goToApprovals = () => {
+    setActiveView('approvals');
     setSelectedAgent(null);
     setOpenMenuId(null);
   };
@@ -181,7 +188,14 @@ export default function Home() {
             Runs
           </button>
 
-          <button className="navItem">
+          <button
+            className={`navItem ${
+              activeView === 'approvals'
+                ? 'active'
+                : ''
+            }`}
+            onClick={goToApprovals}
+          >
             Approvals
           </button>
 
@@ -212,6 +226,8 @@ export default function Home() {
       >
         {activeView === 'runs' ? (
           <RunsView />
+        ) : activeView === 'approvals' ? (
+          <ApprovalsView />
         ) : !selectedAgent ? (
           <>
             <div className="workspaceTopbar">
