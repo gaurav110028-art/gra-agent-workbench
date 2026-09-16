@@ -18,7 +18,6 @@ import {
 
 function formatDate(value) {
   if (!value) return '-';
-
   return new Date(value).toLocaleString();
 }
 
@@ -65,16 +64,214 @@ function getPostApprovalNote(step) {
   return 'Simulated successfully after approval.';
 }
 
+function findApprovalStepIndex(run, approval) {
+  const steps = Array.isArray(run?.steps) ? run.steps : [];
+
+  // Best match: exact workflow node ID.
+  if (approval?.nodeId) {
+    const exactIndex = steps.findIndex(
+      (step) => step.nodeId === approval.nodeId
+    );
+
+    if (exactIndex >= 0) {
+      return exactIndex;
+    }
+  }
+
+  // Fallback: current waiting human step.
+  const waitingHumanIndex = steps.findIndex(
+    (step) =>
+      step.status === 'waiting' &&
+      ['approval', 'review'].includes(step.type)
+  );
+
+  if (waitingHumanIndex >= 0) {
+    return waitingHumanIndex;
+  }
+
+  // Final fallback: first approval/review step.
+  return steps.findIndex((step) =>
+    ['approval', 'review'].includes(step.type)
+  );
+}
+
+function syncApprovalDecisionToRun(approvalDecision) {
+  if (!approvalDecision?.runId) {
+    return {
+      ok: false,
+      reason: 'Approval has no Run ID.',
+    };
+  }
+
+  const runs = getRunHistory();
+
+  const run = runs.find(
+    (item) => item.id === approvalDecision.runId
+  );
+
+  if (!run) {
+    return {
+      ok: false,
+      reason: 'Matching run record was not found.',
+    };
+  }
+
+  const originalSteps = Array.isArray(run.steps)
+    ? run.steps
+    : [];
+
+  const approvalIndex = findApprovalStepIndex(
+    run,
+    approvalDecision
+  );
+
+  if (approvalIndex < 0) {
+    return {
+      ok: false,
+      reason: 'Human Approval step was not found in the run.',
+    };
+  }
+
+  if (approvalDecision.status === 'Approved') {
+    const updatedSteps = originalSteps.map(
+      (step, index) => {
+        if (index === approvalIndex) {
+          return {
+            ...step,
+            status: 'completed',
+            note: `Approved by ${
+              approvalDecision.decisionBy || 'Reviewer'
+            }. Test resumed.`,
+          };
+        }
+
+        if (
+          index > approvalIndex &&
+          ['pending', 'waiting'].includes(step.status)
+        ) {
+          return {
+            ...step,
+            status: 'completed',
+            note: getPostApprovalNote(step),
+          };
+        }
+
+        return step;
+      }
+    );
+
+    const completedRun = finishRun(
+      run,
+      'Completed',
+      {
+        steps: updatedSteps,
+        approval: {
+          approvalId: approvalDecision.id,
+          decision: 'Approved',
+          by:
+            approvalDecision.decisionBy ||
+            approvalDecision.approver ||
+            'Reviewer',
+          decidedAt:
+            approvalDecision.decidedAt ||
+            new Date().toISOString(),
+          note: approvalDecision.decisionNote || '',
+        },
+      }
+    );
+
+    saveRun(completedRun);
+
+    const verified = getRunHistory().find(
+      (item) => item.id === run.id
+    );
+
+    return {
+      ok: verified?.status === 'Completed',
+      reason:
+        verified?.status === 'Completed'
+          ? ''
+          : 'Run record did not save as Completed.',
+    };
+  }
+
+  if (approvalDecision.status === 'Rejected') {
+    const updatedSteps = originalSteps.map(
+      (step, index) => {
+        if (index === approvalIndex) {
+          return {
+            ...step,
+            status: 'rejected',
+            note: `Rejected by ${
+              approvalDecision.decisionBy || 'Reviewer'
+            }. Workflow stopped.`,
+          };
+        }
+
+        if (
+          index > approvalIndex &&
+          ['pending', 'waiting'].includes(step.status)
+        ) {
+          return {
+            ...step,
+            status: 'skipped',
+            note: 'Skipped because approval was rejected.',
+          };
+        }
+
+        return step;
+      }
+    );
+
+    const rejectedRun = finishRun(
+      run,
+      'Rejected',
+      {
+        steps: updatedSteps,
+        approval: {
+          approvalId: approvalDecision.id,
+          decision: 'Rejected',
+          by:
+            approvalDecision.decisionBy ||
+            approvalDecision.approver ||
+            'Reviewer',
+          decidedAt:
+            approvalDecision.decidedAt ||
+            new Date().toISOString(),
+          note: approvalDecision.decisionNote || '',
+        },
+      }
+    );
+
+    saveRun(rejectedRun);
+
+    const verified = getRunHistory().find(
+      (item) => item.id === run.id
+    );
+
+    return {
+      ok: verified?.status === 'Rejected',
+      reason:
+        verified?.status === 'Rejected'
+          ? ''
+          : 'Run record did not save as Rejected.',
+    };
+  }
+
+  return {
+    ok: false,
+    reason: 'Unsupported approval decision.',
+  };
+}
+
 export default function ApprovalsView() {
   const [approvals, setApprovals] = useState([]);
   const [selectedApproval, setSelectedApproval] =
     useState(null);
 
   const [filter, setFilter] = useState('Pending');
-
   const [reviewer, setReviewer] = useState('');
-  const [decisionNote, setDecisionNote] =
-    useState('');
+  const [decisionNote, setDecisionNote] = useState('');
 
   const loadApprovals = () => {
     const items = getApprovals();
@@ -122,15 +319,12 @@ export default function ApprovalsView() {
   const counts = useMemo(() => {
     return {
       All: approvals.length,
-
       Pending: approvals.filter(
         (item) => item.status === 'Pending'
       ).length,
-
       Approved: approvals.filter(
         (item) => item.status === 'Approved'
       ).length,
-
       Rejected: approvals.filter(
         (item) => item.status === 'Rejected'
       ).length,
@@ -147,168 +341,6 @@ export default function ApprovalsView() {
     );
   }, [approvals, filter]);
 
-  const updateRunFromDecision = (
-    approvalDecision
-  ) => {
-    if (!approvalDecision?.runId) return;
-
-    const runs = getRunHistory();
-
-    const run = runs.find(
-      (item) =>
-        item.id === approvalDecision.runId
-    );
-
-    if (!run) return;
-
-    const originalSteps = Array.isArray(
-      run.steps
-    )
-      ? run.steps
-      : [];
-
-    const approvalIndex =
-      originalSteps.findIndex(
-        (step) =>
-          step.nodeId ===
-          approvalDecision.nodeId
-      );
-
-    if (approvalIndex < 0) return;
-
-    if (
-      approvalDecision.status ===
-      'Approved'
-    ) {
-      const updatedSteps =
-        originalSteps.map(
-          (step, index) => {
-            if (
-              index === approvalIndex
-            ) {
-              return {
-                ...step,
-                status: 'completed',
-                note: `Approved by ${
-                  approvalDecision.decisionBy ||
-                  'Reviewer'
-                }. Test resumed.`,
-              };
-            }
-
-            if (
-              index > approvalIndex &&
-              step.status === 'pending'
-            ) {
-              return {
-                ...step,
-                status: 'completed',
-                note: getPostApprovalNote(
-                  step
-                ),
-              };
-            }
-
-            return step;
-          }
-        );
-
-      const completedRun = finishRun(
-        run,
-        'Completed',
-        {
-          steps: updatedSteps,
-
-          approval: {
-            approvalId:
-              approvalDecision.id,
-
-            decision: 'Approved',
-
-            by:
-              approvalDecision.decisionBy ||
-              'Reviewer',
-
-            decidedAt:
-              approvalDecision.decidedAt,
-
-            note:
-              approvalDecision.decisionNote ||
-              '',
-          },
-        }
-      );
-
-      saveRun(completedRun);
-
-      return;
-    }
-
-    if (
-      approvalDecision.status ===
-      'Rejected'
-    ) {
-      const updatedSteps =
-        originalSteps.map(
-          (step, index) => {
-            if (
-              index === approvalIndex
-            ) {
-              return {
-                ...step,
-                status: 'rejected',
-                note: `Rejected by ${
-                  approvalDecision.decisionBy ||
-                  'Reviewer'
-                }. Workflow stopped.`,
-              };
-            }
-
-            if (
-              index > approvalIndex &&
-              step.status === 'pending'
-            ) {
-              return {
-                ...step,
-                status: 'skipped',
-                note: 'Skipped because approval was rejected.',
-              };
-            }
-
-            return step;
-          }
-        );
-
-      const rejectedRun = finishRun(
-        run,
-        'Rejected',
-        {
-          steps: updatedSteps,
-
-          approval: {
-            approvalId:
-              approvalDecision.id,
-
-            decision: 'Rejected',
-
-            by:
-              approvalDecision.decisionBy ||
-              'Reviewer',
-
-            decidedAt:
-              approvalDecision.decidedAt,
-
-            note:
-              approvalDecision.decisionNote ||
-              '',
-          },
-        }
-      );
-
-      saveRun(rejectedRun);
-    }
-  };
-
   const handleDecision = (decision) => {
     if (!selectedApproval) return;
 
@@ -316,7 +348,6 @@ export default function ApprovalsView() {
       window.alert(
         'Enter the reviewer name before making a decision.'
       );
-
       return;
     }
 
@@ -331,30 +362,62 @@ export default function ApprovalsView() {
 
     if (!confirmed) return;
 
-    const updated = decideApproval({
-      approvalId:
-        selectedApproval.id,
-
+    const updatedApproval = decideApproval({
+      approvalId: selectedApproval.id,
       decision,
-
-      decisionBy:
-        reviewer.trim(),
-
-      decisionNote:
-        decisionNote.trim(),
+      decisionBy: reviewer.trim(),
+      decisionNote: decisionNote.trim(),
     });
 
-    if (!updated) return;
+    if (!updatedApproval) {
+      window.alert(
+        'Approval decision could not be saved.'
+      );
+      return;
+    }
 
-    updateRunFromDecision(updated);
+    const syncResult =
+      syncApprovalDecisionToRun(updatedApproval);
 
-    setSelectedApproval(updated);
+    setSelectedApproval(updatedApproval);
 
     setFilter(
       decision === 'Approved'
         ? 'Approved'
         : 'Rejected'
     );
+
+    if (!syncResult.ok) {
+      window.alert(
+        `Approval was saved, but the run could not be updated: ${syncResult.reason}`
+      );
+    }
+  };
+
+  const repairSelectedRun = () => {
+    if (
+      !selectedApproval ||
+      !['Approved', 'Rejected'].includes(
+        selectedApproval.status
+      )
+    ) {
+      return;
+    }
+
+    const result =
+      syncApprovalDecisionToRun(
+        selectedApproval
+      );
+
+    if (result.ok) {
+      window.alert(
+        'Run history synced successfully.'
+      );
+    } else {
+      window.alert(
+        `Run sync failed: ${result.reason}`
+      );
+    }
   };
 
   const removeApproval = () => {
@@ -399,7 +462,6 @@ export default function ApprovalsView() {
       <div className="approvalsTopbar">
         <div>
           <h1>Approvals</h1>
-
           <span>
             Human review and decision queue
           </span>
@@ -431,10 +493,7 @@ export default function ApprovalsView() {
             }}
           >
             {item}
-
-            <span>
-              {counts[item]}
-            </span>
+            <span>{counts[item]}</span>
           </button>
         ))}
       </div>
@@ -510,9 +569,7 @@ export default function ApprovalsView() {
 
                   {approval.message && (
                     <p className="approvalCardMessage">
-                      {
-                        approval.message
-                      }
+                      {approval.message}
                     </p>
                   )}
 
@@ -537,7 +594,6 @@ export default function ApprovalsView() {
             {!selectedApproval ? (
               <div className="approvalDetailsEmpty">
                 <div>✓</div>
-
                 <p>
                   Select an approval request to
                   review its details.
@@ -579,7 +635,6 @@ export default function ApprovalsView() {
                     <span>
                       Approval Step
                     </span>
-
                     <strong>
                       {
                         selectedApproval.blockName
@@ -591,7 +646,6 @@ export default function ApprovalsView() {
                     <span>
                       Assigned To
                     </span>
-
                     <strong>
                       {
                         selectedApproval.approver
@@ -603,7 +657,6 @@ export default function ApprovalsView() {
                     <span>
                       Requested
                     </span>
-
                     <strong>
                       {formatDate(
                         selectedApproval.requestedAt
@@ -615,7 +668,6 @@ export default function ApprovalsView() {
                     <span>
                       Run ID
                     </span>
-
                     <strong>
                       {selectedApproval.runId ||
                         '-'}
@@ -627,7 +679,6 @@ export default function ApprovalsView() {
                   <span>
                     Approval Request
                   </span>
-
                   <p>
                     {selectedApproval.message ||
                       'No approval message provided.'}
@@ -697,65 +748,71 @@ export default function ApprovalsView() {
                     </div>
 
                     <div className="approvalSafetyNotice">
-                      This is still a safe test
-                      simulation. Approval updates
-                      the saved test run and simulates
-                      downstream steps. No email,
-                      API call, database change, or
-                      external action is executed.
+                      This is a safe test simulation.
+                      Approval updates the saved test
+                      run and simulates downstream
+                      steps. No email, API call,
+                      database change, or external
+                      action is executed.
                     </div>
                   </div>
                 ) : (
-                  <div className="approvalDecisionResult">
-                    <div>
-                      <span>
-                        Decision
-                      </span>
-
-                      <strong>
-                        {
-                          selectedApproval.status
-                        }
-                      </strong>
-                    </div>
-
-                    <div>
-                      <span>
-                        Decision By
-                      </span>
-
-                      <strong>
-                        {selectedApproval.decisionBy ||
-                          '-'}
-                      </strong>
-                    </div>
-
-                    <div>
-                      <span>
-                        Decided At
-                      </span>
-
-                      <strong>
-                        {formatDate(
-                          selectedApproval.decidedAt
-                        )}
-                      </strong>
-                    </div>
-
-                    {selectedApproval.decisionNote && (
-                      <div className="approvalResultNote">
+                  <>
+                    <div className="approvalDecisionResult">
+                      <div>
                         <span>
-                          Review Note
+                          Decision
                         </span>
-
-                        <p>
+                        <strong>
                           {
-                            selectedApproval.decisionNote
+                            selectedApproval.status
                           }
-                        </p>
+                        </strong>
                       </div>
-                    )}
-                  </div>
+
+                      <div>
+                        <span>
+                          Decision By
+                        </span>
+                        <strong>
+                          {selectedApproval.decisionBy ||
+                            '-'}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>
+                          Decided At
+                        </span>
+                        <strong>
+                          {formatDate(
+                            selectedApproval.decidedAt
+                          )}
+                        </strong>
+                      </div>
+
+                      {selectedApproval.decisionNote && (
+                        <div className="approvalResultNote">
+                          <span>
+                            Review Note
+                          </span>
+                          <p>
+                            {
+                              selectedApproval.decisionNote
+                            }
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      className="approvalApproveButton"
+                      style={{ marginTop: '14px' }}
+                      onClick={repairSelectedRun}
+                    >
+                      ↻ Sync Run History
+                    </button>
+                  </>
                 )}
 
                 <button
