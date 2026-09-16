@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -21,6 +22,12 @@ import {
   Handle,
   Position,
 } from '@xyflow/react';
+
+import {
+  createRun,
+  finishRun,
+  saveRun,
+} from './runHistory';
 
 /* =========================================================
    BLOCK LIBRARY
@@ -773,7 +780,7 @@ const nodeTypes = {
   workflowNode: WorkflowNode,
 };
 
-export default function WorkflowBuilder({ agentId }) {
+export default function WorkflowBuilder({ agentId, agentName }) {
   const storageKey = `gra-workflow-${agentId}`;
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -795,6 +802,9 @@ export default function WorkflowBuilder({ agentId }) {
 
   const [runPlan, setRunPlan] = useState([]);
   const [waitingStepIndex, setWaitingStepIndex] = useState(null);
+
+  const currentRunRef = useRef(null);
+  const runStepsRef = useRef([]);
 
   useEffect(() => {
     setLoaded(false);
@@ -822,6 +832,9 @@ export default function WorkflowBuilder({ agentId }) {
     setRunPlan([]);
     setWaitingStepIndex(null);
     setRunStatus('idle');
+
+    currentRunRef.current = null;
+    runStepsRef.current = [];
 
     setLoaded(true);
   }, [storageKey, setNodes, setEdges]);
@@ -1292,6 +1305,47 @@ export default function WorkflowBuilder({ agentId }) {
     return 'Simulated successfully';
   };
 
+  const persistRun = (
+    status,
+    steps = runStepsRef.current,
+    extra = {}
+  ) => {
+    if (!currentRunRef.current) return;
+
+    const current = currentRunRef.current;
+
+    const nextRun =
+      status === 'Completed' ||
+      status === 'Rejected' ||
+      status === 'Failed'
+        ? finishRun(current, status, {
+            steps,
+            ...extra,
+          })
+        : {
+            ...current,
+            status,
+            steps,
+            ...extra,
+          };
+
+    currentRunRef.current = nextRun;
+    saveRun(nextRun);
+  };
+
+  const setRunStepsSnapshot = (
+    nextSteps,
+    historyStatus = null,
+    extra = {}
+  ) => {
+    runStepsRef.current = nextSteps;
+    setRunSteps(nextSteps);
+
+    if (historyStatus) {
+      persistRun(historyStatus, nextSteps, extra);
+    }
+  };
+
   const continueSimulation = async (orderedNodes, startIndex) => {
     for (
       let index = startIndex;
@@ -1301,8 +1355,8 @@ export default function WorkflowBuilder({ agentId }) {
       const node = orderedNodes[index];
       const type = node.data.nodeType;
 
-      setRunSteps((current) =>
-        current.map((step, stepIndex) =>
+      const runningSteps = runStepsRef.current.map(
+        (step, stepIndex) =>
           stepIndex === index
             ? {
                 ...step,
@@ -1310,14 +1364,18 @@ export default function WorkflowBuilder({ agentId }) {
                 note: 'Simulating...',
               }
             : step
-        )
+      );
+
+      setRunStepsSnapshot(
+        runningSteps,
+        'Running'
       );
 
       await sleep(500);
 
       if (type === 'approval' || type === 'review') {
-        setRunSteps((current) =>
-          current.map((step, stepIndex) =>
+        const waitingSteps = runStepsRef.current.map(
+          (step, stepIndex) =>
             stepIndex === index
               ? {
                   ...step,
@@ -1325,7 +1383,23 @@ export default function WorkflowBuilder({ agentId }) {
                   note: 'Waiting for human action',
                 }
               : step
-          )
+        );
+
+        const reviewer =
+          node.data.config?.approver ||
+          node.data.config?.assignee ||
+          'Reviewer';
+
+        setRunStepsSnapshot(
+          waitingSteps,
+          'Waiting',
+          {
+            approval: {
+              decision: 'Pending',
+              by: reviewer,
+              requestedAt: new Date().toISOString(),
+            },
+          }
         );
 
         setWaitingStepIndex(index);
@@ -1333,8 +1407,8 @@ export default function WorkflowBuilder({ agentId }) {
         return;
       }
 
-      setRunSteps((current) =>
-        current.map((step, stepIndex) =>
+      const completedSteps = runStepsRef.current.map(
+        (step, stepIndex) =>
           stepIndex === index
             ? {
                 ...step,
@@ -1342,12 +1416,21 @@ export default function WorkflowBuilder({ agentId }) {
                 note: getSimulationNote(node),
               }
             : step
-        )
+      );
+
+      setRunStepsSnapshot(
+        completedSteps,
+        'Running'
       );
     }
 
     setWaitingStepIndex(null);
     setRunStatus('completed');
+
+    persistRun(
+      'Completed',
+      runStepsRef.current
+    );
   };
 
   const testWorkflow = async () => {
@@ -1370,6 +1453,17 @@ export default function WorkflowBuilder({ agentId }) {
       note: '',
     }));
 
+    const newRun = createRun({
+      agentId,
+      agentName: agentName || 'Agent',
+      steps: initialSteps,
+    });
+
+    currentRunRef.current = newRun;
+    runStepsRef.current = initialSteps;
+
+    saveRun(newRun);
+
     setRunPlan(orderedNodes);
     setRunSteps(initialSteps);
     setPanelMode('test');
@@ -1390,9 +1484,15 @@ export default function WorkflowBuilder({ agentId }) {
     }
 
     const approvedIndex = waitingStepIndex;
+    const approvalNode = runPlan[approvedIndex];
 
-    setRunSteps((current) =>
-      current.map((step, index) =>
+    const reviewer =
+      approvalNode?.data?.config?.approver ||
+      approvalNode?.data?.config?.assignee ||
+      'Reviewer';
+
+    const approvedSteps = runStepsRef.current.map(
+      (step, index) =>
         index === approvedIndex
           ? {
               ...step,
@@ -1400,7 +1500,18 @@ export default function WorkflowBuilder({ agentId }) {
               note: 'Approved by human. Test resumed.',
             }
           : step
-      )
+    );
+
+    setRunStepsSnapshot(
+      approvedSteps,
+      'Running',
+      {
+        approval: {
+          decision: 'Approved',
+          by: reviewer,
+          decidedAt: new Date().toISOString(),
+        },
+      }
     );
 
     setWaitingStepIndex(null);
@@ -1408,7 +1519,10 @@ export default function WorkflowBuilder({ agentId }) {
 
     await sleep(250);
 
-    await continueSimulation(runPlan, approvedIndex + 1);
+    await continueSimulation(
+      runPlan,
+      approvedIndex + 1
+    );
   };
 
   const rejectHumanStep = () => {
@@ -1420,9 +1534,15 @@ export default function WorkflowBuilder({ agentId }) {
     }
 
     const rejectedIndex = waitingStepIndex;
+    const approvalNode = runPlan[rejectedIndex];
 
-    setRunSteps((current) =>
-      current.map((step, index) => {
+    const reviewer =
+      approvalNode?.data?.config?.approver ||
+      approvalNode?.data?.config?.assignee ||
+      'Reviewer';
+
+    const rejectedSteps = runStepsRef.current.map(
+      (step, index) => {
         if (index === rejectedIndex) {
           return {
             ...step,
@@ -1431,7 +1551,10 @@ export default function WorkflowBuilder({ agentId }) {
           };
         }
 
-        if (index > rejectedIndex && step.status === 'pending') {
+        if (
+          index > rejectedIndex &&
+          step.status === 'pending'
+        ) {
           return {
             ...step,
             status: 'skipped',
@@ -1440,7 +1563,19 @@ export default function WorkflowBuilder({ agentId }) {
         }
 
         return step;
-      })
+      }
+    );
+
+    setRunStepsSnapshot(
+      rejectedSteps,
+      'Rejected',
+      {
+        approval: {
+          decision: 'Rejected',
+          by: reviewer,
+          decidedAt: new Date().toISOString(),
+        },
+      }
     );
 
     setWaitingStepIndex(null);
