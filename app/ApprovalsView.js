@@ -10,6 +10,12 @@ import {
   subscribeToApprovals,
 } from './approvalQueue';
 
+import {
+  getRunHistory,
+  saveRun,
+  finishRun,
+} from './runHistory';
+
 function formatDate(value) {
   if (!value) return '-';
 
@@ -20,6 +26,43 @@ function statusClass(status) {
   return String(status || '')
     .toLowerCase()
     .replaceAll(' ', '-');
+}
+
+function getPostApprovalNote(step) {
+  if (
+    ['aiPrompt', 'extract', 'classify', 'summarize'].includes(
+      step.type
+    )
+  ) {
+    return 'AI step simulated after approval. No model was called.';
+  }
+
+  if (
+    [
+      'connector',
+      'api',
+      'plugin',
+      'database',
+      'spreadsheet',
+      'fileStorage',
+      'email',
+      'whatsapp',
+      'notification',
+      'file',
+    ].includes(step.type)
+  ) {
+    return 'External action simulated after approval. Nothing was sent or changed.';
+  }
+
+  if (step.type === 'delay') {
+    return 'Delay simulated after approval. No real waiting occurred.';
+  }
+
+  if (step.type === 'condition') {
+    return 'Simulated result after approval: True';
+  }
+
+  return 'Simulated successfully after approval.';
 }
 
 export default function ApprovalsView() {
@@ -104,6 +147,168 @@ export default function ApprovalsView() {
     );
   }, [approvals, filter]);
 
+  const updateRunFromDecision = (
+    approvalDecision
+  ) => {
+    if (!approvalDecision?.runId) return;
+
+    const runs = getRunHistory();
+
+    const run = runs.find(
+      (item) =>
+        item.id === approvalDecision.runId
+    );
+
+    if (!run) return;
+
+    const originalSteps = Array.isArray(
+      run.steps
+    )
+      ? run.steps
+      : [];
+
+    const approvalIndex =
+      originalSteps.findIndex(
+        (step) =>
+          step.nodeId ===
+          approvalDecision.nodeId
+      );
+
+    if (approvalIndex < 0) return;
+
+    if (
+      approvalDecision.status ===
+      'Approved'
+    ) {
+      const updatedSteps =
+        originalSteps.map(
+          (step, index) => {
+            if (
+              index === approvalIndex
+            ) {
+              return {
+                ...step,
+                status: 'completed',
+                note: `Approved by ${
+                  approvalDecision.decisionBy ||
+                  'Reviewer'
+                }. Test resumed.`,
+              };
+            }
+
+            if (
+              index > approvalIndex &&
+              step.status === 'pending'
+            ) {
+              return {
+                ...step,
+                status: 'completed',
+                note: getPostApprovalNote(
+                  step
+                ),
+              };
+            }
+
+            return step;
+          }
+        );
+
+      const completedRun = finishRun(
+        run,
+        'Completed',
+        {
+          steps: updatedSteps,
+
+          approval: {
+            approvalId:
+              approvalDecision.id,
+
+            decision: 'Approved',
+
+            by:
+              approvalDecision.decisionBy ||
+              'Reviewer',
+
+            decidedAt:
+              approvalDecision.decidedAt,
+
+            note:
+              approvalDecision.decisionNote ||
+              '',
+          },
+        }
+      );
+
+      saveRun(completedRun);
+
+      return;
+    }
+
+    if (
+      approvalDecision.status ===
+      'Rejected'
+    ) {
+      const updatedSteps =
+        originalSteps.map(
+          (step, index) => {
+            if (
+              index === approvalIndex
+            ) {
+              return {
+                ...step,
+                status: 'rejected',
+                note: `Rejected by ${
+                  approvalDecision.decisionBy ||
+                  'Reviewer'
+                }. Workflow stopped.`,
+              };
+            }
+
+            if (
+              index > approvalIndex &&
+              step.status === 'pending'
+            ) {
+              return {
+                ...step,
+                status: 'skipped',
+                note: 'Skipped because approval was rejected.',
+              };
+            }
+
+            return step;
+          }
+        );
+
+      const rejectedRun = finishRun(
+        run,
+        'Rejected',
+        {
+          steps: updatedSteps,
+
+          approval: {
+            approvalId:
+              approvalDecision.id,
+
+            decision: 'Rejected',
+
+            by:
+              approvalDecision.decisionBy ||
+              'Reviewer',
+
+            decidedAt:
+              approvalDecision.decidedAt,
+
+            note:
+              approvalDecision.decisionNote ||
+              '',
+          },
+        }
+      );
+
+      saveRun(rejectedRun);
+    }
+  };
+
   const handleDecision = (decision) => {
     if (!selectedApproval) return;
 
@@ -117,25 +322,39 @@ export default function ApprovalsView() {
 
     const action =
       decision === 'Approved'
-        ? 'approve'
-        : 'reject';
+        ? 'Approve'
+        : 'Reject';
 
     const confirmed = window.confirm(
-      `${action === 'approve' ? 'Approve' : 'Reject'} this workflow request?`
+      `${action} this workflow request?`
     );
 
     if (!confirmed) return;
 
     const updated = decideApproval({
-      approvalId: selectedApproval.id,
+      approvalId:
+        selectedApproval.id,
+
       decision,
-      decisionBy: reviewer.trim(),
-      decisionNote: decisionNote.trim(),
+
+      decisionBy:
+        reviewer.trim(),
+
+      decisionNote:
+        decisionNote.trim(),
     });
 
-    if (updated) {
-      setSelectedApproval(updated);
-    }
+    if (!updated) return;
+
+    updateRunFromDecision(updated);
+
+    setSelectedApproval(updated);
+
+    setFilter(
+      decision === 'Approved'
+        ? 'Approved'
+        : 'Rejected'
+    );
   };
 
   const removeApproval = () => {
@@ -147,7 +366,9 @@ export default function ApprovalsView() {
 
     if (!confirmed) return;
 
-    deleteApproval(selectedApproval.id);
+    deleteApproval(
+      selectedApproval.id
+    );
 
     setSelectedApproval(null);
   };
@@ -187,7 +408,9 @@ export default function ApprovalsView() {
         <button
           className="approvalsClearButton"
           onClick={clearAll}
-          disabled={approvals.length === 0}
+          disabled={
+            approvals.length === 0
+          }
         >
           Clear History
         </button>
@@ -287,7 +510,9 @@ export default function ApprovalsView() {
 
                   {approval.message && (
                     <p className="approvalCardMessage">
-                      {approval.message}
+                      {
+                        approval.message
+                      }
                     </p>
                   )}
 
@@ -323,7 +548,9 @@ export default function ApprovalsView() {
                 <div className="approvalDetailsHeader">
                   <div>
                     <h2>
-                      {selectedApproval.agentName}
+                      {
+                        selectedApproval.agentName
+                      }
                     </h2>
 
                     <span>
@@ -341,7 +568,9 @@ export default function ApprovalsView() {
                       )}
                     `}
                   >
-                    {selectedApproval.status}
+                    {
+                      selectedApproval.status
+                    }
                   </span>
                 </div>
 
@@ -432,7 +661,9 @@ export default function ApprovalsView() {
 
                     <textarea
                       rows={4}
-                      value={decisionNote}
+                      value={
+                        decisionNote
+                      }
                       onChange={(e) =>
                         setDecisionNote(
                           e.target.value
@@ -466,10 +697,12 @@ export default function ApprovalsView() {
                     </div>
 
                     <div className="approvalSafetyNotice">
-                      Approval records the human
-                      decision only. External actions
-                      remain controlled by the workflow
-                      execution engine.
+                      This is still a safe test
+                      simulation. Approval updates
+                      the saved test run and simulates
+                      downstream steps. No email,
+                      API call, database change, or
+                      external action is executed.
                     </div>
                   </div>
                 ) : (
@@ -527,7 +760,9 @@ export default function ApprovalsView() {
 
                 <button
                   className="approvalDeleteButton"
-                  onClick={removeApproval}
+                  onClick={
+                    removeApproval
+                  }
                 >
                   Delete Approval Record
                 </button>
