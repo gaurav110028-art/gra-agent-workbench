@@ -29,6 +29,11 @@ import {
   saveRun,
 } from './runHistory';
 
+import {
+  createApprovalRequest,
+  decideApproval,
+} from './approvalQueue';
+
 /* =========================================================
    BLOCK LIBRARY
 ========================================================= */
@@ -805,6 +810,7 @@ export default function WorkflowBuilder({ agentId, agentName }) {
 
   const currentRunRef = useRef(null);
   const runStepsRef = useRef([]);
+  const currentApprovalRef = useRef(null);
 
   useEffect(() => {
     setLoaded(false);
@@ -835,6 +841,7 @@ export default function WorkflowBuilder({ agentId, agentName }) {
 
     currentRunRef.current = null;
     runStepsRef.current = [];
+    currentApprovalRef.current = null;
 
     setLoaded(true);
   }, [storageKey, setNodes, setEdges]);
@@ -1390,14 +1397,30 @@ export default function WorkflowBuilder({ agentId, agentName }) {
           node.data.config?.assignee ||
           'Reviewer';
 
+        const approvalRequest = createApprovalRequest({
+          runId: currentRunRef.current?.id,
+          agentId,
+          agentName: agentName || 'Agent',
+          nodeId: node.id,
+          blockName: node.data.name || 'Human Approval',
+          approver: reviewer,
+          message:
+            node.data.config?.message ||
+            node.data.config?.instructions ||
+            '',
+        });
+
+        currentApprovalRef.current = approvalRequest;
+
         setRunStepsSnapshot(
           waitingSteps,
           'Waiting',
           {
             approval: {
+              approvalId: approvalRequest.id,
               decision: 'Pending',
               by: reviewer,
-              requestedAt: new Date().toISOString(),
+              requestedAt: approvalRequest.requestedAt,
             },
           }
         );
@@ -1461,6 +1484,7 @@ export default function WorkflowBuilder({ agentId, agentName }) {
 
     currentRunRef.current = newRun;
     runStepsRef.current = initialSteps;
+    currentApprovalRef.current = null;
 
     saveRun(newRun);
 
@@ -1502,14 +1526,32 @@ export default function WorkflowBuilder({ agentId, agentName }) {
           : step
     );
 
+    let approvalDecision = null;
+
+    if (currentApprovalRef.current?.id) {
+      approvalDecision = decideApproval({
+        approvalId: currentApprovalRef.current.id,
+        decision: 'Approved',
+        decisionBy: reviewer,
+        decisionNote: 'Approved from workflow test panel.',
+      });
+
+      if (approvalDecision) {
+        currentApprovalRef.current = approvalDecision;
+      }
+    }
+
     setRunStepsSnapshot(
       approvedSteps,
       'Running',
       {
         approval: {
+          approvalId: currentApprovalRef.current?.id || null,
           decision: 'Approved',
           by: reviewer,
-          decidedAt: new Date().toISOString(),
+          decidedAt:
+            approvalDecision?.decidedAt ||
+            new Date().toISOString(),
         },
       }
     );
@@ -1566,14 +1608,32 @@ export default function WorkflowBuilder({ agentId, agentName }) {
       }
     );
 
+    let approvalDecision = null;
+
+    if (currentApprovalRef.current?.id) {
+      approvalDecision = decideApproval({
+        approvalId: currentApprovalRef.current.id,
+        decision: 'Rejected',
+        decisionBy: reviewer,
+        decisionNote: 'Rejected from workflow test panel.',
+      });
+
+      if (approvalDecision) {
+        currentApprovalRef.current = approvalDecision;
+      }
+    }
+
     setRunStepsSnapshot(
       rejectedSteps,
       'Rejected',
       {
         approval: {
+          approvalId: currentApprovalRef.current?.id || null,
           decision: 'Rejected',
           by: reviewer,
-          decidedAt: new Date().toISOString(),
+          decidedAt:
+            approvalDecision?.decidedAt ||
+            new Date().toISOString(),
         },
       }
     );
