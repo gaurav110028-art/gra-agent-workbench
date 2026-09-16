@@ -3510,3 +3510,76 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   WORKFLOW VERSIONING + PUBLISH
+========================================================= */
+
+.workflowVersionControls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.workflowVersionBadge {
+  display: inline-flex;
+  align-items: center;
+  height: 29px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  border: 1px solid #34343a;
+  background: #19191c;
+}
+
+.workflowVersionBadge.draft {
+  color: #e7bc68;
+  border-color: rgba(231, 188, 104, 0.28);
+  background: rgba(231, 188, 104, 0.07);
+}
+
+.workflowVersionBadge.published {
+  color: #76d69e;
+  border-color: rgba(118, 214, 158, 0.28);
+  background: rgba(118, 214, 158, 0.07);
+}
+
+.workflowPublishedReference {
+  color: #777780;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.workflowPublishMessage {
+  color: #76d69e;
+  font-size: 9px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.workflowPublishButton {
+  border-color: rgba(118, 214, 158, 0.28);
+  color: #8addaa;
+  background: rgba(118, 214, 158, 0.06);
+}
+
+.workflowPublishButton:hover:not(:disabled) {
+  border-color: rgba(118, 214, 158, 0.48);
+  background: rgba(118, 214, 158, 0.11);
+}
+
+.workflowPublishButton:disabled {
+  opacity: 0.36;
+  cursor: default;
+}
+
+@media (max-width: 1280px) {
+  .workflowPublishedReference,
+  .workflowPublishMessage {
+    display: none;
+  }
+}
