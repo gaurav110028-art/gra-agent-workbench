@@ -34,6 +34,13 @@ import {
   decideApproval,
 } from './approvalQueue';
 
+import {
+  getWorkflowVersionState,
+  initializeWorkflowVersion,
+  saveWorkflowDraft,
+  publishWorkflow,
+} from './workflowVersions';
+
 /* =========================================================
    BLOCK LIBRARY
 ========================================================= */
@@ -797,6 +804,9 @@ export default function WorkflowBuilder({ agentId, agentName }) {
   const [loaded, setLoaded] = useState(false);
   const [search, setSearch] = useState('');
 
+  const [versionState, setVersionState] = useState(null);
+  const [publishMessage, setPublishMessage] = useState('');
+
   const [panelMode, setPanelMode] = useState(null);
 
   const [validationIssues, setValidationIssues] = useState([]);
@@ -843,8 +853,14 @@ export default function WorkflowBuilder({ agentId, agentName }) {
     runStepsRef.current = [];
     currentApprovalRef.current = null;
 
+    setVersionState(
+      getWorkflowVersionState(agentId)
+    );
+
+    setPublishMessage('');
+
     setLoaded(true);
-  }, [storageKey, setNodes, setEdges]);
+  }, [agentId, storageKey, setNodes, setEdges]);
 
   useEffect(() => {
     if (!loaded) return;
@@ -856,7 +872,32 @@ export default function WorkflowBuilder({ agentId, agentName }) {
         edges,
       })
     );
-  }, [nodes, edges, loaded, storageKey]);
+
+    const existingVersionState =
+      getWorkflowVersionState(agentId);
+
+    const updatedVersionState =
+      existingVersionState?.draft
+        ? saveWorkflowDraft({
+            agentId,
+            nodes,
+            edges,
+          })
+        : initializeWorkflowVersion({
+            agentId,
+            nodes,
+            edges,
+          });
+
+    setVersionState(updatedVersionState);
+    setPublishMessage('');
+  }, [
+    agentId,
+    nodes,
+    edges,
+    loaded,
+    storageKey,
+  ]);
 
   const displayNodes = useMemo(
     () =>
@@ -1642,6 +1683,36 @@ export default function WorkflowBuilder({ agentId, agentName }) {
     setRunStatus('rejected');
   };
 
+  const publishCurrentWorkflow = () => {
+    const issues = validateWorkflow(false);
+
+    if (issues.length > 0) {
+      setPanelMode('validation');
+      setRunStatus('blocked');
+      setPublishMessage(
+        'Fix validation issues before publishing.'
+      );
+      return;
+    }
+
+    const published = publishWorkflow({
+      agentId,
+      nodes,
+      edges,
+    });
+
+    setVersionState(published);
+
+    setPublishMessage(
+      `Published v${published?.publishedVersion || 1}`
+    );
+
+    setPanelMode('validation');
+    setValidationIssues([]);
+    setValidationErrorIds([]);
+    setRunStatus('idle');
+  };
+
   const filteredCatalog = useMemo(() => {
     if (!search.trim()) return nodeCatalog;
 
@@ -1737,9 +1808,35 @@ export default function WorkflowBuilder({ agentId, agentName }) {
           </div>
 
           <div className="workflowBoardActions">
-            <span className="workflowDraftStatus">
-              Saved locally
-            </span>
+            <div className="workflowVersionControls">
+              <span
+                className={`workflowVersionBadge ${
+                  versionState?.isDirty
+                    ? 'draft'
+                    : 'published'
+                }`}
+              >
+                {versionState?.isDirty
+                  ? `Draft v${versionState?.draftVersion || 1}`
+                  : `Published v${versionState?.publishedVersion || versionState?.draftVersion || 1}`}
+              </span>
+
+              {versionState?.publishedVersion && (
+                <span className="workflowPublishedReference">
+                  Published v{versionState.publishedVersion}
+                </span>
+              )}
+
+              <span className="workflowDraftStatus">
+                Saved locally
+              </span>
+
+              {publishMessage && (
+                <span className="workflowPublishMessage">
+                  {publishMessage}
+                </span>
+              )}
+            </div>
 
             <button
               className="workflowActionButton"
@@ -1747,6 +1844,18 @@ export default function WorkflowBuilder({ agentId, agentName }) {
               disabled={runStatus === 'running'}
             >
               ✓ Validate
+            </button>
+
+            <button
+              className="workflowActionButton workflowPublishButton"
+              onClick={publishCurrentWorkflow}
+              disabled={
+                runStatus === 'running' ||
+                nodes.length === 0 ||
+                versionState?.isDirty === false
+              }
+            >
+              ↑ Publish
             </button>
 
             <button
@@ -1850,9 +1959,15 @@ export default function WorkflowBuilder({ agentId, agentName }) {
                 <>
                   {validationIssues.length === 0 ? (
                     <div className="workflowValidationSuccess">
-                      <strong>✓ Workflow valid</strong>
+                      <strong>
+                        {publishMessage
+                          ? `✓ ${publishMessage}`
+                          : '✓ Workflow valid'}
+                      </strong>
                       <span>
-                        No blocking issues found. Ready for a test run.
+                        {publishMessage
+                          ? 'This exact workflow snapshot is now the published version.'
+                          : 'No blocking issues found. Ready for a test run or publish.'}
                       </span>
                     </div>
                   ) : (
