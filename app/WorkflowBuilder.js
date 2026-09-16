@@ -815,6 +815,15 @@ export default function WorkflowBuilder({ agentId, agentName }) {
   const [runSteps, setRunSteps] = useState([]);
   const [runStatus, setRunStatus] = useState('idle');
 
+  const [auditFiles, setAuditFiles] = useState({
+    financialStatements: null,
+    trialBalance: null,
+    gstData: null,
+  });
+  const [auditResult, setAuditResult] = useState(null);
+  const [auditError, setAuditError] = useState('');
+  const [auditProcessing, setAuditProcessing] = useState(false);
+
   const [runPlan, setRunPlan] = useState([]);
   const [waitingStepIndex, setWaitingStepIndex] = useState(null);
 
@@ -848,6 +857,14 @@ export default function WorkflowBuilder({ agentId, agentName }) {
     setRunPlan([]);
     setWaitingStepIndex(null);
     setRunStatus('idle');
+    setAuditFiles({
+      financialStatements: null,
+      trialBalance: null,
+      gstData: null,
+    });
+    setAuditResult(null);
+    setAuditError('');
+    setAuditProcessing(false);
 
     currentRunRef.current = null;
     runStepsRef.current = [];
@@ -1394,6 +1411,358 @@ export default function WorkflowBuilder({ agentId, agentName }) {
     }
   };
 
+  const isAuditWorkflow = nodes.some((node) =>
+    String(node.data?.name || '')
+      .toLowerCase()
+      .includes('audit file intake')
+  );
+
+  const selectedIsAuditIntake = Boolean(
+    selectedNode &&
+      String(selectedNode.data?.name || '')
+        .toLowerCase()
+        .includes('audit file intake')
+  );
+
+  const handleAuditFile = (key, file) => {
+    setAuditFiles((current) => ({
+      ...current,
+      [key]: file || null,
+    }));
+
+    setAuditResult(null);
+    setAuditError('');
+  };
+
+  const formatAuditAmount = (value) => {
+    const numeric = Number(value || 0);
+
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0,
+    }).format(Math.abs(numeric));
+  };
+
+  const getAuditNodeNote = (node, result) => {
+    const name = String(node.data?.name || '').toLowerCase();
+    const openingCount = result?.openingFindings?.length || 0;
+    const gstCount = result?.gstFindings?.length || 0;
+    const totalCount = result?.findings?.length || 0;
+    const queryCount = result?.queries?.length || 0;
+
+    if (name.includes('manual trigger')) {
+      return 'Started manually by the user.';
+    }
+
+    if (name.includes('audit file intake')) {
+      return `3 real files received: ${auditFiles.financialStatements?.name}, ${auditFiles.trialBalance?.name}, ${auditFiles.gstData?.name}`;
+    }
+
+    if (
+      name.includes('read & extract') ||
+      name.includes('read and extract')
+    ) {
+      return `OpenAI file analysis completed. ${result?.extractionSummary || 'Financial statements, trial balance and GST records were extracted.'}`;
+    }
+
+    if (name.includes('opening balance')) {
+      return `${openingCount} opening-balance exception${openingCount === 1 ? '' : 's'} identified by deterministic comparison.`;
+    }
+
+    if (name.includes('gst reconciliation')) {
+      return `${gstCount} GST exception${gstCount === 1 ? '' : 's'} identified across books, GSTR-1 and GSTR-3B data.`;
+    }
+
+    if (name.includes('combine audit exceptions')) {
+      return `${totalCount} total audit exception${totalCount === 1 ? '' : 's'} combined for review.`;
+    }
+
+    if (name.includes('audit query generator')) {
+      return `${queryCount} client quer${queryCount === 1 ? 'y' : 'ies'} generated from the identified exceptions.`;
+    }
+
+    if (name.includes('send client audit queries')) {
+      return 'Client communication step reached. Email sending remains disabled until the Outlook connector is configured.';
+    }
+
+    return 'Completed using the real audit-demo result.';
+  };
+
+  const buildAuditApprovalMessage = (node, result) => {
+    const configuredMessage =
+      node.data.config?.message ||
+      'Please review the identified audit exceptions and proposed client queries before communication.';
+
+    const queryLines = (result?.queries || [])
+      .slice(0, 10)
+      .map(
+        (query, index) =>
+          `${index + 1}. ${query.area}: ${query.query}`
+      )
+      .join('\n');
+
+    return `${configuredMessage}\n\nREAL AUDIT DEMO FINDINGS: ${
+      result?.findings?.length || 0
+    } exception(s).\n\n${queryLines}`;
+  };
+
+  const continueAuditExecution = async (orderedNodes, result) => {
+    for (
+      let index = 0;
+      index < orderedNodes.length;
+      index += 1
+    ) {
+      const node = orderedNodes[index];
+      const type = node.data.nodeType;
+
+      const runningSteps = runStepsRef.current.map(
+        (step, stepIndex) =>
+          stepIndex === index
+            ? {
+                ...step,
+                status: 'running',
+                note:
+                  String(node.data?.name || '')
+                    .toLowerCase()
+                    .includes('read & extract')
+                    ? 'Reading the uploaded PDF and Excel files...'
+                    : 'Processing real audit result...',
+              }
+            : step
+      );
+
+      setRunStepsSnapshot(runningSteps, 'Running');
+
+      await sleep(220);
+
+      if (type === 'approval' || type === 'review') {
+        const waitingSteps = runStepsRef.current.map(
+          (step, stepIndex) =>
+            stepIndex === index
+              ? {
+                  ...step,
+                  status: 'waiting',
+                  note: `Waiting for Senior CA review of ${
+                    result?.findings?.length || 0
+                  } real exception(s) and ${
+                    result?.queries?.length || 0
+                  } client query draft(s).`,
+                }
+              : step
+        );
+
+        const reviewer =
+          node.data.config?.approver ||
+          node.data.config?.assignee ||
+          'Senior CA';
+
+        const approvalRequest = createApprovalRequest({
+          runId: currentRunRef.current?.id,
+          agentId,
+          agentName: agentName || 'Agent',
+          nodeId: node.id,
+          blockName: node.data.name || 'Senior CA Review',
+          approver: reviewer,
+          message: buildAuditApprovalMessage(node, result),
+          workflowVersion:
+            currentRunRef.current?.workflowVersion || null,
+          workflowVersionStatus:
+            currentRunRef.current?.workflowVersionStatus || null,
+        });
+
+        currentApprovalRef.current = approvalRequest;
+
+        setRunStepsSnapshot(waitingSteps, 'Waiting', {
+          auditResult: result,
+          approval: {
+            approvalId: approvalRequest.id,
+            decision: 'Pending',
+            by: reviewer,
+            requestedAt: approvalRequest.requestedAt,
+          },
+        });
+
+        setWaitingStepIndex(index);
+        setRunStatus('waiting');
+        return;
+      }
+
+      const completedSteps = runStepsRef.current.map(
+        (step, stepIndex) =>
+          stepIndex === index
+            ? {
+                ...step,
+                status: 'completed',
+                note: getAuditNodeNote(node, result),
+              }
+            : step
+      );
+
+      setRunStepsSnapshot(completedSteps, 'Running', {
+        auditResult: result,
+      });
+    }
+
+    setWaitingStepIndex(null);
+    setRunStatus('completed');
+    persistRun('Completed', runStepsRef.current, {
+      auditResult: result,
+    });
+  };
+
+  const runAuditDemo = async () => {
+    const issues = validateWorkflow(false);
+
+    if (issues.length > 0) {
+      setPanelMode('validation');
+      setRunStatus('blocked');
+      return;
+    }
+
+    const missing = [];
+
+    if (!auditFiles.financialStatements) {
+      missing.push('last-year signed financial statements PDF');
+    }
+
+    if (!auditFiles.trialBalance) {
+      missing.push('current-year trial balance Excel');
+    }
+
+    if (!auditFiles.gstData) {
+      missing.push('GST reconciliation Excel');
+    }
+
+    if (missing.length > 0) {
+      setAuditError(`Upload ${missing.join(', ')} in the Audit File Intake block.`);
+      setPanelMode('test');
+      setRunStatus('blocked');
+      return;
+    }
+
+    const orderedNodes = buildExecutionOrder();
+
+    const initialSteps = orderedNodes.map((node) => ({
+      nodeId: node.id,
+      name: node.data.name,
+      type: node.data.nodeType,
+      icon: node.data.icon,
+      status: 'pending',
+      note: '',
+    }));
+
+    const latestVersionState =
+      getWorkflowVersionState(agentId);
+
+    const workflowVersion =
+      latestVersionState?.draftVersion ||
+      latestVersionState?.publishedVersion ||
+      1;
+
+    const workflowVersionStatus =
+      latestVersionState?.isDirty
+        ? 'Draft'
+        : 'Published';
+
+    const newRun = createRun({
+      agentId,
+      agentName: agentName || 'Agent',
+      steps: initialSteps,
+      workflowVersion,
+      workflowVersionStatus,
+      workflowSnapshot: {
+        nodes,
+        edges,
+        capturedAt: new Date().toISOString(),
+      },
+    });
+
+    currentRunRef.current = newRun;
+    runStepsRef.current = initialSteps;
+    currentApprovalRef.current = null;
+
+    saveRun(newRun);
+
+    setRunPlan(orderedNodes);
+    setRunSteps(initialSteps);
+    setPanelMode('test');
+    setRunStatus('running');
+    setWaitingStepIndex(null);
+    setValidationErrorIds([]);
+    setAuditError('');
+    setAuditResult(null);
+    setAuditProcessing(true);
+
+    try {
+      const formData = new FormData();
+
+      formData.append(
+        'financialStatements',
+        auditFiles.financialStatements
+      );
+      formData.append(
+        'trialBalance',
+        auditFiles.trialBalance
+      );
+      formData.append(
+        'gstData',
+        auditFiles.gstData
+      );
+
+      const response = await fetch('/api/audit-demo', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          payload?.error ||
+            'Audit processing failed.'
+        );
+      }
+
+      setAuditResult(payload);
+
+      persistRun('Running', initialSteps, {
+        auditResult: payload,
+      });
+
+      await continueAuditExecution(
+        orderedNodes,
+        payload
+      );
+    } catch (error) {
+      const message =
+        error?.message ||
+        'Audit processing failed.';
+
+      setAuditError(message);
+      setRunStatus('blocked');
+
+      const failedSteps = runStepsRef.current.map(
+        (step, index) =>
+          index === 0
+            ? {
+                ...step,
+                status: 'rejected',
+                note: message,
+              }
+            : step
+      );
+
+      setRunStepsSnapshot(
+        failedSteps,
+        'Failed',
+        { error: message }
+      );
+    } finally {
+      setAuditProcessing(false);
+    }
+  };
+
   const continueSimulation = async (orderedNodes, startIndex) => {
     for (
       let index = startIndex;
@@ -1884,6 +2253,22 @@ export default function WorkflowBuilder({ agentId, agentName }) {
               ↑ Publish
             </button>
 
+            {isAuditWorkflow && (
+              <button
+                className="workflowActionButton workflowAuditDemoButton"
+                onClick={runAuditDemo}
+                disabled={
+                  runStatus === 'running' ||
+                  auditProcessing
+                }
+                title="Upload the three demo files in Audit File Intake, then run real file analysis"
+              >
+                {auditProcessing
+                  ? 'Analyzing Files...'
+                  : '▶ Run Audit Demo'}
+              </button>
+            )}
+
             <button
               className="workflowActionButton workflowTestButton"
               onClick={testWorkflow}
@@ -2032,6 +2417,55 @@ export default function WorkflowBuilder({ agentId, agentName }) {
 
               {panelMode === 'test' && (
                 <div className="workflowRunSteps">
+                  {auditError && (
+                    <div className="auditDemoError">
+                      <strong>Audit Demo Error</strong>
+                      <span>{auditError}</span>
+                    </div>
+                  )}
+
+                  {auditResult && (
+                    <div className="auditDemoResult">
+                      <div className="auditDemoResultHeader">
+                        <div>
+                          <strong>Real File Analysis</strong>
+                          <span>
+                            {auditResult.clientName || 'Demo Client'} · {auditResult.findings?.length || 0} exception(s)
+                          </span>
+                        </div>
+
+                        <span className="auditDemoRealBadge">REAL</span>
+                      </div>
+
+                      <div className="auditDemoStats">
+                        <div>
+                          <span>Opening exceptions</span>
+                          <strong>{auditResult.openingFindings?.length || 0}</strong>
+                        </div>
+                        <div>
+                          <span>GST exceptions</span>
+                          <strong>{auditResult.gstFindings?.length || 0}</strong>
+                        </div>
+                        <div>
+                          <span>Client queries</span>
+                          <strong>{auditResult.queries?.length || 0}</strong>
+                        </div>
+                      </div>
+
+                      <div className="auditDemoFindings">
+                        {(auditResult.findings || []).slice(0, 12).map((finding, index) => (
+                          <div className="auditDemoFindingRow" key={`${finding.area}-${index}`}>
+                            <div>
+                              <strong>{finding.area}</strong>
+                              <span>{finding.observation}</span>
+                            </div>
+                            <b>{formatAuditAmount(finding.difference)}</b>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div
                     className={`
                       workflowRunStatus
@@ -2219,6 +2653,70 @@ export default function WorkflowBuilder({ agentId, agentName }) {
               </>
             )}
 
+            {selectedIsAuditIntake && (
+              <>
+                <div className="workflowInspectorDivider">
+                  Real Demo Files
+                </div>
+
+                <div className="auditUploadNotice">
+                  These files are sent to the server only when you click
+                  <strong> Run Audit Demo</strong>. They are not saved in browser localStorage.
+                </div>
+
+                <div className="auditUploadField">
+                  <label>Last-year Signed Financial Statements *</label>
+                  <input
+                    type="file"
+                    accept="application/pdf,.pdf"
+                    onChange={(e) =>
+                      handleAuditFile(
+                        'financialStatements',
+                        e.target.files?.[0]
+                      )
+                    }
+                  />
+                  <span>
+                    {auditFiles.financialStatements?.name || 'No PDF selected'}
+                  </span>
+                </div>
+
+                <div className="auditUploadField">
+                  <label>Current-year Trial Balance *</label>
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    onChange={(e) =>
+                      handleAuditFile(
+                        'trialBalance',
+                        e.target.files?.[0]
+                      )
+                    }
+                  />
+                  <span>
+                    {auditFiles.trialBalance?.name || 'No Excel selected'}
+                  </span>
+                </div>
+
+                <div className="auditUploadField">
+                  <label>GST Reconciliation Data *</label>
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    onChange={(e) =>
+                      handleAuditFile(
+                        'gstData',
+                        e.target.files?.[0]
+                      )
+                    }
+                  />
+                  <span>
+                    {auditFiles.gstData?.name || 'No Excel selected'}
+                  </span>
+                </div>
+              </>
+            )}
+
             <div className="workflowInspectorDivider">
               Technical
             </div>
@@ -2230,9 +2728,9 @@ export default function WorkflowBuilder({ agentId, agentName }) {
             </div>
 
             <div className="workflowConfigNotice">
-              Visual configuration only. Test Run is simulated and will
-              not send emails, call APIs, change databases, or alter
-              external systems.
+              {selectedIsAuditIntake
+                ? 'Run Audit Demo performs real OpenAI file analysis and deterministic reconciliation. Client email sending remains disabled until an Outlook connector is configured.'
+                : 'Visual configuration only. Test Run is simulated and will not send emails, call APIs, change databases, or alter external systems.'}
             </div>
 
             <button
