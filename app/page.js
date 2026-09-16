@@ -16,6 +16,8 @@ export default function Home() {
   const [showSiteInfo, setShowSiteInfo] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   const [agentName, setAgentName] = useState('');
   const [agentStatus, setAgentStatus] = useState('paused');
 
@@ -29,7 +31,27 @@ export default function Home() {
         localStorage.removeItem('gra-agents');
       }
     }
+
+    const savedSidebarState =
+      localStorage.getItem('gra-sidebar-collapsed');
+
+    if (savedSidebarState === 'true') {
+      setSidebarCollapsed(true);
+    }
   }, []);
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed((current) => {
+      const next = !current;
+
+      localStorage.setItem(
+        'gra-sidebar-collapsed',
+        String(next)
+      );
+
+      return next;
+    });
+  };
 
   const saveAgents = (updatedAgents) => {
     setAgents(updatedAgents);
@@ -160,8 +182,31 @@ export default function Home() {
   };
 
   return (
-    <main className="workbench">
+    <main
+      className={`workbench ${
+        sidebarCollapsed
+          ? 'sidebarCollapsed'
+          : ''
+      }`}
+    >
       <aside className="sidebar">
+        <button
+          className="sidebarToggle"
+          onClick={toggleSidebar}
+          aria-label={
+            sidebarCollapsed
+              ? 'Expand sidebar'
+              : 'Collapse sidebar'
+          }
+          title={
+            sidebarCollapsed
+              ? 'Expand sidebar'
+              : 'Collapse sidebar'
+          }
+        >
+          {sidebarCollapsed ? '›' : '‹'}
+        </button>
+
         <div className="brand" />
 
         <nav className="nav">
@@ -173,8 +218,15 @@ export default function Home() {
                 : ''
             }`}
             onClick={goToDashboard}
+            title={
+              sidebarCollapsed
+                ? 'Dashboard'
+                : undefined
+            }
           >
-            Dashboard
+            <span className="sidebarNavLabel">
+              Dashboard
+            </span>
           </button>
 
           <button
@@ -184,8 +236,15 @@ export default function Home() {
                 : ''
             }`}
             onClick={goToRuns}
+            title={
+              sidebarCollapsed
+                ? 'Runs'
+                : undefined
+            }
           >
-            Runs
+            <span className="sidebarNavLabel">
+              Runs
+            </span>
           </button>
 
           <button
@@ -195,12 +254,28 @@ export default function Home() {
                 : ''
             }`}
             onClick={goToApprovals}
+            title={
+              sidebarCollapsed
+                ? 'Approvals'
+                : undefined
+            }
           >
-            Approvals
+            <span className="sidebarNavLabel">
+              Approvals
+            </span>
           </button>
 
-          <button className="navItem">
-            Settings
+          <button
+            className="navItem"
+            title={
+              sidebarCollapsed
+                ? 'Settings'
+                : undefined
+            }
+          >
+            <span className="sidebarNavLabel">
+              Settings
+            </span>
           </button>
         </nav>
 
@@ -210,8 +285,19 @@ export default function Home() {
             onClick={() =>
               setShowSiteInfo(true)
             }
+            title={
+              sidebarCollapsed
+                ? 'Site Info'
+                : undefined
+            }
           >
-            ⓘ Site Info
+            <span className="siteInfoIcon">
+              ⓘ
+            </span>
+
+            <span className="sidebarNavLabel">
+              Site Info
+            </span>
           </button>
         </div>
       </aside>
