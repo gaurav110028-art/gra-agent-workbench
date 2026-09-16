@@ -2268,3 +2268,632 @@ button {
 .workflowRunStatus-rejected {
   color: #ef7777;
 }
+
+
+/* =========================================================
+   RUNS PAGE
+========================================================= */
+
+.runsPage {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 30px 34px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(255, 255, 255, 0.035),
+      transparent 28%
+    ),
+    #0d0d0f;
+  color: #f5f5f5;
+}
+
+
+/* =========================================================
+   RUNS HEADER
+========================================================= */
+
+.runsTopbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 22px;
+}
+
+.runsTopbar h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.8px;
+}
+
+.runsTopbar > div > span {
+  display: block;
+  margin-top: 5px;
+  font-size: 13px;
+  color: #8e8e96;
+}
+
+.runsClearButton {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 9px;
+  border: 1px solid #303035;
+  background: #171719;
+  color: #d6d6da;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.runsClearButton:hover:not(:disabled) {
+  border-color: #4a4a50;
+  background: #202023;
+  color: #ffffff;
+}
+
+.runsClearButton:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+
+/* =========================================================
+   FILTERS
+========================================================= */
+
+.runsFilters {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #232326;
+}
+
+.runsFilters button {
+  border: 1px solid #2b2b30;
+  background: #151517;
+  color: #92929a;
+  padding: 8px 13px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.runsFilters button:hover {
+  color: #ffffff;
+  border-color: #414147;
+  background: #1c1c1f;
+}
+
+.runsFilters button.active {
+  background: #eee0e0;
+  border-color: #eee0e0;
+  color: #111113;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.runsEmpty {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 40px;
+}
+
+.runsEmptyIcon {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  border: 1px solid #303036;
+  background: #171719;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 18px;
+  color: #eee0e0;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.runsEmpty h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 650;
+}
+
+.runsEmpty p {
+  max-width: 380px;
+  margin: 9px 0 0;
+  color: #7f7f88;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   RUNS LAYOUT
+========================================================= */
+
+.runsLayout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 380px minmax(0, 1fr);
+  gap: 18px;
+  padding-top: 20px;
+}
+
+
+/* =========================================================
+   RUN LIST
+========================================================= */
+
+.runsList {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.runsList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.runsList::-webkit-scrollbar-thumb {
+  background: #303035;
+  border-radius: 999px;
+}
+
+.runCard {
+  width: 100%;
+  display: block;
+  text-align: left;
+  padding: 16px;
+  margin-bottom: 10px;
+  border-radius: 13px;
+  border: 1px solid #28282c;
+  background: #151517;
+  color: #f5f5f5;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.runCard:hover {
+  background: #1a1a1d;
+  border-color: #3a3a40;
+  transform: translateY(-1px);
+}
+
+.runCard.selected {
+  border-color: #d9c8c8;
+  background: #1d1b1c;
+  box-shadow:
+    0 0 0 1px rgba(238, 224, 224, 0.06),
+    0 12px 30px rgba(0, 0, 0, 0.22);
+}
+
+.runCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.runCardTop > div {
+  min-width: 0;
+}
+
+.runCardTop strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 650;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.runCardTop > div > span {
+  display: block;
+  margin-top: 5px;
+  color: #85858d;
+  font-size: 11px;
+}
+
+.runCardMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: 14px;
+  color: #74747c;
+  font-size: 10px;
+}
+
+.runCardMeta span:not(:last-child)::after {
+  content: "•";
+  margin-left: 12px;
+  color: #45454b;
+}
+
+
+/* =========================================================
+   STATUS PILLS
+========================================================= */
+
+.runStatus {
+  flex-shrink: 0;
+  padding: 5px 8px;
+  border-radius: 999px;
+  border: 1px solid #303036;
+  background: #1c1c1f;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
+}
+
+.runStatus-completed {
+  color: #76d69e;
+  border-color: rgba(118, 214, 158, 0.3);
+  background: rgba(118, 214, 158, 0.08);
+}
+
+.runStatus-running {
+  color: #76b7f3;
+  border-color: rgba(118, 183, 243, 0.3);
+  background: rgba(118, 183, 243, 0.08);
+}
+
+.runStatus-waiting {
+  color: #e8bf63;
+  border-color: rgba(232, 191, 99, 0.3);
+  background: rgba(232, 191, 99, 0.08);
+}
+
+.runStatus-rejected,
+.runStatus-failed {
+  color: #ef8585;
+  border-color: rgba(239, 133, 133, 0.3);
+  background: rgba(239, 133, 133, 0.08);
+}
+
+
+/* =========================================================
+   RUN DETAILS
+========================================================= */
+
+.runDetails {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  border-radius: 15px;
+  border: 1px solid #28282c;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.015),
+      transparent
+    ),
+    #141416;
+  padding: 22px;
+}
+
+.runDetails::-webkit-scrollbar {
+  width: 6px;
+}
+
+.runDetails::-webkit-scrollbar-thumb {
+  background: #303035;
+  border-radius: 999px;
+}
+
+.runDetailsEmpty {
+  height: 100%;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: #74747c;
+  text-align: center;
+}
+
+.runDetailsEmpty > div {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 14px;
+  border: 1px solid #2e2e33;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #19191c;
+  font-size: 19px;
+}
+
+.runDetailsEmpty p {
+  max-width: 280px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   DETAILS HEADER
+========================================================= */
+
+.runDetailsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #29292d;
+}
+
+.runDetailsHeader h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 650;
+}
+
+.runDetailsHeader span {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+  color: #85858d;
+}
+
+.deleteRunButton {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(239, 119, 119, 0.3);
+  border-radius: 8px;
+  background: rgba(239, 119, 119, 0.06);
+  color: #e88c8c;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.deleteRunButton:hover {
+  background: rgba(239, 119, 119, 0.12);
+}
+
+
+/* =========================================================
+   RUN SUMMARY
+========================================================= */
+
+.runSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 20px 0;
+}
+
+.runSummaryGrid > div {
+  min-width: 0;
+  padding: 14px;
+  border-radius: 11px;
+  border: 1px solid #29292e;
+  background: #19191c;
+}
+
+.runSummaryGrid span {
+  display: block;
+  margin-bottom: 7px;
+  color: #74747c;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+
+.runSummaryGrid strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #e7e7eb;
+  word-break: break-word;
+}
+
+
+/* =========================================================
+   HUMAN APPROVAL BOX
+========================================================= */
+
+.runApprovalBox {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  border-radius: 11px;
+  border: 1px solid rgba(249, 115, 22, 0.25);
+  background: rgba(249, 115, 22, 0.06);
+}
+
+.runApprovalBox span {
+  color: #b8b8bf;
+  font-size: 11px;
+}
+
+.runApprovalBox strong {
+  font-size: 11px;
+  color: #f6b27c;
+}
+
+.runApprovalBox small {
+  font-size: 10px;
+  color: #727279;
+}
+
+
+/* =========================================================
+   RUN STEPS
+========================================================= */
+
+.runStepsHeader {
+  margin-bottom: 10px;
+  color: #87878f;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.runStepsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.runStepRow {
+  display: grid;
+  grid-template-columns: 28px 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 13px;
+  border: 1px solid #29292d;
+  border-radius: 11px;
+  background: #18181b;
+}
+
+.runStepNumber {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #222226;
+  color: #7d7d85;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.runStepIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid #303035;
+  background: #202023;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #eaeaec;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.runStepInfo {
+  min-width: 0;
+}
+
+.runStepInfo strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.runStepInfo span {
+  display: block;
+  margin-top: 4px;
+  color: #777780;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.runStepStatus {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #222226;
+  color: #898991;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.runStep-completed {
+  border-color: rgba(93, 190, 133, 0.23);
+}
+
+.runStep-completed .runStepStatus {
+  background: rgba(93, 190, 133, 0.08);
+  color: #71d199;
+}
+
+.runStep-waiting {
+  border-color: rgba(227, 183, 88, 0.25);
+}
+
+.runStep-waiting .runStepStatus {
+  background: rgba(227, 183, 88, 0.08);
+  color: #dfba6a;
+}
+
+.runStep-rejected,
+.runStep-failed {
+  border-color: rgba(239, 119, 119, 0.25);
+}
+
+.runStep-rejected .runStepStatus,
+.runStep-failed .runStepStatus {
+  background: rgba(239, 119, 119, 0.08);
+  color: #e98b8b;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1100px) {
+  .runsLayout {
+    grid-template-columns: 320px minmax(0, 1fr);
+  }
+
+  .runSummaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .runsPage {
+    padding: 22px;
+    overflow-y: auto;
+  }
+
+  .runsLayout {
+    display: block;
+  }
+
+  .runsList {
+    max-height: 360px;
+    margin-bottom: 18px;
+  }
+
+  .runSummaryGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
