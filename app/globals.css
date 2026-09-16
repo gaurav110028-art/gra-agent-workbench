@@ -3730,3 +3730,48 @@ button {
     top: 58px;
   }
 }
+
+
+/* =========================================================
+   WORKFLOW VERSION TAGS IN RUNS + APPROVALS
+========================================================= */
+
+.workflowRecordMetaLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 5px;
+}
+
+.workflowRecordMetaLine > span:first-child {
+  color: #85858d;
+  font-size: 11px;
+}
+
+.workflowRecordVersion {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  border: 1px solid #34343a;
+  background: #1b1b1e;
+  font-size: 8px !important;
+  font-weight: 750;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.workflowRecordVersion.published {
+  color: #76d69e !important;
+  border-color: rgba(118, 214, 158, 0.28);
+  background: rgba(118, 214, 158, 0.07);
+}
+
+.workflowRecordVersion.draft {
+  color: #e7bc68 !important;
+  border-color: rgba(231, 188, 104, 0.28);
+  background: rgba(231, 188, 104, 0.07);
+}
