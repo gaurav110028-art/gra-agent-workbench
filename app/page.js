@@ -278,16 +278,14 @@ export default function Home() {
 
                         <span
                           className={`statusPill ${
-                            agent.status ===
-                            'running'
+                            agent.status === 'running'
                               ? 'running'
                               : 'paused'
                           }`}
                         >
                           <i />
 
-                          {agent.status ===
-                          'running'
+                          {agent.status === 'running'
                             ? 'Running'
                             : 'Paused'}
                         </span>
@@ -301,8 +299,7 @@ export default function Home() {
                             e.stopPropagation();
 
                             setOpenMenuId(
-                              openMenuId ===
-                                agent.id
+                              openMenuId === agent.id
                                 ? null
                                 : agent.id
                             );
@@ -311,8 +308,7 @@ export default function Home() {
                           •••
                         </button>
 
-                        {openMenuId ===
-                          agent.id && (
+                        {openMenuId === agent.id && (
                           <div
                             className="agentMenu"
                             onClick={(e) =>
@@ -321,13 +317,10 @@ export default function Home() {
                           >
                             <button
                               onClick={() =>
-                                toggleAgentStatus(
-                                  agent
-                                )
+                                toggleAgentStatus(agent)
                               }
                             >
-                              {agent.status ===
-                              'running'
+                              {agent.status === 'running'
                                 ? 'Pause Agent'
                                 : 'Start Agent'}
                             </button>
@@ -392,16 +385,14 @@ export default function Home() {
 
                   <span
                     className={`statusPill ${
-                      selectedAgent.status ===
-                      'running'
+                      selectedAgent.status === 'running'
                         ? 'running'
                         : 'paused'
                     }`}
                   >
                     <i />
 
-                    {selectedAgent.status ===
-                    'running'
+                    {selectedAgent.status === 'running'
                       ? 'Running'
                       : 'Paused'}
                   </span>
@@ -448,6 +439,7 @@ export default function Home() {
               {activeTab === 'workflow' ? (
                 <WorkflowBuilder
                   agentId={selectedAgent.id}
+                  agentName={selectedAgent.name}
                 />
               ) : (
                 <div className="emptyState">
