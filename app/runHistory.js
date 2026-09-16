@@ -35,7 +35,7 @@ export function saveRun(run) {
     updated = [run, ...current];
   }
 
-  // Keep latest 100 runs for now
+  // MVP limit. Later this moves to a shared backend/database.
   localStorage.setItem(
     RUNS_KEY,
     JSON.stringify(updated.slice(0, 100))
@@ -110,6 +110,9 @@ export function createRun({
   agentId,
   agentName,
   steps = [],
+  workflowVersion = null,
+  workflowVersionStatus = null,
+  workflowSnapshot = null,
 }) {
   const now = new Date();
 
@@ -120,6 +123,13 @@ export function createRun({
     agentName,
 
     workflowName: 'Main Workflow',
+
+    // Exact version context for auditability.
+    workflowVersion,
+    workflowVersionStatus,
+
+    // Exact tested snapshot so later Draft edits do not change the evidence.
+    workflowSnapshot,
 
     type: 'Test Run',
 
