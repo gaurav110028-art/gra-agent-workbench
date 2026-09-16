@@ -11,7 +11,6 @@ import {
 
 function formatDate(value) {
   if (!value) return '-';
-
   return new Date(value).toLocaleString();
 }
 
@@ -40,6 +39,12 @@ function getStatusClass(status) {
     .replaceAll(' ', '-');
 }
 
+function versionLabel(run) {
+  if (!run?.workflowVersion) return null;
+
+  return `${run.workflowVersionStatus || 'Version'} v${run.workflowVersion}`;
+}
+
 export default function RunsView() {
   const [runs, setRuns] = useState([]);
   const [selectedRun, setSelectedRun] = useState(null);
@@ -50,13 +55,15 @@ export default function RunsView() {
 
     setRuns(history);
 
-    if (selectedRun) {
-      const updatedSelected = history.find(
-        (run) => run.id === selectedRun.id
-      );
+    setSelectedRun((current) => {
+      if (!current) return null;
 
-      setSelectedRun(updatedSelected || null);
-    }
+      return (
+        history.find(
+          (run) => run.id === current.id
+        ) || null
+      );
+    });
   };
 
   useEffect(() => {
@@ -97,7 +104,6 @@ export default function RunsView() {
     }
 
     clearRunHistory();
-
     setSelectedRun(null);
   };
 
@@ -121,9 +127,7 @@ export default function RunsView() {
 
   return (
     <div className="runsPage">
-
       <div className="runsTopbar">
-
         <div>
           <h1>Runs</h1>
 
@@ -139,11 +143,9 @@ export default function RunsView() {
         >
           Clear History
         </button>
-
       </div>
 
       <div className="runsFilters">
-
         {statuses.map((status) => (
           <button
             key={status}
@@ -159,13 +161,10 @@ export default function RunsView() {
             {status}
           </button>
         ))}
-
       </div>
 
       {filteredRuns.length === 0 ? (
-
         <div className="runsEmpty">
-
           <div className="runsEmptyIcon">
             ▶
           </div>
@@ -176,17 +175,11 @@ export default function RunsView() {
             Test or execute a workflow and its
             history will appear here.
           </p>
-
         </div>
-
       ) : (
-
         <div className="runsLayout">
-
           <div className="runsList">
-
             {filteredRuns.map((run) => (
-
               <button
                 key={run.id}
                 className={`
@@ -202,19 +195,31 @@ export default function RunsView() {
                   setSelectedRun(run)
                 }
               >
-
                 <div className="runCardTop">
-
                   <div>
                     <strong>
-                      {run.agentName ||
-                        'Agent'}
+                      {run.agentName || 'Agent'}
                     </strong>
 
-                    <span>
-                      {run.workflowName ||
-                        'Main Workflow'}
-                    </span>
+                    <div className="workflowRecordMetaLine">
+                      <span>
+                        {run.workflowName ||
+                          'Main Workflow'}
+                      </span>
+
+                      {versionLabel(run) && (
+                        <span
+                          className={`workflowRecordVersion ${
+                            run.workflowVersionStatus ===
+                            'Published'
+                              ? 'published'
+                              : 'draft'
+                          }`}
+                        >
+                          {versionLabel(run)}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <span
@@ -227,14 +232,11 @@ export default function RunsView() {
                   >
                     {run.status}
                   </span>
-
                 </div>
 
                 <div className="runCardMeta">
-
                   <span>
-                    {run.type ||
-                      'Test Run'}
+                    {run.type || 'Test Run'}
                   </span>
 
                   <span>
@@ -248,45 +250,47 @@ export default function RunsView() {
                       run.durationMs
                     )}
                   </span>
-
                 </div>
-
               </button>
-
             ))}
-
           </div>
 
           <div className="runDetails">
-
             {!selectedRun ? (
-
               <div className="runDetailsEmpty">
-
-                <div>
-                  ◇
-                </div>
+                <div>◇</div>
 
                 <p>
                   Select a run to view its
                   execution details.
                 </p>
-
               </div>
-
             ) : (
-
               <>
                 <div className="runDetailsHeader">
-
                   <div>
                     <h2>
                       {selectedRun.agentName}
                     </h2>
 
-                    <span>
-                      {selectedRun.workflowName}
-                    </span>
+                    <div className="workflowRecordMetaLine">
+                      <span>
+                        {selectedRun.workflowName}
+                      </span>
+
+                      {versionLabel(selectedRun) && (
+                        <span
+                          className={`workflowRecordVersion ${
+                            selectedRun.workflowVersionStatus ===
+                            'Published'
+                              ? 'published'
+                              : 'draft'
+                          }`}
+                        >
+                          {versionLabel(selectedRun)}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <button
@@ -299,14 +303,11 @@ export default function RunsView() {
                   >
                     Delete
                   </button>
-
                 </div>
 
                 <div className="runSummaryGrid">
-
                   <div>
                     <span>Status</span>
-
                     <strong>
                       {selectedRun.status}
                     </strong>
@@ -314,7 +315,6 @@ export default function RunsView() {
 
                   <div>
                     <span>Type</span>
-
                     <strong>
                       {selectedRun.type}
                     </strong>
@@ -322,7 +322,6 @@ export default function RunsView() {
 
                   <div>
                     <span>Started</span>
-
                     <strong>
                       {formatDate(
                         selectedRun.startedAt
@@ -332,20 +331,16 @@ export default function RunsView() {
 
                   <div>
                     <span>Duration</span>
-
                     <strong>
                       {formatDuration(
                         selectedRun.durationMs
                       )}
                     </strong>
                   </div>
-
                 </div>
 
                 {selectedRun.approval && (
-
                   <div className="runApprovalBox">
-
                     <span>
                       Human Approval
                     </span>
@@ -366,9 +361,7 @@ export default function RunsView() {
                         'Reviewer'
                       }
                     </small>
-
                   </div>
-
                 )}
 
                 <div className="runStepsHeader">
@@ -376,10 +369,8 @@ export default function RunsView() {
                 </div>
 
                 <div className="runStepsList">
-
                   {(selectedRun.steps || []).map(
                     (step, index) => (
-
                       <div
                         className={`
                           runStepRow
@@ -392,7 +383,6 @@ export default function RunsView() {
                           index
                         }
                       >
-
                         <div className="runStepNumber">
                           {index + 1}
                         </div>
@@ -402,7 +392,6 @@ export default function RunsView() {
                         </div>
 
                         <div className="runStepInfo">
-
                           <strong>
                             {step.name}
                           </strong>
@@ -411,28 +400,20 @@ export default function RunsView() {
                             {step.note ||
                               'No details'}
                           </span>
-
                         </div>
 
                         <div className="runStepStatus">
                           {step.status}
                         </div>
-
                       </div>
-
                     )
                   )}
-
                 </div>
-
               </>
             )}
-
           </div>
-
         </div>
       )}
-
     </div>
   );
 }
