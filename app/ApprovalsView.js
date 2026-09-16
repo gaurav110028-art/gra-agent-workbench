@@ -27,6 +27,12 @@ function statusClass(status) {
     .replaceAll(' ', '-');
 }
 
+function versionLabel(approval) {
+  if (!approval?.workflowVersion) return null;
+
+  return `${approval.workflowVersionStatus || 'Version'} v${approval.workflowVersion}`;
+}
+
 function getPostApprovalNote(step) {
   if (
     ['aiPrompt', 'extract', 'classify', 'summarize'].includes(
@@ -544,10 +550,25 @@ export default function ApprovalsView() {
                           'Agent'}
                       </strong>
 
-                      <span>
-                        {approval.workflowName ||
-                          'Main Workflow'}
-                      </span>
+                      <div className="workflowRecordMetaLine">
+                        <span>
+                          {approval.workflowName ||
+                            'Main Workflow'}
+                        </span>
+
+                        {versionLabel(approval) && (
+                          <span
+                            className={`workflowRecordVersion ${
+                              approval.workflowVersionStatus ===
+                              'Published'
+                                ? 'published'
+                                : 'draft'
+                            }`}
+                          >
+                            {versionLabel(approval)}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <span
@@ -609,11 +630,26 @@ export default function ApprovalsView() {
                       }
                     </h2>
 
-                    <span>
-                      {
-                        selectedApproval.workflowName
-                      }
-                    </span>
+                    <div className="workflowRecordMetaLine">
+                      <span>
+                        {
+                          selectedApproval.workflowName
+                        }
+                      </span>
+
+                      {versionLabel(selectedApproval) && (
+                        <span
+                          className={`workflowRecordVersion ${
+                            selectedApproval.workflowVersionStatus ===
+                            'Published'
+                              ? 'published'
+                              : 'draft'
+                          }`}
+                        >
+                          {versionLabel(selectedApproval)}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <span
