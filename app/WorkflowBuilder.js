@@ -1449,6 +1449,10 @@ export default function WorkflowBuilder({ agentId, agentName }) {
             node.data.config?.message ||
             node.data.config?.instructions ||
             '',
+          workflowVersion:
+            currentRunRef.current?.workflowVersion || null,
+          workflowVersionStatus:
+            currentRunRef.current?.workflowVersionStatus || null,
         });
 
         currentApprovalRef.current = approvalRequest;
@@ -1517,10 +1521,32 @@ export default function WorkflowBuilder({ agentId, agentName }) {
       note: '',
     }));
 
+    const latestVersionState =
+      getWorkflowVersionState(agentId);
+
+    const workflowVersion =
+      latestVersionState?.draftVersion ||
+      latestVersionState?.publishedVersion ||
+      1;
+
+    const workflowVersionStatus =
+      latestVersionState?.isDirty
+        ? 'Draft'
+        : 'Published';
+
     const newRun = createRun({
       agentId,
       agentName: agentName || 'Agent',
       steps: initialSteps,
+
+      workflowVersion,
+      workflowVersionStatus,
+
+      workflowSnapshot: {
+        nodes,
+        edges,
+        capturedAt: new Date().toISOString(),
+      },
     });
 
     currentRunRef.current = newRun;
