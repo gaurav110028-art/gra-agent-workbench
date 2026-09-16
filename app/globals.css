@@ -3775,3 +3775,200 @@ button {
   border-color: rgba(231, 188, 104, 0.28);
   background: rgba(231, 188, 104, 0.07);
 }
+
+/* =========================================================
+   REAL AUDIT DEMO ENGINE
+========================================================= */
+
+.workflowAuditDemoButton {
+  border-color: rgba(96, 165, 250, 0.45) !important;
+  background: rgba(59, 130, 246, 0.10) !important;
+  color: #bfdbfe !important;
+}
+
+.workflowAuditDemoButton:hover:not(:disabled) {
+  border-color: rgba(96, 165, 250, 0.7) !important;
+  background: rgba(59, 130, 246, 0.16) !important;
+}
+
+.auditUploadNotice {
+  margin-bottom: 14px;
+  padding: 11px 12px;
+  border: 1px solid rgba(96, 165, 250, 0.24);
+  border-radius: 10px;
+  background: rgba(59, 130, 246, 0.06);
+  color: #9ca3af;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.auditUploadNotice strong {
+  color: #bfdbfe;
+}
+
+.auditUploadField {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 15px;
+}
+
+.auditUploadField label {
+  margin: 0 !important;
+}
+
+.auditUploadField input[type='file'] {
+  width: 100%;
+  padding: 8px;
+  border: 1px dashed #3b3b40;
+  border-radius: 9px;
+  background: #121214;
+  color: #b7b7bd;
+  font-size: 10px;
+}
+
+.auditUploadField span {
+  overflow: hidden;
+  color: #777780;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auditDemoError {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(248, 113, 113, 0.28);
+  border-radius: 10px;
+  background: rgba(127, 29, 29, 0.16);
+}
+
+.auditDemoError strong {
+  color: #fca5a5;
+}
+
+.auditDemoError span {
+  color: #d1a2a2;
+  font-size: 11px;
+}
+
+.auditDemoResult {
+  margin-bottom: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  border-radius: 12px;
+  background: rgba(6, 78, 59, 0.08);
+}
+
+.auditDemoResultHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(52, 211, 153, 0.13);
+}
+
+.auditDemoResultHeader > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.auditDemoResultHeader strong {
+  color: #ecfdf5;
+  font-size: 12px;
+}
+
+.auditDemoResultHeader span {
+  color: #8b9d96;
+  font-size: 10px;
+}
+
+.auditDemoRealBadge {
+  display: inline-flex;
+  align-items: center;
+  height: 21px;
+  padding: 0 8px;
+  border: 1px solid rgba(52, 211, 153, 0.32);
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7 !important;
+  font-size: 8px !important;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+}
+
+.auditDemoStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: rgba(52, 211, 153, 0.10);
+}
+
+.auditDemoStats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  background: #111514;
+}
+
+.auditDemoStats span {
+  color: #737f7b;
+  font-size: 9px;
+}
+
+.auditDemoStats strong {
+  color: #d1fae5;
+  font-size: 15px;
+}
+
+.auditDemoFindings {
+  max-height: 220px;
+  overflow: auto;
+  padding: 5px 12px 10px;
+}
+
+.auditDemoFindingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 2px;
+  border-bottom: 1px solid #232826;
+}
+
+.auditDemoFindingRow:last-child {
+  border-bottom: 0;
+}
+
+.auditDemoFindingRow > div {
+  min-width: 0;
+}
+
+.auditDemoFindingRow strong {
+  display: block;
+  overflow: hidden;
+  color: #dddddf;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auditDemoFindingRow span {
+  display: block;
+  margin-top: 3px;
+  color: #777c7a;
+  font-size: 9px;
+}
+
+.auditDemoFindingRow b {
+  flex: 0 0 auto;
+  color: #fbbf24;
+  font-size: 10px;
+  font-weight: 700;
+}
