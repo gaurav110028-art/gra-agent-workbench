@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import WorkflowBuilder from './WorkflowBuilder';
+import RunsView from './RunsView';
 
 export default function Home() {
   const [agents, setAgents] = useState([]);
   const [selectedAgent, setSelectedAgent] = useState(null);
+
+  const [activeView, setActiveView] = useState('dashboard');
   const [activeTab, setActiveTab] = useState('workflow');
+
   const [showAddAgent, setShowAddAgent] = useState(false);
   const [showSiteInfo, setShowSiteInfo] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -28,7 +32,11 @@ export default function Home() {
 
   const saveAgents = (updatedAgents) => {
     setAgents(updatedAgents);
-    localStorage.setItem('gra-agents', JSON.stringify(updatedAgents));
+
+    localStorage.setItem(
+      'gra-agents',
+      JSON.stringify(updatedAgents)
+    );
   };
 
   const addAgent = () => {
@@ -48,18 +56,36 @@ export default function Home() {
   };
 
   const openAgent = (agent) => {
+    setActiveView('dashboard');
     setSelectedAgent(agent);
     setActiveTab('workflow');
     setOpenMenuId(null);
   };
 
+  const goToDashboard = () => {
+    setActiveView('dashboard');
+    setSelectedAgent(null);
+    setOpenMenuId(null);
+  };
+
+  const goToRuns = () => {
+    setActiveView('runs');
+    setSelectedAgent(null);
+    setOpenMenuId(null);
+  };
+
   const toggleAgentStatus = (agent) => {
     const updatedStatus =
-      agent.status === 'running' ? 'paused' : 'running';
+      agent.status === 'running'
+        ? 'paused'
+        : 'running';
 
     const updatedAgents = agents.map((item) =>
       item.id === agent.id
-        ? { ...item, status: updatedStatus }
+        ? {
+            ...item,
+            status: updatedStatus,
+          }
         : item
     );
 
@@ -76,7 +102,10 @@ export default function Home() {
   };
 
   const renameAgent = (agent) => {
-    const newName = window.prompt('Rename agent', agent.name);
+    const newName = window.prompt(
+      'Rename agent',
+      agent.name
+    );
 
     if (!newName || !newName.trim()) return;
 
@@ -84,7 +113,10 @@ export default function Home() {
 
     const updatedAgents = agents.map((item) =>
       item.id === agent.id
-        ? { ...item, name: cleanName }
+        ? {
+            ...item,
+            name: cleanName,
+          }
         : item
     );
 
@@ -127,16 +159,25 @@ export default function Home() {
 
         <nav className="nav">
           <button
-            className={`navItem ${!selectedAgent ? 'active' : ''}`}
-            onClick={() => {
-              setSelectedAgent(null);
-              setOpenMenuId(null);
-            }}
+            className={`navItem ${
+              activeView === 'dashboard' &&
+              !selectedAgent
+                ? 'active'
+                : ''
+            }`}
+            onClick={goToDashboard}
           >
             Dashboard
           </button>
 
-          <button className="navItem">
+          <button
+            className={`navItem ${
+              activeView === 'runs'
+                ? 'active'
+                : ''
+            }`}
+            onClick={goToRuns}
+          >
             Runs
           </button>
 
@@ -152,7 +193,9 @@ export default function Home() {
         <div className="sidebarBottom">
           <button
             className="siteInfoButton"
-            onClick={() => setShowSiteInfo(true)}
+            onClick={() =>
+              setShowSiteInfo(true)
+            }
           >
             ⓘ Site Info
           </button>
@@ -167,7 +210,9 @@ export default function Home() {
           }
         }}
       >
-        {!selectedAgent ? (
+        {activeView === 'runs' ? (
+          <RunsView />
+        ) : !selectedAgent ? (
           <>
             <div className="workspaceTopbar">
               <div className="workspaceHeading">
@@ -175,7 +220,9 @@ export default function Home() {
 
                 <span>
                   {agents.length}{' '}
-                  {agents.length === 1 ? 'agent' : 'agents'}
+                  {agents.length === 1
+                    ? 'agent'
+                    : 'agents'}
                 </span>
               </div>
 
@@ -201,12 +248,14 @@ export default function Home() {
                 <h2>No agents added yet</h2>
 
                 <p>
-                  Add your first agent to start building workflows
-                  and actions.
+                  Add your first agent to start
+                  building workflows and actions.
                 </p>
 
                 <button
-                  onClick={() => setShowAddAgent(true)}
+                  onClick={() =>
+                    setShowAddAgent(true)
+                  }
                 >
                   + Add Agent
                 </button>
@@ -217,22 +266,28 @@ export default function Home() {
                   <article
                     className="agentPanel clickable"
                     key={agent.id}
-                    onClick={() => openAgent(agent)}
+                    onClick={() =>
+                      openAgent(agent)
+                    }
                   >
                     <div className="panelHeader">
                       <div>
-                        <strong>{agent.name}</strong>
+                        <strong>
+                          {agent.name}
+                        </strong>
 
                         <span
                           className={`statusPill ${
-                            agent.status === 'running'
+                            agent.status ===
+                            'running'
                               ? 'running'
                               : 'paused'
                           }`}
                         >
                           <i />
 
-                          {agent.status === 'running'
+                          {agent.status ===
+                          'running'
                             ? 'Running'
                             : 'Paused'}
                         </span>
@@ -246,7 +301,8 @@ export default function Home() {
                             e.stopPropagation();
 
                             setOpenMenuId(
-                              openMenuId === agent.id
+                              openMenuId ===
+                                agent.id
                                 ? null
                                 : agent.id
                             );
@@ -255,7 +311,8 @@ export default function Home() {
                           •••
                         </button>
 
-                        {openMenuId === agent.id && (
+                        {openMenuId ===
+                          agent.id && (
                           <div
                             className="agentMenu"
                             onClick={(e) =>
@@ -264,10 +321,13 @@ export default function Home() {
                           >
                             <button
                               onClick={() =>
-                                toggleAgentStatus(agent)
+                                toggleAgentStatus(
+                                  agent
+                                )
                               }
                             >
-                              {agent.status === 'running'
+                              {agent.status ===
+                              'running'
                                 ? 'Pause Agent'
                                 : 'Start Agent'}
                             </button>
@@ -302,7 +362,9 @@ export default function Home() {
                     </div>
 
                     <div className="panelFooter">
-                      <span>Agent workspace</span>
+                      <span>
+                        Agent workspace
+                      </span>
 
                       <span className="openAgentText">
                         Open Agent →
@@ -324,18 +386,22 @@ export default function Home() {
                 />
 
                 <div>
-                  <strong>{selectedAgent.name}</strong>
+                  <strong>
+                    {selectedAgent.name}
+                  </strong>
 
                   <span
                     className={`statusPill ${
-                      selectedAgent.status === 'running'
+                      selectedAgent.status ===
+                      'running'
                         ? 'running'
                         : 'paused'
                     }`}
                   >
                     <i />
 
-                    {selectedAgent.status === 'running'
+                    {selectedAgent.status ===
+                    'running'
                       ? 'Running'
                       : 'Paused'}
                   </span>
@@ -344,7 +410,7 @@ export default function Home() {
 
               <button
                 className="backButton"
-                onClick={() => setSelectedAgent(null)}
+                onClick={goToDashboard}
               >
                 ← Dashboard
               </button>
@@ -380,14 +446,16 @@ export default function Home() {
 
             <div className="agentWorkspaceBody">
               {activeTab === 'workflow' ? (
-                <WorkflowBuilder agentId={selectedAgent.id} />
+                <WorkflowBuilder
+                  agentId={selectedAgent.id}
+                />
               ) : (
                 <div className="emptyState">
                   <h2>Code</h2>
 
                   <p>
-                    Code and configuration for this agent will
-                    live here.
+                    Code and configuration for
+                    this agent will live here.
                   </p>
                 </div>
               )}
@@ -399,15 +467,21 @@ export default function Home() {
       {showAddAgent && (
         <div
           className="modalOverlay"
-          onClick={() => setShowAddAgent(false)}
+          onClick={() =>
+            setShowAddAgent(false)
+          }
         >
           <div
             className="addAgentModal"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) =>
+              e.stopPropagation()
+            }
           >
             <button
               className="modalClose"
-              onClick={() => setShowAddAgent(false)}
+              onClick={() =>
+                setShowAddAgent(false)
+              }
             >
               ×
             </button>
@@ -419,10 +493,14 @@ export default function Home() {
             <input
               value={agentName}
               onChange={(e) =>
-                setAgentName(e.target.value)
+                setAgentName(
+                  e.target.value
+                )
               }
               onKeyDown={(e) => {
-                if (e.key === 'Enter') addAgent();
+                if (e.key === 'Enter') {
+                  addAgent();
+                }
               }}
               placeholder="Example: GST Reconciliation Agent"
               autoFocus
@@ -433,7 +511,9 @@ export default function Home() {
             <select
               value={agentStatus}
               onChange={(e) =>
-                setAgentStatus(e.target.value)
+                setAgentStatus(
+                  e.target.value
+                )
               }
             >
               <option value="paused">
@@ -458,15 +538,21 @@ export default function Home() {
       {showSiteInfo && (
         <div
           className="modalOverlay"
-          onClick={() => setShowSiteInfo(false)}
+          onClick={() =>
+            setShowSiteInfo(false)
+          }
         >
           <div
             className="siteInfoModal"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) =>
+              e.stopPropagation()
+            }
           >
             <button
               className="modalClose"
-              onClick={() => setShowSiteInfo(false)}
+              onClick={() =>
+                setShowSiteInfo(false)
+              }
             >
               ×
             </button>
@@ -477,7 +563,9 @@ export default function Home() {
               className="siteInfoLogo"
             />
 
-            <h2>GRA AGENT WORKBENCH</h2>
+            <h2>
+              GRA AGENT WORKBENCH
+            </h2>
 
             <p>Created by</p>
 
