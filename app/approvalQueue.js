@@ -53,6 +53,8 @@ export function createApprovalRequest({
   blockName = 'Human Approval',
   approver = 'Reviewer',
   message = '',
+  workflowVersion = null,
+  workflowVersionStatus = null,
 }) {
   const now = new Date().toISOString();
 
@@ -64,6 +66,10 @@ export function createApprovalRequest({
     agentName,
 
     workflowName: 'Main Workflow',
+
+    // Ties this approval to the exact workflow version used by its run.
+    workflowVersion,
+    workflowVersionStatus,
 
     nodeId,
     blockName,
