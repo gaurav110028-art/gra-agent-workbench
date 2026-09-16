@@ -3583,3 +3583,150 @@ button {
     display: none;
   }
 }
+
+/* =========================================================
+   COLLAPSIBLE LEFT SIDEBAR
+========================================================= */
+
+.workbench {
+  transition: grid-template-columns 0.22s ease;
+}
+
+.workbench.sidebarCollapsed {
+  grid-template-columns: 72px minmax(0, 1fr);
+}
+
+.sidebar {
+  position: relative;
+  transition:
+    width 0.22s ease,
+    padding 0.22s ease;
+}
+
+.sidebarToggle {
+  position: absolute;
+  top: 68px;
+  right: -14px;
+  z-index: 50;
+
+  width: 28px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #343438;
+  border-radius: 9px;
+
+  background: #171719;
+  color: #d8d8dd;
+
+  font-size: 22px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, 0.3);
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.sidebarToggle:hover {
+  background: #222225;
+  border-color: #4b4b51;
+  transform: scale(1.04);
+}
+
+
+/* COLLAPSED STATE */
+
+.sidebarCollapsed .sidebar {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.sidebarCollapsed .brand {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.88);
+}
+
+.sidebarCollapsed .nav {
+  margin-top: 78px;
+}
+
+.sidebarCollapsed .navItem {
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  padding: 0;
+  margin-left: auto;
+  margin-right: auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+}
+
+.sidebarCollapsed .sidebarNavLabel {
+  display: none;
+}
+
+.sidebarCollapsed .siteInfoButton {
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebarCollapsed .siteInfoIcon {
+  font-size: 16px;
+}
+
+.sidebarCollapsed .sidebarBottom {
+  display: flex;
+  justify-content: center;
+}
+
+.sidebarCollapsed .sidebarToggle {
+  right: -14px;
+}
+
+
+/* EXPANDED LABELS */
+
+.sidebarNavLabel {
+  display: inline;
+}
+
+.siteInfoIcon {
+  margin-right: 5px;
+}
+
+
+/* GIVE WORKFLOW MORE SPACE WHEN SIDEBAR IS CLOSED */
+
+.sidebarCollapsed .workspace {
+  min-width: 0;
+}
+
+@media (max-width: 980px) {
+  .workbench.sidebarCollapsed {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .sidebarToggle {
+    top: 58px;
+  }
+}
