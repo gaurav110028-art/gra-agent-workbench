@@ -4608,3 +4608,18 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* =========================================================
+   WORKFLOW CONNECTION SELECTION / DELETE FIX
+========================================================= */
+
+/* Make a selected connection visually obvious. */
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #ff7272 !important;
+  stroke-width: 3px !important;
+}
+
+/* Larger invisible click target so thin lines are easier to select. */
+.react-flow__edge-interaction {
+  stroke-width: 36px !important;
+}
