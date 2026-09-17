@@ -3972,3 +3972,492 @@ button {
   font-size: 10px;
   font-weight: 700;
 }
+
+
+/* =========================================================
+   AGENT SOURCES LIBRARY
+========================================================= */
+
+.sourcesPage {
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  padding: 26px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(66, 91, 255, 0.06),
+      transparent 28%
+    ),
+    #111113;
+  color: #f3f3f4;
+}
+
+.sourcesHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+}
+
+.sourcesHeader h2 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.15;
+  letter-spacing: -0.4px;
+}
+
+.sourcesHeader p {
+  max-width: 680px;
+  margin: 7px 0 0;
+  color: #92929a;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.sourcesHeader p strong {
+  color: #d8d8dd;
+}
+
+.sourcesHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+}
+
+.sourcesUploadButton,
+.sourcesSecondaryButton,
+.workflowOpenSourcesButton {
+  border: 1px solid #34343a;
+  border-radius: 9px;
+  background: #1b1b1e;
+  color: #e8e8eb;
+  min-height: 36px;
+  padding: 0 13px;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.sourcesUploadButton {
+  border-color: rgba(111, 120, 255, 0.46);
+  background: rgba(111, 120, 255, 0.12);
+  color: #c9cdff;
+}
+
+.sourcesUploadButton:hover:not(:disabled),
+.sourcesSecondaryButton:hover:not(:disabled),
+.workflowOpenSourcesButton:hover:not(:disabled) {
+  background: #26262a;
+  border-color: #505058;
+  transform: translateY(-1px);
+}
+
+.sourcesUploadButton:disabled,
+.sourcesSecondaryButton:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
+
+.sourcesHiddenInput {
+  display: none;
+}
+
+.sourcesMvpNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 13px 15px;
+  border: 1px solid rgba(109, 143, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(82, 108, 200, 0.06);
+}
+
+.sourcesMvpNotice > span {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 1px solid rgba(113, 147, 255, 0.25);
+  border-radius: 999px;
+  color: #9ab7ff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.25px;
+  text-transform: uppercase;
+}
+
+.sourcesMvpNotice p {
+  margin: 0;
+  color: #9c9ca5;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.sourcesDropZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 164px;
+  margin-bottom: 18px;
+  border: 1px dashed #3a3a42;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.018);
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    transform 0.16s ease;
+}
+
+.sourcesDropZone:hover,
+.sourcesDropZone.dragging {
+  border-color: rgba(120, 130, 255, 0.66);
+  background: rgba(106, 116, 255, 0.055);
+}
+
+.sourcesDropZone.dragging {
+  transform: scale(0.997);
+}
+
+.sourcesDropIcon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 10px;
+  border: 1px solid #373740;
+  border-radius: 10px;
+  background: #1a1a1e;
+  color: #bfc5ff;
+  font-size: 18px;
+}
+
+.sourcesDropZone strong {
+  font-size: 13px;
+}
+
+.sourcesDropZone span {
+  margin-top: 5px;
+  color: #777781;
+  font-size: 10px;
+}
+
+.sourcesToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.sourcesCount {
+  color: #8b8b94;
+  font-size: 10px;
+}
+
+.sourcesCount strong {
+  color: #e2e2e6;
+  font-size: 12px;
+}
+
+.sourcesSearch {
+  width: min(320px, 42vw);
+  height: 34px;
+  padding: 0 11px;
+  border: 1px solid #303036;
+  border-radius: 8px;
+  outline: none;
+  background: #161619;
+  color: #eeeeef;
+  font-size: 11px;
+}
+
+.sourcesSearch:focus {
+  border-color: #555564;
+}
+
+.sourcesError {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.07);
+  color: #f5a5a5;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.sourcesEmpty {
+  display: flex;
+  min-height: 250px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #242428;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.012);
+  color: #777780;
+  text-align: center;
+}
+
+.sourcesEmptyIcon {
+  margin-bottom: 8px;
+  color: #555560;
+  font-size: 24px;
+}
+
+.sourcesEmpty h3 {
+  margin: 0;
+  color: #d9d9dc;
+  font-size: 13px;
+}
+
+.sourcesEmpty p {
+  margin: 6px 0 0;
+  max-width: 440px;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.sourcesList {
+  overflow: hidden;
+  border: 1px solid #29292e;
+  border-radius: 12px;
+  background: #151517;
+}
+
+.sourcesListHeader,
+.sourceRow {
+  display: grid;
+  grid-template-columns:
+    minmax(260px, 1.9fr)
+    0.6fr
+    0.55fr
+    0.9fr
+    0.65fr
+    minmax(210px, 0.95fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.sourcesListHeader {
+  min-height: 36px;
+  padding: 0 14px;
+  border-bottom: 1px solid #29292e;
+  background: #19191c;
+  color: #686872;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.45px;
+  text-transform: uppercase;
+}
+
+.sourceRow {
+  min-height: 66px;
+  padding: 9px 14px;
+  border-bottom: 1px solid #242428;
+  color: #a5a5ad;
+  font-size: 10px;
+}
+
+.sourceRow:last-child {
+  border-bottom: 0;
+}
+
+.sourceRow:hover {
+  background: rgba(255, 255, 255, 0.016);
+}
+
+.sourceFileCell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 11px;
+}
+
+.sourceTypeIcon {
+  display: grid;
+  flex: 0 0 40px;
+  place-items: center;
+  height: 40px;
+  border: 1px solid #36363c;
+  border-radius: 9px;
+  background: #1c1c20;
+  color: #d1d1d6;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.35px;
+}
+
+.sourceType-pdf {
+  border-color: rgba(239, 92, 92, 0.27);
+  color: #f19a9a;
+}
+
+.sourceType-excel,
+.sourceType-csv {
+  border-color: rgba(73, 190, 118, 0.27);
+  color: #84d7a5;
+}
+
+.sourceType-word {
+  border-color: rgba(93, 137, 255, 0.27);
+  color: #94b3ff;
+}
+
+.sourceFileCell > div:last-child {
+  min-width: 0;
+}
+
+.sourceFileCell strong {
+  display: block;
+  overflow: hidden;
+  color: #ececef;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sourceFileCell span {
+  display: block;
+  overflow: hidden;
+  margin-top: 4px;
+  color: #5f5f69;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sourceReadyPill {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 1px solid rgba(75, 196, 125, 0.2);
+  border-radius: 999px;
+  background: rgba(75, 196, 125, 0.055);
+  color: #79ce9c;
+  font-size: 8px;
+  font-weight: 750;
+}
+
+.sourceReadyPill i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.sourceActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.sourceActions button {
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid #303035;
+  border-radius: 7px;
+  background: #1a1a1d;
+  color: #a8a8af;
+  font-size: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sourceActions button:hover {
+  border-color: #46464e;
+  color: #e7e7ea;
+}
+
+.sourceActions .sourceDeleteButton:hover {
+  border-color: rgba(239, 68, 68, 0.34);
+  color: #f09494;
+}
+
+.workflowOpenSourcesButton {
+  width: 100%;
+  margin-top: 9px;
+}
+
+.workflowConfigField select option {
+  background: #19191c;
+  color: #ececef;
+}
+
+@media (max-width: 1150px) {
+  .sourcesListHeader {
+    display: none;
+  }
+
+  .sourceRow {
+    grid-template-columns:
+      minmax(260px, 1fr)
+      auto
+      auto;
+  }
+
+  .sourceRow > span:nth-of-type(3),
+  .sourceRow > span:nth-of-type(4) {
+    display: none;
+  }
+
+  .sourceActions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    padding-left: 51px;
+  }
+}
+
+@media (max-width: 760px) {
+  .sourcesPage {
+    padding: 18px;
+  }
+
+  .sourcesHeader {
+    flex-direction: column;
+  }
+
+  .sourcesHeaderActions {
+    width: 100%;
+  }
+
+  .sourcesUploadButton,
+  .sourcesSecondaryButton {
+    flex: 1;
+  }
+
+  .sourcesToolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .sourcesSearch {
+    width: 100%;
+  }
+
+  .sourceRow {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .sourceActions {
+    grid-column: auto;
+    padding-left: 0;
+    justify-content: flex-start;
+  }
+}
+
