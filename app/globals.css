@@ -4461,3 +4461,150 @@ button {
   }
 }
 
+/* =========================================================
+   CLAUDE HAIKU 4.5 USAGE + COST TRACKER
+========================================================= */
+
+.claudeUsageSummary {
+  display: grid;
+  grid-template-columns:
+    minmax(130px, 1fr)
+    repeat(3, minmax(100px, 0.7fr))
+    minmax(130px, 0.85fr);
+  gap: 1px;
+  margin: 12px 0 16px;
+  overflow: hidden;
+  border: 1px solid #2d2d31;
+  border-radius: 12px;
+  background: #2d2d31;
+}
+
+.claudeUsageSummary > div {
+  min-width: 0;
+  padding: 12px 14px;
+  background: #161618;
+}
+
+.claudeUsageSummary span,
+.runClaudeUsageBox span {
+  display: block;
+  margin-bottom: 5px;
+  color: #7f7f88;
+  font-size: 10px;
+  letter-spacing: 0.35px;
+  text-transform: uppercase;
+}
+
+.claudeUsageSummary strong {
+  color: #dedee3;
+  font-size: 13px;
+}
+
+.claudeUsageSummary .claudeUsageCost strong {
+  color: #7ddca3;
+  font-size: 15px;
+}
+
+.runCardUsage {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px solid #2b2b2f;
+  color: #7f7f88;
+  font-size: 10px;
+}
+
+.runCardUsage strong {
+  color: #7ddca3;
+  font-size: 11px;
+}
+
+.runClaudeUsageBox {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid rgba(126, 92, 246, 0.28);
+  border-radius: 12px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(126, 92, 246, 0.06),
+      rgba(126, 92, 246, 0.02)
+    ),
+    #151517;
+}
+
+.runClaudeUsageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.runClaudeUsageHeader > div > strong {
+  color: #e7e4ff;
+  font-size: 14px;
+}
+
+.runClaudeUsagePrice {
+  text-align: right;
+}
+
+.runClaudeUsagePrice strong {
+  color: #7ddca3 !important;
+  font-size: 18px !important;
+}
+
+.runClaudeUsageGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.runClaudeUsageGrid > div {
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid #29292e;
+  border-radius: 9px;
+  background: #111113;
+}
+
+.runClaudeUsageGrid strong {
+  display: block;
+  overflow: hidden;
+  color: #d7d7dc;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runClaudeModelId {
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+  font-size: 10px !important;
+}
+
+.runClaudeUsageNote {
+  margin: 12px 0 0;
+  color: #6f6f77;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+@media (max-width: 1100px) {
+  .claudeUsageSummary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .runClaudeUsageGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
