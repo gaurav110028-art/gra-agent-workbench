@@ -1723,13 +1723,25 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
         }
       );
 
-      const payload =
-        await response.json();
+      const responseText =
+        await response.text();
+
+      let payload = null;
+
+      try {
+        payload = responseText
+          ? JSON.parse(responseText)
+          : null;
+      } catch {
+        throw new Error(
+          `Email API returned HTTP ${response.status} with an invalid response.`
+        );
+      }
 
       if (!response.ok) {
         throw new Error(
           payload?.error ||
-            'Email sending failed.'
+            `Email sending failed with HTTP ${response.status}.`
         );
       }
 
@@ -2095,12 +2107,41 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
         body: formData,
       });
 
-      const payload = await response.json();
+      const responseText =
+        await response.text();
+
+      let payload = null;
+
+      try {
+        payload = responseText
+          ? JSON.parse(responseText)
+          : null;
+      } catch {
+        const cleanText = String(
+          responseText || ''
+        )
+          .replace(/\s+/g, ' ')
+          .trim()
+          .slice(0, 500);
+
+        throw new Error(
+          `Audit API returned HTTP ${response.status} with a non-JSON response: ${
+            cleanText ||
+            'No response body was returned.'
+          }`
+        );
+      }
 
       if (!response.ok) {
         throw new Error(
           payload?.error ||
-            'Audit processing failed.'
+            `Audit processing failed with HTTP ${response.status}.`
+        );
+      }
+
+      if (!payload) {
+        throw new Error(
+          'Audit API returned an empty response.'
         );
       }
 
