@@ -343,7 +343,7 @@ export default function Home() {
             {agents.length === 0 ? (
               <div className="emptyDashboard">
                 <img
-                  src="/ai-automation-logo.png"
+                  src="/gra-agent-logo.png"
                   alt="AI & Automation"
                   className="emptyDashboardLogo"
                 />
@@ -451,7 +451,7 @@ export default function Home() {
 
                     <div className="panelBody">
                       <img
-                        src="/ai-automation-logo.png"
+                        src="/gra-agent-logo.png"
                         alt="AI & Automation"
                         className="agentLogo"
                       />
@@ -476,7 +476,7 @@ export default function Home() {
             <div className="agentWorkspaceHeader">
               <div className="agentIdentity">
                 <img
-                  src="/ai-automation-logo.png"
+                  src="/gra-agent-logo.png"
                   alt="AI & Automation"
                   className="agentSmallLogo"
                 />
@@ -652,7 +652,7 @@ export default function Home() {
             </button>
 
             <img
-              src="/ai-automation-logo.png"
+              src="/gra-agent-logo.png"
               alt="AI & Automation"
               className="siteInfoLogo"
             />
