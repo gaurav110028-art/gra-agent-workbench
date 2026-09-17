@@ -32,6 +32,7 @@ import {
 import {
   createApprovalRequest,
   decideApproval,
+  recordApprovalActionResult,
 } from './approvalQueue';
 
 import {
@@ -1415,6 +1416,18 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
   const getSimulationNote = (node) => {
     const type = node.data.nodeType;
 
+    if (
+      type === 'email' &&
+      currentApprovalRef.current?.actionResult?.status === 'sent' &&
+      currentApprovalRef.current?.postApprovalAction?.nodeId === node.id
+    ) {
+      return `Email sent via Resend to ${
+        currentApprovalRef.current.actionResult.to || 'recipient'
+      }. Message ID: ${
+        currentApprovalRef.current.actionResult.id || 'received'
+      }`;
+    }
+
     if (type === 'condition') {
       return 'Simulated result: True';
     }
@@ -1574,7 +1587,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
     }
 
     if (name.includes('send client audit queries')) {
-      return 'Client communication step reached. Email sending remains disabled until the Outlook connector is configured.';
+      return 'Client communication step reached. After Senior CA approval, the configured email can be sent through Resend.';
     }
 
     return 'Completed using the real audit-demo result.';
@@ -1596,6 +1609,151 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
     return `${configuredMessage}\n\nREAL AUDIT DEMO FINDINGS: ${
       result?.findings?.length || 0
     } exception(s).\n\n${queryLines}`;
+  };
+
+
+  const findFirstReachableEmailNode = (startNodeId) => {
+    const queue = [startNodeId];
+    const visited = new Set([startNodeId]);
+
+    while (queue.length > 0) {
+      const currentId = queue.shift();
+
+      const outgoing = edges.filter(
+        (edge) => edge.source === currentId
+      );
+
+      for (const edge of outgoing) {
+        if (visited.has(edge.target)) continue;
+
+        visited.add(edge.target);
+
+        const nextNode = nodes.find(
+          (node) => node.id === edge.target
+        );
+
+        if (!nextNode) continue;
+
+        if (nextNode.data?.nodeType === 'email') {
+          return nextNode;
+        }
+
+        queue.push(nextNode.id);
+      }
+    }
+
+    return null;
+  };
+
+  const buildPostApprovalEmailAction = (
+    approvalNodeId,
+    auditResult = null
+  ) => {
+    const emailNode =
+      findFirstReachableEmailNode(approvalNodeId);
+
+    if (!emailNode) return null;
+
+    const config =
+      emailNode.data?.config || {};
+
+    const configuredBody = String(
+      config.body || ''
+    ).trim();
+
+    const queryLines = Array.isArray(
+      auditResult?.queries
+    )
+      ? auditResult.queries
+          .slice(0, 20)
+          .map(
+            (item, index) =>
+              `${index + 1}. ${item.area || 'Audit'}: ${
+                item.query || item.message || ''
+              }`
+          )
+          .join('\n')
+      : '';
+
+    const body = queryLines
+      ? `${configuredBody}\n\nAudit Queries:\n${queryLines}`.trim()
+      : configuredBody;
+
+    return {
+      type: 'email',
+      nodeId: emailNode.id,
+      to: String(config.to || '').trim(),
+      subject: String(
+        config.subject || ''
+      ).trim(),
+      body,
+    };
+  };
+
+  const sendPostApprovalEmail = async (
+    approval
+  ) => {
+    const action =
+      approval?.postApprovalAction;
+
+    if (
+      !action ||
+      action.type !== 'email'
+    ) {
+      return null;
+    }
+
+    try {
+      const response = await fetch(
+        '/api/send-email',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type':
+              'application/json',
+          },
+          body: JSON.stringify({
+            to: action.to,
+            subject: action.subject,
+            body: action.body,
+            approvalId: approval.id,
+            runId: approval.runId,
+            nodeId: action.nodeId,
+          }),
+        }
+      );
+
+      const payload =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          payload?.error ||
+            'Email sending failed.'
+        );
+      }
+
+      return {
+        status: 'sent',
+        provider: 'Resend',
+        id: payload.id,
+        to: action.to,
+        subject: action.subject,
+        sentAt: new Date().toISOString(),
+      };
+    } catch (error) {
+      return {
+        status: 'failed',
+        provider: 'Resend',
+        to: action.to,
+        subject: action.subject,
+        failedAt:
+          new Date().toISOString(),
+        error:
+          error?.message ||
+          'Email sending failed.',
+      };
+    }
   };
 
   const continueAuditExecution = async (orderedNodes, result) => {
@@ -1660,6 +1818,11 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
             currentRunRef.current?.workflowVersion || null,
           workflowVersionStatus:
             currentRunRef.current?.workflowVersionStatus || null,
+          postApprovalAction:
+            buildPostApprovalEmailAction(
+              node.id,
+              result
+            ),
         });
 
         currentApprovalRef.current = approvalRequest;
@@ -2039,6 +2202,10 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
             currentRunRef.current?.workflowVersion || null,
           workflowVersionStatus:
             currentRunRef.current?.workflowVersionStatus || null,
+          postApprovalAction:
+            buildPostApprovalEmailAction(
+              node.id
+            ),
         });
 
         currentApprovalRef.current = approvalRequest;
@@ -2194,6 +2361,92 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
       }
     }
 
+    let actionResult = null;
+
+    if (
+      approvalDecision?.postApprovalAction?.type === 'email'
+    ) {
+      actionResult =
+        await sendPostApprovalEmail(
+          approvalDecision
+        );
+
+      const recordedApproval =
+        recordApprovalActionResult({
+          approvalId:
+            approvalDecision.id,
+          actionResult,
+        });
+
+      if (recordedApproval) {
+        approvalDecision =
+          recordedApproval;
+        currentApprovalRef.current =
+          recordedApproval;
+      }
+    }
+
+    if (
+      actionResult?.status === 'failed'
+    ) {
+      const failedSteps =
+        approvedSteps.map(
+          (step, index) => {
+            if (
+              step.nodeId ===
+              approvalDecision?.postApprovalAction?.nodeId
+            ) {
+              return {
+                ...step,
+                status: 'failed',
+                note: `Email send failed: ${
+                  actionResult.error
+                }`,
+              };
+            }
+
+            if (
+              index > approvedIndex &&
+              step.status === 'pending'
+            ) {
+              return {
+                ...step,
+                status: 'skipped',
+                note:
+                  'Skipped because the approved email action failed.',
+              };
+            }
+
+            return step;
+          }
+        );
+
+      setRunStepsSnapshot(
+        failedSteps,
+        'Failed',
+        {
+          approval: {
+            approvalId:
+              approvalDecision?.id || null,
+            decision: 'Approved',
+            by: reviewer,
+            decidedAt:
+              approvalDecision?.decidedAt ||
+              new Date().toISOString(),
+          },
+          emailAction: actionResult,
+        }
+      );
+
+      setWaitingStepIndex(null);
+      setRunStatus('blocked');
+
+      window.alert(
+        `Approval saved, but email could not be sent: ${actionResult.error}`
+      );
+      return;
+    }
+
     setRunStepsSnapshot(
       approvedSteps,
       'Running',
@@ -2206,6 +2459,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
             approvalDecision?.decidedAt ||
             new Date().toISOString(),
         },
+        emailAction: actionResult,
       }
     );
 
@@ -2570,7 +2824,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
                 <span>
                   {panelMode === 'validation'
                     ? 'Check workflow structure and required configuration'
-                    : 'Safe simulation. No external actions will execute.'}
+                    : 'Simulation runs until approval. An approved Send Email step can execute through Resend when configured.'}
                 </span>
               </div>
 
@@ -3104,8 +3358,8 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
               {selectedIsAuditIntake ||
               selectedIsAuditExtractor ||
               selectedIsOpeningReconciliation
-                ? 'Sources are stored in this browser for the MVP. Run Audit Demo loads only the Sources selected by this workflow. Client email sending remains disabled until an Outlook connector is configured.'
-                : 'Visual configuration only. Test Run is simulated and will not send emails, call APIs, change databases, or alter external systems.'}
+                ? 'Sources are stored in this browser for the MVP. Run Audit Demo loads only the Sources selected by this workflow. After Senior CA approval, a configured Send Email step can send through Resend.'
+                : 'Most Test Run steps are simulated. A configured Send Email step is allowed to send only after explicit human approval when Resend is configured.'}
             </div>
 
             <button
