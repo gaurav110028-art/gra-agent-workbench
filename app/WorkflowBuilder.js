@@ -41,6 +41,12 @@ import {
   publishWorkflow,
 } from './workflowVersions';
 
+import {
+  getAgentSources,
+  getSourceFile,
+  subscribeToSources,
+} from './sourceStore';
+
 /* =========================================================
    BLOCK LIBRARY
 ========================================================= */
@@ -536,11 +542,10 @@ const configSchemas = {
 
   spreadsheet: [
     {
-      key: 'file',
-      label: 'File',
-      type: 'text',
+      key: 'sourceId',
+      label: 'Source File',
+      type: 'source',
       required: true,
-      placeholder: 'GST Working.xlsx',
     },
     {
       key: 'sheet',
@@ -559,6 +564,12 @@ const configSchemas = {
   ],
 
   fileStorage: [
+    {
+      key: 'sourceId',
+      label: 'Source File',
+      type: 'source',
+      required: false,
+    },
     {
       key: 'location',
       label: 'Folder / Location',
@@ -792,7 +803,7 @@ const nodeTypes = {
   workflowNode: WorkflowNode,
 };
 
-export default function WorkflowBuilder({ agentId, agentName }) {
+export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
   const storageKey = `gra-workflow-${agentId}`;
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -803,6 +814,8 @@ export default function WorkflowBuilder({ agentId, agentName }) {
 
   const [loaded, setLoaded] = useState(false);
   const [search, setSearch] = useState('');
+
+  const [availableSources, setAvailableSources] = useState([]);
 
   const [versionState, setVersionState] = useState(null);
   const [publishMessage, setPublishMessage] = useState('');
@@ -815,11 +828,6 @@ export default function WorkflowBuilder({ agentId, agentName }) {
   const [runSteps, setRunSteps] = useState([]);
   const [runStatus, setRunStatus] = useState('idle');
 
-  const [auditFiles, setAuditFiles] = useState({
-    financialStatements: null,
-    trialBalance: null,
-    gstData: null,
-  });
   const [auditResult, setAuditResult] = useState(null);
   const [auditError, setAuditError] = useState('');
   const [auditProcessing, setAuditProcessing] = useState(false);
@@ -857,11 +865,6 @@ export default function WorkflowBuilder({ agentId, agentName }) {
     setRunPlan([]);
     setWaitingStepIndex(null);
     setRunStatus('idle');
-    setAuditFiles({
-      financialStatements: null,
-      trialBalance: null,
-      gstData: null,
-    });
     setAuditResult(null);
     setAuditError('');
     setAuditProcessing(false);
@@ -878,6 +881,43 @@ export default function WorkflowBuilder({ agentId, agentName }) {
 
     setLoaded(true);
   }, [agentId, storageKey, setNodes, setEdges]);
+
+  useEffect(() => {
+    let active = true;
+
+    const refreshSources = async () => {
+      try {
+        const nextSources =
+          await getAgentSources(agentId);
+
+        if (active) {
+          setAvailableSources(nextSources);
+        }
+      } catch {
+        if (active) {
+          setAvailableSources([]);
+        }
+      }
+    };
+
+    refreshSources();
+
+    const unsubscribe =
+      subscribeToSources((detail) => {
+        if (
+          !detail?.agentId ||
+          String(detail.agentId) ===
+            String(agentId)
+        ) {
+          refreshSources();
+        }
+      });
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, [agentId]);
 
   useEffect(() => {
     if (!loaded) return;
@@ -1223,6 +1263,45 @@ export default function WorkflowBuilder({ agentId, agentName }) {
           });
         }
       });
+
+      const normalizedNodeName = String(
+        node.data?.name || ''
+      ).toLowerCase();
+
+      if (
+        normalizedNodeName.includes(
+          'read & extract audit documents'
+        ) ||
+        normalizedNodeName.includes(
+          'read and extract audit documents'
+        )
+      ) {
+        [
+          [
+            'financialStatementsSourceId',
+            'Last-year Signed Financial Statements',
+          ],
+          [
+            'trialBalanceSourceId',
+            'Current-year Trial Balance',
+          ],
+          [
+            'gstDataSourceId',
+            'GST Reconciliation Data',
+          ],
+        ].forEach(([key, label]) => {
+          if (
+            isEmpty(
+              node.data.config?.[key]
+            )
+          ) {
+            issues.push({
+              nodeId: node.id,
+              message: `${node.data.name}: ${label} Source is required.`,
+            });
+          }
+        });
+      }
     });
 
     if (triggers.length === 1) {
@@ -1411,28 +1490,40 @@ export default function WorkflowBuilder({ agentId, agentName }) {
     }
   };
 
-  const isAuditWorkflow = nodes.some((node) =>
-    String(node.data?.name || '')
-      .toLowerCase()
-      .includes('audit file intake')
-  );
+  const isAuditWorkflow = nodes.some((node) => {
+    const name = String(
+      node.data?.name || ''
+    ).toLowerCase();
 
-  const selectedIsAuditIntake = Boolean(
-    selectedNode &&
-      String(selectedNode.data?.name || '')
-        .toLowerCase()
-        .includes('audit file intake')
-  );
+    return (
+      name.includes('audit file intake') ||
+      name.includes('read & extract audit documents') ||
+      name.includes('read and extract audit documents') ||
+      name.includes('audit query generator')
+    );
+  });
 
-  const handleAuditFile = (key, file) => {
-    setAuditFiles((current) => ({
-      ...current,
-      [key]: file || null,
-    }));
+  const selectedName = String(
+    selectedNode?.data?.name || ''
+  ).toLowerCase();
 
-    setAuditResult(null);
-    setAuditError('');
-  };
+  const selectedIsAuditIntake =
+    selectedName.includes(
+      'audit file intake'
+    );
+
+  const selectedIsAuditExtractor =
+    selectedName.includes(
+      'read & extract audit documents'
+    ) ||
+    selectedName.includes(
+      'read and extract audit documents'
+    );
+
+  const selectedIsOpeningReconciliation =
+    selectedName.includes(
+      'opening balance reconciliation'
+    );
 
   const formatAuditAmount = (value) => {
     const numeric = Number(value || 0);
@@ -1456,14 +1547,14 @@ export default function WorkflowBuilder({ agentId, agentName }) {
     }
 
     if (name.includes('audit file intake')) {
-      return `3 real files received: ${auditFiles.financialStatements?.name}, ${auditFiles.trialBalance?.name}, ${auditFiles.gstData?.name}`;
+      return 'Client documents were loaded from the agent Source Library.';
     }
 
     if (
       name.includes('read & extract') ||
       name.includes('read and extract')
     ) {
-      return `OpenAI file analysis completed. ${result?.extractionSummary || 'Financial statements, trial balance and GST records were extracted.'}`;
+      return `File analysis completed. ${result?.extractionSummary || 'Financial statements, trial balance and GST records were extracted from the selected Sources.'}`;
     }
 
     if (name.includes('opening balance')) {
@@ -1620,22 +1711,119 @@ export default function WorkflowBuilder({ agentId, agentName }) {
       return;
     }
 
+    const auditExtractorNode =
+      nodes.find((node) => {
+        const name = String(
+          node.data?.name || ''
+        ).toLowerCase();
+
+        return (
+          name.includes(
+            'read & extract audit documents'
+          ) ||
+          name.includes(
+            'read and extract audit documents'
+          )
+        );
+      });
+
+    const openingNode =
+      nodes.find((node) =>
+        String(
+          node.data?.name || ''
+        )
+          .toLowerCase()
+          .includes(
+            'opening balance reconciliation'
+          )
+      );
+
+    const gstNode =
+      nodes.find((node) =>
+        String(
+          node.data?.name || ''
+        )
+          .toLowerCase()
+          .includes(
+            'gst reconciliation'
+          )
+      );
+
+    const firstPdf =
+      availableSources.find(
+        (source) =>
+          source.category === 'PDF'
+      );
+
+    const trialNameMatch =
+      availableSources.find(
+        (source) =>
+          /trial|\btb\b/i.test(
+            source.name
+          )
+      );
+
+    const gstNameMatch =
+      availableSources.find(
+        (source) =>
+          /gst|gstr/i.test(
+            source.name
+          )
+      );
+
+    const financialStatementsSourceId =
+      auditExtractorNode?.data
+        ?.config
+        ?.financialStatementsSourceId ||
+      openingNode?.data?.config
+        ?.referenceSourceId ||
+      firstPdf?.id ||
+      '';
+
+    const trialBalanceSourceId =
+      auditExtractorNode?.data
+        ?.config
+        ?.trialBalanceSourceId ||
+      openingNode?.data?.config
+        ?.sourceId ||
+      trialNameMatch?.id ||
+      '';
+
+    const gstDataSourceId =
+      auditExtractorNode?.data
+        ?.config?.gstDataSourceId ||
+      gstNode?.data?.config
+        ?.sourceId ||
+      gstNameMatch?.id ||
+      '';
+
     const missing = [];
 
-    if (!auditFiles.financialStatements) {
-      missing.push('last-year signed financial statements PDF');
+    if (!financialStatementsSourceId) {
+      missing.push(
+        'last-year signed financial statements'
+      );
     }
 
-    if (!auditFiles.trialBalance) {
-      missing.push('current-year trial balance Excel');
+    if (!trialBalanceSourceId) {
+      missing.push(
+        'current-year trial balance'
+      );
     }
 
-    if (!auditFiles.gstData) {
-      missing.push('GST reconciliation Excel');
+    if (!gstDataSourceId) {
+      missing.push(
+        'GST reconciliation data'
+      );
     }
 
     if (missing.length > 0) {
-      setAuditError(`Upload ${missing.join(', ')} in the Audit File Intake block.`);
+      setAuditError(
+        `Select ${missing.join(
+          ', '
+        )} from the Sources tab / workflow source selectors.`
+      );
+
       setPanelMode('test');
       setRunStatus('blocked');
       return;
@@ -1695,19 +1883,48 @@ export default function WorkflowBuilder({ agentId, agentName }) {
     setAuditProcessing(true);
 
     try {
+      const [
+        financialStatementsFile,
+        trialBalanceFile,
+        gstDataFile,
+      ] = await Promise.all([
+        getSourceFile(
+          agentId,
+          financialStatementsSourceId
+        ),
+        getSourceFile(
+          agentId,
+          trialBalanceSourceId
+        ),
+        getSourceFile(
+          agentId,
+          gstDataSourceId
+        ),
+      ]);
+
+      if (
+        !financialStatementsFile ||
+        !trialBalanceFile ||
+        !gstDataFile
+      ) {
+        throw new Error(
+          'One or more selected Source files are unavailable. Re-upload them in the Sources tab.'
+        );
+      }
+
       const formData = new FormData();
 
       formData.append(
         'financialStatements',
-        auditFiles.financialStatements
+        financialStatementsFile
       );
       formData.append(
         'trialBalance',
-        auditFiles.trialBalance
+        trialBalanceFile
       );
       formData.append(
         'gstData',
-        auditFiles.gstData
+        gstDataFile
       );
 
       const response = await fetch('/api/audit-demo', {
@@ -2261,7 +2478,7 @@ export default function WorkflowBuilder({ agentId, agentName }) {
                   runStatus === 'running' ||
                   auditProcessing
                 }
-                title="Upload the three demo files in Audit File Intake, then run real file analysis"
+                title="Select the audit documents from Sources, then run real file analysis"
               >
                 {auditProcessing
                   ? 'Analyzing Files...'
@@ -2632,8 +2849,36 @@ export default function WorkflowBuilder({ agentId, agentName }) {
                       </select>
                     )}
 
+                    {field.type === 'source' && (
+                      <select
+                        value={
+                          selectedNode.data.config?.[field.key] || ''
+                        }
+                        onChange={(e) =>
+                          updateNodeConfig(
+                            field.key,
+                            e.target.value
+                          )
+                        }
+                      >
+                        <option value="">
+                          Select a Source...
+                        </option>
+
+                        {availableSources.map((source) => (
+                          <option
+                            key={source.id}
+                            value={source.id}
+                          >
+                            {source.name} · {source.category}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+
                     {field.type !== 'textarea' &&
-                      field.type !== 'select' && (
+                      field.type !== 'select' &&
+                      field.type !== 'source' && (
                         <input
                           type={field.type || 'text'}
                           placeholder={field.placeholder || ''}
@@ -2656,63 +2901,191 @@ export default function WorkflowBuilder({ agentId, agentName }) {
             {selectedIsAuditIntake && (
               <>
                 <div className="workflowInspectorDivider">
-                  Real Demo Files
+                  Source Library
                 </div>
 
                 <div className="auditUploadNotice">
-                  These files are sent to the server only when you click
-                  <strong> Run Audit Demo</strong>. They are not saved in browser localStorage.
+                  File uploads now live in the
+                  <strong> Sources</strong> tab. This block can reference a saved Source instead of asking for the same file on every run.
                 </div>
 
-                <div className="auditUploadField">
-                  <label>Last-year Signed Financial Statements *</label>
-                  <input
-                    type="file"
-                    accept="application/pdf,.pdf"
-                    onChange={(e) =>
-                      handleAuditFile(
-                        'financialStatements',
-                        e.target.files?.[0]
-                      )
-                    }
-                  />
-                  <span>
-                    {auditFiles.financialStatements?.name || 'No PDF selected'}
-                  </span>
+                <button
+                  type="button"
+                  className="workflowOpenSourcesButton"
+                  onClick={() => onOpenSources?.()}
+                >
+                  Open Sources →
+                </button>
+              </>
+            )}
+
+            {selectedIsAuditExtractor && (
+              <>
+                <div className="workflowInspectorDivider">
+                  Audit Source Mapping
                 </div>
 
-                <div className="auditUploadField">
-                  <label>Current-year Trial Balance *</label>
-                  <input
-                    type="file"
-                    accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    onChange={(e) =>
-                      handleAuditFile(
-                        'trialBalance',
-                        e.target.files?.[0]
-                      )
-                    }
-                  />
-                  <span>
-                    {auditFiles.trialBalance?.name || 'No Excel selected'}
-                  </span>
+                <div className="auditUploadNotice">
+                  Tell the audit engine which saved Source plays each role. Files stay in Sources until this workflow explicitly runs them.
                 </div>
 
-                <div className="auditUploadField">
-                  <label>GST Reconciliation Data *</label>
-                  <input
-                    type="file"
-                    accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                <div className="workflowConfigField">
+                  <label>
+                    Last-year Signed Financial Statements *
+                  </label>
+
+                  <select
+                    value={
+                      selectedNode.data.config?.financialStatementsSourceId || ''
+                    }
                     onChange={(e) =>
-                      handleAuditFile(
-                        'gstData',
-                        e.target.files?.[0]
+                      updateNodeConfig(
+                        'financialStatementsSourceId',
+                        e.target.value
                       )
                     }
-                  />
-                  <span>
-                    {auditFiles.gstData?.name || 'No Excel selected'}
-                  </span>
+                  >
+                    <option value="">
+                      Select PDF...
+                    </option>
+
+                    {availableSources
+                      .filter(
+                        (source) =>
+                          source.category === 'PDF'
+                      )
+                      .map((source) => (
+                        <option
+                          key={source.id}
+                          value={source.id}
+                        >
+                          {source.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div className="workflowConfigField">
+                  <label>
+                    Current-year Trial Balance *
+                  </label>
+
+                  <select
+                    value={
+                      selectedNode.data.config?.trialBalanceSourceId || ''
+                    }
+                    onChange={(e) =>
+                      updateNodeConfig(
+                        'trialBalanceSourceId',
+                        e.target.value
+                      )
+                    }
+                  >
+                    <option value="">
+                      Select Excel / CSV...
+                    </option>
+
+                    {availableSources
+                      .filter((source) =>
+                        ['Excel', 'CSV'].includes(
+                          source.category
+                        )
+                      )
+                      .map((source) => (
+                        <option
+                          key={source.id}
+                          value={source.id}
+                        >
+                          {source.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div className="workflowConfigField">
+                  <label>
+                    GST Reconciliation Data *
+                  </label>
+
+                  <select
+                    value={
+                      selectedNode.data.config?.gstDataSourceId || ''
+                    }
+                    onChange={(e) =>
+                      updateNodeConfig(
+                        'gstDataSourceId',
+                        e.target.value
+                      )
+                    }
+                  >
+                    <option value="">
+                      Select Excel / CSV...
+                    </option>
+
+                    {availableSources
+                      .filter((source) =>
+                        ['Excel', 'CSV'].includes(
+                          source.category
+                        )
+                      )
+                      .map((source) => (
+                        <option
+                          key={source.id}
+                          value={source.id}
+                        >
+                          {source.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                {availableSources.length === 0 && (
+                  <button
+                    type="button"
+                    className="workflowOpenSourcesButton"
+                    onClick={() => onOpenSources?.()}
+                  >
+                    Upload Sources →
+                  </button>
+                )}
+              </>
+            )}
+
+            {selectedIsOpeningReconciliation && (
+              <>
+                <div className="workflowInspectorDivider">
+                  Reconciliation Reference
+                </div>
+
+                <div className="workflowConfigField">
+                  <label>
+                    Compare With Signed Financial Statements
+                  </label>
+
+                  <select
+                    value={
+                      selectedNode.data.config?.referenceSourceId || ''
+                    }
+                    onChange={(e) =>
+                      updateNodeConfig(
+                        'referenceSourceId',
+                        e.target.value
+                      )
+                    }
+                  >
+                    <option value="">
+                      Select reference Source...
+                    </option>
+
+                    {availableSources.map((source) => (
+                      <option
+                        key={source.id}
+                        value={source.id}
+                      >
+                        {source.name} · {source.category}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </>
             )}
@@ -2728,8 +3101,10 @@ export default function WorkflowBuilder({ agentId, agentName }) {
             </div>
 
             <div className="workflowConfigNotice">
-              {selectedIsAuditIntake
-                ? 'Run Audit Demo performs real OpenAI file analysis and deterministic reconciliation. Client email sending remains disabled until an Outlook connector is configured.'
+              {selectedIsAuditIntake ||
+              selectedIsAuditExtractor ||
+              selectedIsOpeningReconciliation
+                ? 'Sources are stored in this browser for the MVP. Run Audit Demo loads only the Sources selected by this workflow. Client email sending remains disabled until an Outlook connector is configured.'
                 : 'Visual configuration only. Test Run is simulated and will not send emails, call APIs, change databases, or alter external systems.'}
             </div>
 
