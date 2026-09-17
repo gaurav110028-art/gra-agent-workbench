@@ -2776,9 +2776,47 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
             onNodeClick={(event, node) => {
               setSelectedNode(node);
             }}
-            onPaneClick={() => setSelectedNode(null)}
+            onEdgeClick={(event, edge) => {
+              event.stopPropagation();
+
+              setEdges((currentEdges) =>
+                currentEdges.map((item) => ({
+                  ...item,
+                  selected: item.id === edge.id,
+                }))
+              );
+
+              setSelectedNode(null);
+            }}
+            onEdgeContextMenu={(event, edge) => {
+              event.preventDefault();
+              event.stopPropagation();
+
+              const confirmed = window.confirm(
+                'Delete this connection?'
+              );
+
+              if (!confirmed) return;
+
+              setEdges((currentEdges) =>
+                currentEdges.filter(
+                  (item) => item.id !== edge.id
+                )
+              );
+            }}
+            onPaneClick={() => {
+              setSelectedNode(null);
+
+              setEdges((currentEdges) =>
+                currentEdges.map((item) => ({
+                  ...item,
+                  selected: false,
+                }))
+              );
+            }}
             deleteKeyCode={['Backspace', 'Delete']}
             defaultEdgeOptions={{
+              interactionWidth: 36,
               style: {
                 stroke: '#666',
                 strokeWidth: 2,
