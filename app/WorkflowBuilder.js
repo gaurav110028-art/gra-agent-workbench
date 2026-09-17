@@ -3218,7 +3218,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
                 </div>
 
                 <div className="auditUploadNotice">
-                  Tell the audit engine which saved Source plays each role. Files stay in Sources until this workflow explicitly runs them.
+                  Tell the audit engine which saved Source plays each role. The trial balance may be PDF, Excel or CSV and may contain multiple locations. Files stay in Sources until this workflow explicitly runs them.
                 </div>
 
                 <div className="workflowConfigField">
@@ -3274,12 +3274,12 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
                     }
                   >
                     <option value="">
-                      Select Excel / CSV...
+                      Select PDF / Excel / CSV...
                     </option>
 
                     {availableSources
                       .filter((source) =>
-                        ['Excel', 'CSV'].includes(
+                        ['PDF', 'Excel', 'CSV'].includes(
                           source.category
                         )
                       )
