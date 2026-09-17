@@ -1,7 +1,7 @@
 import { inflateRawSync } from 'node:zlib';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
