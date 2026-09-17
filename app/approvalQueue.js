@@ -55,6 +55,7 @@ export function createApprovalRequest({
   message = '',
   workflowVersion = null,
   workflowVersionStatus = null,
+  postApprovalAction = null,
 }) {
   const now = new Date().toISOString();
 
@@ -70,6 +71,9 @@ export function createApprovalRequest({
     // Ties this approval to the exact workflow version used by its run.
     workflowVersion,
     workflowVersionStatus,
+
+    postApprovalAction,
+    actionResult: null,
 
     nodeId,
     blockName,
@@ -121,6 +125,29 @@ export function decideApproval({
       'Reviewer',
 
     decisionNote,
+  };
+
+  saveApproval(updated);
+
+  return updated;
+}
+
+
+export function recordApprovalActionResult({
+  approvalId,
+  actionResult,
+}) {
+  const approvals = getApprovals();
+
+  const approval = approvals.find(
+    (item) => item.id === approvalId
+  );
+
+  if (!approval) return null;
+
+  const updated = {
+    ...approval,
+    actionResult,
   };
 
   saveApproval(updated);
