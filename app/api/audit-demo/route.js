@@ -1507,120 +1507,86 @@ export async function POST(
     const claudeRequestBody = {
       model:
         'claude-haiku-4-5-20251001',
-      max_tokens: 5000,
+
+      // One paid Claude call only. No automatic retry.
+      max_tokens: 8000,
+
       system:
-        'You are a controlled extraction engine for a Chartered Accountant audit assistant. Preserve source scope and location. Never guess missing figures. Never convert an incomplete source into a clean audit conclusion. The application performs deterministic arithmetic and a Senior CA reviews all material exceptions.',
+        'You are a controlled extraction engine for a Chartered Accountant audit assistant. Preserve source scope and location. Never guess missing figures. Never convert an incomplete source into a clean audit conclusion. The application performs deterministic arithmetic and a Senior CA reviews all material exceptions. Return the extraction only through the submit_audit_extraction tool.',
+
+      tools: [
+        {
+          name:
+            'submit_audit_extraction',
+          description:
+            'Return the complete structured extraction from the supplied signed financial statements, current-year trial balance and GST reconciliation workbook. Use only source-visible facts. Preserve location/GSTIN scope, source completeness warnings and audit exceptions. This tool is used as the structured output channel; do not write a prose answer instead.',
+          input_schema:
+            extractionSchema,
+        },
+      ],
+
+      tool_choice: {
+        type: 'tool',
+        name:
+          'submit_audit_extraction',
+        disable_parallel_tool_use:
+          true,
+      },
+
       messages: [
         {
           role: 'user',
           content,
         },
       ],
-      output_config: {
-        format: {
-          type:
-            'json_schema',
-          schema:
-            extractionSchema,
-        },
-      },
     };
 
-    let claudeResponse = null;
+    const claudeResponse =
+      await fetch(
+        ANTHROPIC_URL,
+        {
+          method: 'POST',
+          headers: {
+            'x-api-key':
+              process.env
+                .ANTHROPIC_API_KEY,
+            'anthropic-version':
+              '2023-06-01',
+            'content-type':
+              'application/json',
+          },
+          body: JSON.stringify(
+            claudeRequestBody
+          ),
+        }
+      );
+
+    const upstreamText =
+      await claudeResponse.text();
+
     let raw = null;
-    let upstreamText = '';
 
-    for (
-      let attempt = 1;
-      attempt <= 3;
-      attempt += 1
-    ) {
-      claudeResponse =
-        await fetch(
-          ANTHROPIC_URL,
-          {
-            method: 'POST',
-            headers: {
-              'x-api-key':
-                process.env
-                  .ANTHROPIC_API_KEY,
-              'anthropic-version':
-                '2023-06-01',
-              'content-type':
-                'application/json',
-            },
-            body: JSON.stringify(
-              claudeRequestBody
-            ),
-          }
-        );
-
-      upstreamText =
-        await claudeResponse.text();
-
-      try {
-        raw = upstreamText
-          ? JSON.parse(upstreamText)
-          : null;
-      } catch {
-        raw = null;
-      }
-
-      if (
-        claudeResponse.ok &&
-        raw
-      ) {
-        break;
-      }
-
-      const retryable =
-        [
-          429,
-          500,
-          502,
-          503,
-          504,
-          529,
-        ].includes(
-          claudeResponse.status
-        ) ||
-        (
-          claudeResponse.ok &&
-          !raw
-        );
-
-      if (
-        retryable &&
-        attempt < 3
-      ) {
-        await new Promise(
-          (resolve) =>
-            setTimeout(
-              resolve,
-              attempt * 1200
-            )
-        );
-
-        continue;
-      }
-
-      const upstreamMessage =
-        raw?.error?.message ||
-        upstreamText
-          ?.replace(
-            /\s+/g,
-            ' '
-          )
-          .trim()
-          .slice(0, 500) ||
-        `Anthropic returned HTTP ${claudeResponse.status}.`;
-
+    try {
+      raw = upstreamText
+        ? JSON.parse(upstreamText)
+        : null;
+    } catch {
       return Response.json(
         {
           error:
-            `Claude API request failed: ${upstreamMessage}`,
+            `Anthropic returned HTTP ${claudeResponse.status} with a non-JSON response. No automatic retry was made.`,
           providerStatus:
             claudeResponse.status,
+          providerPreview:
+            String(
+              upstreamText || ''
+            )
+              .replace(
+                /\s+/g,
+                ' '
+              )
+              .trim()
+              .slice(0, 300),
         },
         {
           status:
@@ -1631,45 +1597,70 @@ export async function POST(
       );
     }
 
-    if (!raw) {
+    if (
+      !claudeResponse.ok
+    ) {
       return Response.json(
         {
           error:
-            'Claude API returned a non-JSON response after 3 attempts. Please retry the audit run.',
+            raw?.error
+              ?.message ||
+            `Claude API request failed with HTTP ${claudeResponse.status}.`,
+          providerStatus:
+            claudeResponse.status,
+          usage:
+            raw?.usage || null,
+          model:
+            raw?.model ||
+            'claude-haiku-4-5-20251001',
         },
-        { status: 502 }
+        {
+          status:
+            claudeResponse.status,
+        }
       );
     }
 
-    const outputText =
-      getClaudeText(raw);
+    const toolBlock =
+      (raw?.content || []).find(
+        (block) =>
+          block?.type ===
+            'tool_use' &&
+          block?.name ===
+            'submit_audit_extraction'
+      );
 
-    if (!outputText) {
+    if (
+      !toolBlock?.input ||
+      typeof toolBlock.input !==
+        'object'
+    ) {
+      const stoppedAtLimit =
+        raw?.stop_reason ===
+        'max_tokens';
+
       return Response.json(
         {
           error:
-            'Claude returned no structured extraction result.',
+            stoppedAtLimit
+              ? 'Claude reached the output-token limit before completing the structured extraction. No retry was made, so there was only one billed Claude call.'
+              : 'Claude responded, but did not return the required structured audit extraction tool output. No retry was made.',
+          stopReason:
+            raw?.stop_reason || null,
+          usage:
+            raw?.usage || null,
+          model:
+            raw?.model ||
+            'claude-haiku-4-5-20251001',
+          engine:
+            'Claude Haiku 4.5 forced structured tool extraction',
         },
-        { status: 502 }
+        { status: 422 }
       );
     }
 
-    let extracted;
-
-    try {
-      extracted =
-        JSON.parse(
-          outputText
-        );
-    } catch {
-      return Response.json(
-        {
-          error:
-            'Claude responded, but the structured audit output could not be parsed. Please retry once. If it repeats, send the error screenshot.',
-        },
-        { status: 502 }
-      );
-    }
+    const extracted =
+      toolBlock.input;
 
     const result =
       reconcile(extracted);
