@@ -9,6 +9,9 @@ import {
   subscribeToRunHistory,
 } from './runHistory';
 
+const HAIKU_45_INPUT_USD_PER_MILLION = 1;
+const HAIKU_45_OUTPUT_USD_PER_MILLION = 5;
+
 function formatDate(value) {
   if (!value) return '-';
   return new Date(value).toLocaleString();
@@ -33,6 +36,26 @@ function formatDuration(ms) {
   return `${minutes}m ${remaining}s`;
 }
 
+function formatTokens(value) {
+  const number = Number(value || 0);
+
+  return new Intl.NumberFormat('en-IN').format(number);
+}
+
+function formatUsd(value) {
+  const number = Number(value || 0);
+
+  if (number === 0) {
+    return '$0.0000';
+  }
+
+  if (number < 0.01) {
+    return `$${number.toFixed(5)}`;
+  }
+
+  return `$${number.toFixed(4)}`;
+}
+
 function getStatusClass(status) {
   return String(status || '')
     .toLowerCase()
@@ -43,6 +66,45 @@ function versionLabel(run) {
   if (!run?.workflowVersion) return null;
 
   return `${run.workflowVersionStatus || 'Version'} v${run.workflowVersion}`;
+}
+
+function getClaudeUsage(run) {
+  const usage =
+    run?.auditResult?.usage ||
+    run?.aiUsage ||
+    null;
+
+  if (!usage) return null;
+
+  const inputTokens =
+    Number(usage.input_tokens || 0);
+
+  const outputTokens =
+    Number(usage.output_tokens || 0);
+
+  if (
+    inputTokens === 0 &&
+    outputTokens === 0
+  ) {
+    return null;
+  }
+
+  const estimatedCostUsd =
+    (inputTokens / 1_000_000) *
+      HAIKU_45_INPUT_USD_PER_MILLION +
+    (outputTokens / 1_000_000) *
+      HAIKU_45_OUTPUT_USD_PER_MILLION;
+
+  return {
+    model:
+      run?.auditResult?.model ||
+      'claude-haiku-4-5-20251001',
+    inputTokens,
+    outputTokens,
+    totalTokens:
+      inputTokens + outputTokens,
+    estimatedCostUsd,
+  };
 }
 
 export default function RunsView() {
@@ -84,6 +146,40 @@ export default function RunsView() {
       (run) => run.status === filter
     );
   }, [runs, filter]);
+
+  const usageSummary = useMemo(() => {
+    return runs.reduce(
+      (summary, run) => {
+        const usage =
+          getClaudeUsage(run);
+
+        if (!usage) return summary;
+
+        return {
+          trackedRuns:
+            summary.trackedRuns + 1,
+          inputTokens:
+            summary.inputTokens +
+            usage.inputTokens,
+          outputTokens:
+            summary.outputTokens +
+            usage.outputTokens,
+          estimatedCostUsd:
+            summary.estimatedCostUsd +
+            usage.estimatedCostUsd,
+        };
+      },
+      {
+        trackedRuns: 0,
+        inputTokens: 0,
+        outputTokens: 0,
+        estimatedCostUsd: 0,
+      }
+    );
+  }, [runs]);
+
+  const selectedUsage =
+    getClaudeUsage(selectedRun);
 
   const statuses = [
     'All',
@@ -163,6 +259,51 @@ export default function RunsView() {
         ))}
       </div>
 
+      {usageSummary.trackedRuns > 0 && (
+        <div className="claudeUsageSummary">
+          <div>
+            <span>Claude Usage</span>
+            <strong>
+              Haiku 4.5
+            </strong>
+          </div>
+
+          <div>
+            <span>Tracked Runs</span>
+            <strong>
+              {usageSummary.trackedRuns}
+            </strong>
+          </div>
+
+          <div>
+            <span>Input Tokens</span>
+            <strong>
+              {formatTokens(
+                usageSummary.inputTokens
+              )}
+            </strong>
+          </div>
+
+          <div>
+            <span>Output Tokens</span>
+            <strong>
+              {formatTokens(
+                usageSummary.outputTokens
+              )}
+            </strong>
+          </div>
+
+          <div className="claudeUsageCost">
+            <span>Estimated AI Cost</span>
+            <strong>
+              {formatUsd(
+                usageSummary.estimatedCostUsd
+              )}
+            </strong>
+          </div>
+        </div>
+      )}
+
       {filteredRuns.length === 0 ? (
         <div className="runsEmpty">
           <div className="runsEmptyIcon">
@@ -179,80 +320,103 @@ export default function RunsView() {
       ) : (
         <div className="runsLayout">
           <div className="runsList">
-            {filteredRuns.map((run) => (
-              <button
-                key={run.id}
-                className={`
-                  runCard
-                  ${
-                    selectedRun?.id ===
-                    run.id
-                      ? 'selected'
-                      : ''
+            {filteredRuns.map((run) => {
+              const cardUsage =
+                getClaudeUsage(run);
+
+              return (
+                <button
+                  key={run.id}
+                  className={`
+                    runCard
+                    ${
+                      selectedRun?.id ===
+                      run.id
+                        ? 'selected'
+                        : ''
+                    }
+                  `}
+                  onClick={() =>
+                    setSelectedRun(run)
                   }
-                `}
-                onClick={() =>
-                  setSelectedRun(run)
-                }
-              >
-                <div className="runCardTop">
-                  <div>
-                    <strong>
-                      {run.agentName || 'Agent'}
-                    </strong>
+                >
+                  <div className="runCardTop">
+                    <div>
+                      <strong>
+                        {run.agentName || 'Agent'}
+                      </strong>
 
-                    <div className="workflowRecordMetaLine">
-                      <span>
-                        {run.workflowName ||
-                          'Main Workflow'}
-                      </span>
-
-                      {versionLabel(run) && (
-                        <span
-                          className={`workflowRecordVersion ${
-                            run.workflowVersionStatus ===
-                            'Published'
-                              ? 'published'
-                              : 'draft'
-                          }`}
-                        >
-                          {versionLabel(run)}
+                      <div className="workflowRecordMetaLine">
+                        <span>
+                          {run.workflowName ||
+                            'Main Workflow'}
                         </span>
-                      )}
+
+                        {versionLabel(run) && (
+                          <span
+                            className={`workflowRecordVersion ${
+                              run.workflowVersionStatus ===
+                              'Published'
+                                ? 'published'
+                                : 'draft'
+                            }`}
+                          >
+                            {versionLabel(run)}
+                          </span>
+                        )}
+                      </div>
                     </div>
+
+                    <span
+                      className={`
+                        runStatus
+                        runStatus-${getStatusClass(
+                          run.status
+                        )}
+                      `}
+                    >
+                      {run.status}
+                    </span>
                   </div>
 
-                  <span
-                    className={`
-                      runStatus
-                      runStatus-${getStatusClass(
-                        run.status
+                  <div className="runCardMeta">
+                    <span>
+                      {run.type || 'Test Run'}
+                    </span>
+
+                    <span>
+                      {formatDate(
+                        run.startedAt
                       )}
-                    `}
-                  >
-                    {run.status}
-                  </span>
-                </div>
+                    </span>
 
-                <div className="runCardMeta">
-                  <span>
-                    {run.type || 'Test Run'}
-                  </span>
+                    <span>
+                      {formatDuration(
+                        run.durationMs
+                      )}
+                    </span>
+                  </div>
 
-                  <span>
-                    {formatDate(
-                      run.startedAt
-                    )}
-                  </span>
+                  {cardUsage && (
+                    <div className="runCardUsage">
+                      <span>
+                        Claude{' '}
+                        {formatTokens(
+                          cardUsage.totalTokens
+                        )}{' '}
+                        tokens
+                      </span>
 
-                  <span>
-                    {formatDuration(
-                      run.durationMs
-                    )}
-                  </span>
-                </div>
-              </button>
-            ))}
+                      <strong>
+                        {formatUsd(
+                          cardUsage.estimatedCostUsd
+                        )}
+                      </strong>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           <div className="runDetails">
@@ -338,6 +502,86 @@ export default function RunsView() {
                     </strong>
                   </div>
                 </div>
+
+                {selectedUsage && (
+                  <div className="runClaudeUsageBox">
+                    <div className="runClaudeUsageHeader">
+                      <div>
+                        <span>
+                          Claude API Usage
+                        </span>
+
+                        <strong>
+                          Claude Haiku 4.5
+                        </strong>
+                      </div>
+
+                      <div className="runClaudeUsagePrice">
+                        <span>
+                          Estimated Cost
+                        </span>
+
+                        <strong>
+                          {formatUsd(
+                            selectedUsage.estimatedCostUsd
+                          )}
+                        </strong>
+                      </div>
+                    </div>
+
+                    <div className="runClaudeUsageGrid">
+                      <div>
+                        <span>
+                          Input Tokens
+                        </span>
+                        <strong>
+                          {formatTokens(
+                            selectedUsage.inputTokens
+                          )}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>
+                          Output Tokens
+                        </span>
+                        <strong>
+                          {formatTokens(
+                            selectedUsage.outputTokens
+                          )}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>
+                          Total Tokens
+                        </span>
+                        <strong>
+                          {formatTokens(
+                            selectedUsage.totalTokens
+                          )}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>
+                          Model ID
+                        </span>
+                        <strong className="runClaudeModelId">
+                          {selectedUsage.model}
+                        </strong>
+                      </div>
+                    </div>
+
+                    <p className="runClaudeUsageNote">
+                      Estimated using Claude Haiku 4.5
+                      standard API pricing: $1 per
+                      million input tokens and $5 per
+                      million output tokens. Actual
+                      provider billing is authoritative.
+                    </p>
+                  </div>
+                )}
 
                 {selectedRun.approval && (
                   <div className="runApprovalBox">
