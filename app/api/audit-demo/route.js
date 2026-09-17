@@ -1504,61 +1504,140 @@ export async function POST(
       }
     );
 
-    const claudeResponse =
-      await fetch(
-        ANTHROPIC_URL,
+    const claudeRequestBody = {
+      model:
+        'claude-haiku-4-5-20251001',
+      max_tokens: 5000,
+      system:
+        'You are a controlled extraction engine for a Chartered Accountant audit assistant. Preserve source scope and location. Never guess missing figures. Never convert an incomplete source into a clean audit conclusion. The application performs deterministic arithmetic and a Senior CA reviews all material exceptions.',
+      messages: [
         {
-          method: 'POST',
-          headers: {
-            'x-api-key':
-              process.env
-                .ANTHROPIC_API_KEY,
-            'anthropic-version':
-              '2023-06-01',
-            'content-type':
-              'application/json',
-          },
-          body: JSON.stringify({
-            model:
-              'claude-haiku-4-5-20251001',
-            max_tokens: 5000,
-            system:
-              'You are a controlled extraction engine for a Chartered Accountant audit assistant. Preserve source scope and location. Never guess missing figures. Never convert an incomplete source into a clean audit conclusion. The application performs deterministic arithmetic and a Senior CA reviews all material exceptions.',
-            messages: [
-              {
-                role: 'user',
-                content,
-              },
-            ],
-            output_config: {
-              format: {
-                type:
-                  'json_schema',
-                schema:
-                  extractionSchema,
-              },
-            },
-          }),
-        }
-      );
+          role: 'user',
+          content,
+        },
+      ],
+      output_config: {
+        format: {
+          type:
+            'json_schema',
+          schema:
+            extractionSchema,
+        },
+      },
+    };
 
-    const raw =
-      await claudeResponse.json();
+    let claudeResponse = null;
+    let raw = null;
+    let upstreamText = '';
 
-    if (
-      !claudeResponse.ok
+    for (
+      let attempt = 1;
+      attempt <= 3;
+      attempt += 1
     ) {
+      claudeResponse =
+        await fetch(
+          ANTHROPIC_URL,
+          {
+            method: 'POST',
+            headers: {
+              'x-api-key':
+                process.env
+                  .ANTHROPIC_API_KEY,
+              'anthropic-version':
+                '2023-06-01',
+              'content-type':
+                'application/json',
+            },
+            body: JSON.stringify(
+              claudeRequestBody
+            ),
+          }
+        );
+
+      upstreamText =
+        await claudeResponse.text();
+
+      try {
+        raw = upstreamText
+          ? JSON.parse(upstreamText)
+          : null;
+      } catch {
+        raw = null;
+      }
+
+      if (
+        claudeResponse.ok &&
+        raw
+      ) {
+        break;
+      }
+
+      const retryable =
+        [
+          429,
+          500,
+          502,
+          503,
+          504,
+          529,
+        ].includes(
+          claudeResponse.status
+        ) ||
+        (
+          claudeResponse.ok &&
+          !raw
+        );
+
+      if (
+        retryable &&
+        attempt < 3
+      ) {
+        await new Promise(
+          (resolve) =>
+            setTimeout(
+              resolve,
+              attempt * 1200
+            )
+        );
+
+        continue;
+      }
+
+      const upstreamMessage =
+        raw?.error?.message ||
+        upstreamText
+          ?.replace(
+            /\s+/g,
+            ' '
+          )
+          .trim()
+          .slice(0, 500) ||
+        `Anthropic returned HTTP ${claudeResponse.status}.`;
+
       return Response.json(
         {
           error:
-            raw?.error
-              ?.message ||
-            'Claude file analysis failed.',
+            `Claude API request failed: ${upstreamMessage}`,
+          providerStatus:
+            claudeResponse.status,
         },
         {
           status:
-            claudeResponse.status,
+            claudeResponse.ok
+              ? 502
+              : claudeResponse.status,
         }
+      );
+    }
+
+    if (!raw) {
+      return Response.json(
+        {
+          error:
+            'Claude API returned a non-JSON response after 3 attempts. Please retry the audit run.',
+        },
+        { status: 502 }
       );
     }
 
@@ -1586,7 +1665,7 @@ export async function POST(
       return Response.json(
         {
           error:
-            'Could not parse Claude structured audit extraction.',
+            'Claude responded, but the structured audit output could not be parsed. Please retry once. If it repeats, send the error screenshot.',
         },
         { status: 502 }
       );
