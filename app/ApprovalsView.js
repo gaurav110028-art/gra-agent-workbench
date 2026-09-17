@@ -8,6 +8,7 @@ import {
   deleteApproval,
   clearApprovalHistory,
   subscribeToApprovals,
+  recordApprovalActionResult,
 } from './approvalQueue';
 
 import {
@@ -33,7 +34,31 @@ function versionLabel(approval) {
   return `${approval.workflowVersionStatus || 'Version'} v${approval.workflowVersion}`;
 }
 
-function getPostApprovalNote(step) {
+function getPostApprovalNote(
+  step,
+  actionResult = null,
+  approval = null
+) {
+  if (
+    step.type === 'email' &&
+    approval?.postApprovalAction?.nodeId === step.nodeId
+  ) {
+    if (actionResult?.status === 'sent') {
+      return `Email sent via Resend to ${
+        actionResult.to || 'recipient'
+      }. Message ID: ${
+        actionResult.id || 'received'
+      }`;
+    }
+
+    if (actionResult?.status === 'failed') {
+      return `Email send failed: ${
+        actionResult.error ||
+        'Unknown email provider error.'
+      }`;
+    }
+  }
+
   if (
     ['aiPrompt', 'extract', 'classify', 'summarize'].includes(
       step.type
@@ -101,7 +126,7 @@ function findApprovalStepIndex(run, approval) {
   );
 }
 
-function syncApprovalDecisionToRun(approvalDecision) {
+function syncApprovalDecisionToRun(approvalDecision, actionResult = null) {
   if (!approvalDecision?.runId) {
     return {
       ok: false,
@@ -139,6 +164,9 @@ function syncApprovalDecisionToRun(approvalDecision) {
   }
 
   if (approvalDecision.status === 'Approved') {
+    const emailFailed =
+      actionResult?.status === 'failed';
+
     const updatedSteps = originalSteps.map(
       (step, index) => {
         if (index === approvalIndex) {
@@ -147,7 +175,7 @@ function syncApprovalDecisionToRun(approvalDecision) {
             status: 'completed',
             note: `Approved by ${
               approvalDecision.decisionBy || 'Reviewer'
-            }. Test resumed.`,
+            }.`,
           };
         }
 
@@ -155,10 +183,39 @@ function syncApprovalDecisionToRun(approvalDecision) {
           index > approvalIndex &&
           ['pending', 'waiting'].includes(step.status)
         ) {
+          if (
+            emailFailed &&
+            step.nodeId ===
+              approvalDecision?.postApprovalAction?.nodeId
+          ) {
+            return {
+              ...step,
+              status: 'failed',
+              note: getPostApprovalNote(
+                step,
+                actionResult,
+                approvalDecision
+              ),
+            };
+          }
+
+          if (emailFailed) {
+            return {
+              ...step,
+              status: 'skipped',
+              note:
+                'Skipped because the approved email action failed.',
+            };
+          }
+
           return {
             ...step,
             status: 'completed',
-            note: getPostApprovalNote(step),
+            note: getPostApprovalNote(
+              step,
+              actionResult,
+              approvalDecision
+            ),
           };
         }
 
@@ -168,7 +225,7 @@ function syncApprovalDecisionToRun(approvalDecision) {
 
     const completedRun = finishRun(
       run,
-      'Completed',
+      emailFailed ? 'Failed' : 'Completed',
       {
         steps: updatedSteps,
         approval: {
@@ -183,6 +240,7 @@ function syncApprovalDecisionToRun(approvalDecision) {
             new Date().toISOString(),
           note: approvalDecision.decisionNote || '',
         },
+        emailAction: actionResult,
       }
     );
 
@@ -192,12 +250,15 @@ function syncApprovalDecisionToRun(approvalDecision) {
       (item) => item.id === run.id
     );
 
+    const expectedStatus =
+      emailFailed ? 'Failed' : 'Completed';
+
     return {
-      ok: verified?.status === 'Completed',
+      ok: verified?.status === expectedStatus,
       reason:
-        verified?.status === 'Completed'
+        verified?.status === expectedStatus
           ? ''
-          : 'Run record did not save as Completed.',
+          : `Run record did not save as ${expectedStatus}.`,
     };
   }
 
@@ -278,6 +339,7 @@ export default function ApprovalsView() {
   const [filter, setFilter] = useState('Pending');
   const [reviewer, setReviewer] = useState('');
   const [decisionNote, setDecisionNote] = useState('');
+  const [decisionBusy, setDecisionBusy] = useState(false);
 
   const loadApprovals = () => {
     const items = getApprovals();
@@ -347,7 +409,73 @@ export default function ApprovalsView() {
     );
   }, [approvals, filter]);
 
-  const handleDecision = (decision) => {
+  const sendApprovedEmail = async (
+    approval
+  ) => {
+    const action =
+      approval?.postApprovalAction;
+
+    if (
+      !action ||
+      action.type !== 'email'
+    ) {
+      return null;
+    }
+
+    try {
+      const response = await fetch(
+        '/api/send-email',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type':
+              'application/json',
+          },
+          body: JSON.stringify({
+            to: action.to,
+            subject: action.subject,
+            body: action.body,
+            approvalId: approval.id,
+            runId: approval.runId,
+            nodeId: action.nodeId,
+          }),
+        }
+      );
+
+      const payload =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          payload?.error ||
+            'Email sending failed.'
+        );
+      }
+
+      return {
+        status: 'sent',
+        provider: 'Resend',
+        id: payload.id,
+        to: action.to,
+        subject: action.subject,
+        sentAt: new Date().toISOString(),
+      };
+    } catch (error) {
+      return {
+        status: 'failed',
+        provider: 'Resend',
+        to: action.to,
+        subject: action.subject,
+        failedAt:
+          new Date().toISOString(),
+        error:
+          error?.message ||
+          'Email sending failed.',
+      };
+    }
+  };
+
+  const handleDecision = async (decision) => {
     if (!selectedApproval) return;
 
     if (!reviewer.trim()) {
@@ -368,35 +496,79 @@ export default function ApprovalsView() {
 
     if (!confirmed) return;
 
-    const updatedApproval = decideApproval({
-      approvalId: selectedApproval.id,
-      decision,
-      decisionBy: reviewer.trim(),
-      decisionNote: decisionNote.trim(),
-    });
+    setDecisionBusy(true);
 
-    if (!updatedApproval) {
-      window.alert(
-        'Approval decision could not be saved.'
+    try {
+      let updatedApproval = decideApproval({
+        approvalId: selectedApproval.id,
+        decision,
+        decisionBy: reviewer.trim(),
+        decisionNote: decisionNote.trim(),
+      });
+
+      if (!updatedApproval) {
+        window.alert(
+          'Approval decision could not be saved.'
+        );
+        return;
+      }
+
+      let actionResult = null;
+
+      if (
+        decision === 'Approved' &&
+        updatedApproval?.postApprovalAction?.type === 'email'
+      ) {
+        actionResult =
+          await sendApprovedEmail(
+            updatedApproval
+          );
+
+        const recorded =
+          recordApprovalActionResult({
+            approvalId:
+              updatedApproval.id,
+            actionResult,
+          });
+
+        if (recorded) {
+          updatedApproval = recorded;
+        }
+      }
+
+      const syncResult =
+        syncApprovalDecisionToRun(
+          updatedApproval,
+          actionResult
+        );
+
+      setSelectedApproval(updatedApproval);
+
+      setFilter(
+        decision === 'Approved'
+          ? 'Approved'
+          : 'Rejected'
       );
-      return;
-    }
 
-    const syncResult =
-      syncApprovalDecisionToRun(updatedApproval);
-
-    setSelectedApproval(updatedApproval);
-
-    setFilter(
-      decision === 'Approved'
-        ? 'Approved'
-        : 'Rejected'
-    );
-
-    if (!syncResult.ok) {
-      window.alert(
-        `Approval was saved, but the run could not be updated: ${syncResult.reason}`
-      );
+      if (
+        actionResult?.status === 'sent'
+      ) {
+        window.alert(
+          `Approved and email sent successfully to ${actionResult.to}.`
+        );
+      } else if (
+        actionResult?.status === 'failed'
+      ) {
+        window.alert(
+          `Approval was saved, but email sending failed: ${actionResult.error}`
+        );
+      } else if (!syncResult.ok) {
+        window.alert(
+          `Approval was saved, but the run could not be updated: ${syncResult.reason}`
+        );
+      }
+    } finally {
+      setDecisionBusy(false);
     }
   };
 
@@ -412,7 +584,8 @@ export default function ApprovalsView() {
 
     const result =
       syncApprovalDecisionToRun(
-        selectedApproval
+        selectedApproval,
+        selectedApproval.actionResult || null
       );
 
     if (result.ok) {
@@ -721,6 +894,70 @@ export default function ApprovalsView() {
                   </p>
                 </div>
 
+                {selectedApproval.postApprovalAction?.type ===
+                  'email' && (
+                  <div className="approvalEmailActionBox">
+                    <div className="approvalEmailActionHeader">
+                      <span>
+                        Post-Approval Email
+                      </span>
+
+                      <strong>
+                        {selectedApproval.actionResult?.status ===
+                        'sent'
+                          ? 'Sent'
+                          : selectedApproval.actionResult?.status ===
+                              'failed'
+                            ? 'Failed'
+                            : 'Ready'}
+                      </strong>
+                    </div>
+
+                    <div className="approvalEmailActionRow">
+                      <span>To</span>
+                      <strong>
+                        {
+                          selectedApproval.postApprovalAction.to
+                        }
+                      </strong>
+                    </div>
+
+                    <div className="approvalEmailActionRow">
+                      <span>Subject</span>
+                      <strong>
+                        {
+                          selectedApproval.postApprovalAction.subject
+                        }
+                      </strong>
+                    </div>
+
+                    <p className="approvalEmailActionBody">
+                      {
+                        selectedApproval.postApprovalAction.body
+                      }
+                    </p>
+
+                    {selectedApproval.actionResult?.status ===
+                      'sent' && (
+                      <small className="approvalEmailSuccess">
+                        Sent via Resend. Message ID:{' '}
+                        {
+                          selectedApproval.actionResult.id
+                        }
+                      </small>
+                    )}
+
+                    {selectedApproval.actionResult?.status ===
+                      'failed' && (
+                      <small className="approvalEmailFailure">
+                        {
+                          selectedApproval.actionResult.error
+                        }
+                      </small>
+                    )}
+                  </div>
+                )}
+
                 {selectedApproval.status ===
                 'Pending' ? (
                   <div className="approvalDecisionPanel">
@@ -767,8 +1004,11 @@ export default function ApprovalsView() {
                             'Approved'
                           )
                         }
+                        disabled={decisionBusy}
                       >
-                        ✓ Approve
+                        {decisionBusy
+                          ? 'Sending...'
+                          : '✓ Approve & Send'}
                       </button>
 
                       <button
@@ -778,18 +1018,18 @@ export default function ApprovalsView() {
                             'Rejected'
                           )
                         }
+                        disabled={decisionBusy}
                       >
                         × Reject
                       </button>
                     </div>
 
                     <div className="approvalSafetyNotice">
-                      This is a safe test simulation.
-                      Approval updates the saved test
-                      run and simulates downstream
-                      steps. No email, API call,
-                      database change, or external
-                      action is executed.
+                      Human control is active.
+                      If a Send Email step is attached,
+                      approving this request will send
+                      that email through Resend.
+                      Rejecting the request sends nothing.
                     </div>
                   </div>
                 ) : (
