@@ -2133,10 +2133,16 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
       }
 
       if (!response.ok) {
-        throw new Error(
-          payload?.error ||
-            `Audit processing failed with HTTP ${response.status}.`
-        );
+        const requestError =
+          new Error(
+            payload?.error ||
+              `Audit processing failed with HTTP ${response.status}.`
+          );
+
+        requestError.auditFailurePayload =
+          payload;
+
+        throw requestError;
       }
 
       if (!payload) {
@@ -2174,10 +2180,41 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
             : step
       );
 
+      const failurePayload =
+        error?.auditFailurePayload ||
+        null;
+
+      const failedAuditResult =
+        failurePayload?.usage
+          ? {
+              usage:
+                failurePayload.usage,
+              model:
+                failurePayload.model ||
+                'claude-haiku-4-5-20251001',
+              engine:
+                failurePayload.engine ||
+                'Claude Haiku 4.5 failed extraction',
+              failed: true,
+              error: message,
+              stopReason:
+                failurePayload.stopReason ||
+                null,
+            }
+          : null;
+
       setRunStepsSnapshot(
         failedSteps,
         'Failed',
-        { error: message }
+        {
+          error: message,
+          ...(failedAuditResult
+            ? {
+                auditResult:
+                  failedAuditResult,
+              }
+            : {}),
+        }
       );
     } finally {
       setAuditProcessing(false);
@@ -2776,7 +2813,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
                 title="Select the audit documents from Sources, then run real file analysis"
               >
                 {auditProcessing
-                  ? 'Analyzing Files...'
+                  ? 'Claude Haiku analyzing...'
                   : '▶ Run Audit Demo'}
               </button>
             )}
