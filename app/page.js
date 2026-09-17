@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import WorkflowBuilder from './WorkflowBuilder';
 import RunsView from './RunsView';
 import ApprovalsView from './ApprovalsView';
+import SourcesView from './SourcesView';
 
 export default function Home() {
   const [agents, setAgents] = useState([]);
@@ -525,15 +526,15 @@ export default function Home() {
 
               <button
                 className={
-                  activeTab === 'code'
+                  activeTab === 'sources'
                     ? 'activeTab'
                     : ''
                 }
                 onClick={() =>
-                  setActiveTab('code')
+                  setActiveTab('sources')
                 }
               >
-                Code
+                Sources
               </button>
             </div>
 
@@ -542,16 +543,15 @@ export default function Home() {
                 <WorkflowBuilder
                   agentId={selectedAgent.id}
                   agentName={selectedAgent.name}
+                  onOpenSources={() =>
+                    setActiveTab('sources')
+                  }
                 />
               ) : (
-                <div className="emptyState">
-                  <h2>Code</h2>
-
-                  <p>
-                    Code and configuration for
-                    this agent will live here.
-                  </p>
-                </div>
+                <SourcesView
+                  agentId={selectedAgent.id}
+                  agentName={selectedAgent.name}
+                />
               )}
             </div>
           </div>
