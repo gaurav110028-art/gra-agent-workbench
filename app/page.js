@@ -5,6 +5,9 @@ import WorkflowBuilder from './WorkflowBuilder';
 import RunsView from './RunsView';
 import ApprovalsView from './ApprovalsView';
 import SourcesView from './SourcesView';
+import QueryInbox from './QueryInbox';
+import SettingsView from './SettingsView';
+import { getQueryStats, subscribeToQueries } from './queryStore';
 
 export default function Home() {
   const [agents, setAgents] = useState([]);
@@ -18,6 +21,7 @@ export default function Home() {
   const [openMenuId, setOpenMenuId] = useState(null);
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [queryStats, setQueryStats] = useState({ new: 0, unread: 0, total: 0 });
 
   const [agentName, setAgentName] = useState('');
   const [agentStatus, setAgentStatus] = useState('paused');
@@ -39,6 +43,17 @@ export default function Home() {
     if (savedSidebarState === 'true') {
       setSidebarCollapsed(true);
     }
+
+    /* Load query stats */
+    setQueryStats(getQueryStats());
+  }, []);
+
+  /* Subscribe to query changes for badge updates */
+  useEffect(() => {
+    const unsub = subscribeToQueries(() => {
+      setQueryStats(getQueryStats());
+    });
+    return () => unsub();
   }, []);
 
   const toggleSidebar = () => {
@@ -100,6 +115,18 @@ export default function Home() {
 
   const goToApprovals = () => {
     setActiveView('approvals');
+    setSelectedAgent(null);
+    setOpenMenuId(null);
+  };
+
+  const goToQueryInbox = () => {
+    setActiveView('queryInbox');
+    setSelectedAgent(null);
+    setOpenMenuId(null);
+  };
+
+  const goToSettings = () => {
+    setActiveView('settings');
     setSelectedAgent(null);
     setOpenMenuId(null);
   };
@@ -232,6 +259,29 @@ export default function Home() {
 
           <button
             className={`navItem ${
+              activeView === 'queryInbox'
+                ? 'active'
+                : ''
+            }`}
+            onClick={goToQueryInbox}
+            title={
+              sidebarCollapsed
+                ? 'Query Inbox'
+                : undefined
+            }
+          >
+            <span className="sidebarNavLabel">
+              Query Inbox
+            </span>
+            {queryStats.unread > 0 && (
+              <span className="navBadge">
+                {queryStats.unread}
+              </span>
+            )}
+          </button>
+
+          <button
+            className={`navItem ${
               activeView === 'runs'
                 ? 'active'
                 : ''
@@ -267,7 +317,12 @@ export default function Home() {
           </button>
 
           <button
-            className="navItem"
+            className={`navItem ${
+              activeView === 'settings'
+                ? 'active'
+                : ''
+            }`}
+            onClick={goToSettings}
             title={
               sidebarCollapsed
                 ? 'Settings'
@@ -311,7 +366,11 @@ export default function Home() {
           }
         }}
       >
-        {activeView === 'runs' ? (
+        {activeView === 'queryInbox' ? (
+          <QueryInbox />
+        ) : activeView === 'settings' ? (
+          <SettingsView />
+        ) : activeView === 'runs' ? (
           <RunsView />
         ) : activeView === 'approvals' ? (
           <ApprovalsView />
