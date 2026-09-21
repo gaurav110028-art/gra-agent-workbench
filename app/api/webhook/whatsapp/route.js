@@ -3,11 +3,26 @@
    Receives messages from WhatsApp Web Extension or
    API provider and stores them for Query Inbox sync.
    
-   POST /api/webhook/whatsapp - Ingest query
-   GET  /api/webhook/whatsapp - Poll recent queries & health
+   OPTIONS - CORS preflight
+   POST    /api/webhook/whatsapp - Ingest query
+   GET     /api/webhook/whatsapp - Poll recent queries & health
+   DELETE  /api/webhook/whatsapp - Clear server queries buffer
 ========================================================= */
 
 globalThis.__gra_queries = globalThis.__gra_queries || [];
+
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
+}
 
 function detectCategory(text) {
   const clean = text.toLowerCase();
@@ -38,7 +53,7 @@ export async function POST(request) {
     if (!message) {
       return Response.json(
         { error: 'Message is required.' },
-        { status: 400 }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
@@ -67,27 +82,45 @@ export async function POST(request) {
       globalThis.__gra_queries = globalThis.__gra_queries.slice(0, 200);
     }
 
-    return Response.json({
-      ok: true,
-      query,
-      message: 'Query received and synced to workbench buffer.',
-    });
+    return Response.json(
+      {
+        ok: true,
+        query,
+        message: 'Query received and synced to workbench buffer.',
+      },
+      { headers: CORS_HEADERS }
+    );
   } catch (error) {
     return Response.json(
       {
         error: error?.message || 'Invalid webhook payload.',
       },
-      { status: 400 }
+      { status: 400, headers: CORS_HEADERS }
     );
   }
 }
 
 /* Health check & query fetch for live sync */
 export async function GET() {
-  return Response.json({
-    status: 'active',
-    service: 'GRA WhatsApp Webhook',
-    timestamp: new Date().toISOString(),
-    queries: globalThis.__gra_queries || [],
-  });
+  return Response.json(
+    {
+      status: 'active',
+      service: 'GRA WhatsApp Webhook',
+      timestamp: new Date().toISOString(),
+      queries: globalThis.__gra_queries || [],
+    },
+    { headers: CORS_HEADERS }
+  );
+}
+
+/* Clear buffer */
+export async function DELETE() {
+  globalThis.__gra_queries = [];
+  return Response.json(
+    {
+      ok: true,
+      message: 'Server query buffer cleared.',
+    },
+    { headers: CORS_HEADERS }
+  );
 }
