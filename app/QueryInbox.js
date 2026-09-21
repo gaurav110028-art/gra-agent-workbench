@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   getQueries,
+  saveQuery,
   createQuery,
   updateQuery,
   acknowledgeQuery,
@@ -92,6 +93,41 @@ export default function QueryInbox() {
     return () => {
       unsubQueries();
       unsubTeam();
+    };
+  }, [refreshData]);
+
+  /* Poll server webhook endpoint for incoming queries from extension */
+  useEffect(() => {
+    let isMounted = true;
+    const pollServerQueries = async () => {
+      try {
+        const res = await fetch('/api/webhook/whatsapp');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.queries && Array.isArray(data.queries) && data.queries.length > 0) {
+          const localQueries = getQueries();
+          const localIds = new Set(localQueries.map((q) => q.id));
+          let hasNew = false;
+          data.queries.forEach((serverQ) => {
+            if (!localIds.has(serverQ.id)) {
+              saveQuery(serverQ);
+              hasNew = true;
+            }
+          });
+          if (hasNew && isMounted) {
+            refreshData();
+          }
+        }
+      } catch {
+        /* Ignore network or offline glitches */
+      }
+    };
+
+    pollServerQueries();
+    const interval = setInterval(pollServerQueries, 5000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
     };
   }, [refreshData]);
 
