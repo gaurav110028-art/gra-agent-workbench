@@ -105,10 +105,14 @@ export default function QueryInbox() {
         if (!res.ok) return;
         const data = await res.json();
         if (data.queries && Array.isArray(data.queries) && data.queries.length > 0) {
+          const clearedTime = Number(localStorage.getItem('gra-queries-cleared-time') || 0);
           const localQueries = getQueries();
           const localIds = new Set(localQueries.map((q) => q.id));
           let hasNew = false;
           data.queries.forEach((serverQ) => {
+            if (clearedTime && new Date(serverQ.receivedAt).getTime() <= clearedTime) {
+              return; // Skip queries received before clear
+            }
             if (!localIds.has(serverQ.id)) {
               saveQuery(serverQ);
               hasNew = true;
@@ -282,8 +286,11 @@ export default function QueryInbox() {
           {queries.length > 0 && (
             <button
               className="queryClearBtn"
-              onClick={() => {
+              onClick={async () => {
                 if (window.confirm('Clear all queries?')) {
+                  try {
+                    await fetch('/api/webhook/whatsapp', { method: 'DELETE' });
+                  } catch {}
                   clearAllQueries();
                   setSelectedQuery(null);
                   refreshData();
@@ -360,6 +367,38 @@ export default function QueryInbox() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+
+          {queries.length > 0 && (
+            <button
+              className="queryClearBtn"
+              onClick={async () => {
+                if (window.confirm('Clear all queries?')) {
+                  try {
+                    await fetch('/api/webhook/whatsapp', { method: 'DELETE' });
+                  } catch {}
+                  clearAllQueries();
+                  setSelectedQuery(null);
+                  refreshData();
+                }
+              }}
+              style={{
+                background: '#ef444418',
+                color: '#f87171',
+                border: '1px solid #ef444440',
+                borderRadius: '6px',
+                padding: '6px 12px',
+                fontSize: '12px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <span>🗑️</span> Clear All ({queries.length})
+            </button>
+          )}
         </div>
       </div>
 
@@ -557,9 +596,32 @@ function QueryDetail({
           </div>
         </div>
 
-        <button className="queryDetailCloseBtn" onClick={onClose}>
-          x
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            className="queryDetailDeleteBtn"
+            onClick={() => {
+              if (window.confirm('Delete this query?')) {
+                onDelete(query.id);
+                onClose();
+              }
+            }}
+            style={{
+              background: '#ef444415',
+              color: '#ef4444',
+              border: '1px solid #ef444435',
+              borderRadius: '6px',
+              padding: '4px 10px',
+              fontSize: '12px',
+              fontWeight: '600',
+              cursor: 'pointer',
+            }}
+          >
+            🗑️ Delete
+          </button>
+          <button className="queryDetailCloseBtn" onClick={onClose}>
+            x
+          </button>
+        </div>
       </div>
 
       {/* Status Bar */}
