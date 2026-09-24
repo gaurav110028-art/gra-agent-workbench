@@ -7,11 +7,16 @@ import ApprovalsView from './ApprovalsView';
 import SourcesView from './SourcesView';
 import QueryInbox from './QueryInbox';
 import SettingsView from './SettingsView';
+import CalendarView from './CalendarView';
+import LoginScreen from './LoginScreen';
 import { getQueryStats, subscribeToQueries } from './queryStore';
+import { getSession, logoutUser } from './calendarStore';
 
 export default function Home() {
   const [agents, setAgents] = useState([]);
   const [selectedAgent, setSelectedAgent] = useState(null);
+  const [session, setSession] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   const [activeView, setActiveView] = useState('dashboard');
   const [activeTab, setActiveTab] = useState('workflow');
@@ -27,6 +32,11 @@ export default function Home() {
   const [agentStatus, setAgentStatus] = useState('paused');
 
   useEffect(() => {
+    /* Check auth session first */
+    const existingSession = getSession();
+    if (existingSession) setSession(existingSession);
+    setAuthChecked(true);
+
     const savedAgents = localStorage.getItem('gra-agents');
 
     if (savedAgents) {
@@ -131,6 +141,17 @@ export default function Home() {
     setOpenMenuId(null);
   };
 
+  const goToCalendar = () => {
+    setActiveView('calendar');
+    setSelectedAgent(null);
+    setOpenMenuId(null);
+  };
+
+  const handleLogout = () => {
+    logoutUser();
+    setSession(null);
+  };
+
   const toggleAgentStatus = (agent) => {
     const updatedStatus =
       agent.status === 'running'
@@ -209,6 +230,14 @@ export default function Home() {
     setOpenMenuId(null);
   };
 
+  /* Show nothing until auth is checked to avoid flash */
+  if (!authChecked) return null;
+
+  /* Show login screen if not logged in */
+  if (!session) {
+    return <LoginScreen onLogin={(s) => setSession(s)} />;
+  }
+
   return (
     <main
       className={`workbench ${
@@ -253,7 +282,7 @@ export default function Home() {
             }
           >
             <span className="sidebarNavLabel">
-              Dashboard
+              Agents
             </span>
           </button>
 
@@ -333,27 +362,40 @@ export default function Home() {
               Settings
             </span>
           </button>
-        </nav>
 
-        <div className="sidebarBottom">
           <button
-            className="siteInfoButton"
-            onClick={() =>
-              setShowSiteInfo(true)
-            }
+            className={`navItem ${
+              activeView === 'calendar'
+                ? 'active'
+                : ''
+            }`}
+            onClick={goToCalendar}
             title={
               sidebarCollapsed
-                ? 'Site Info'
+                ? 'Calendar'
                 : undefined
             }
           >
-            <span className="siteInfoIcon">
-              ⓘ
-            </span>
-
             <span className="sidebarNavLabel">
-              Site Info
+              Calendar
             </span>
+          </button>
+        </nav>
+
+        <div className="sidebarBottom">
+          {!sidebarCollapsed && (
+            <div className="sidebarUser">
+              <span className="sidebarUserName">{session.name}</span>
+              <span className="sidebarUserRole">{session.role}</span>
+            </div>
+          )}
+          <button
+            className="siteInfoButton"
+            onClick={handleLogout}
+            title="Logout"
+          >
+            <span className="siteInfoIcon">&#x2192;</span>
+            <span className="sidebarNavLabel">Logout</span>
           </button>
         </div>
       </aside>
@@ -374,6 +416,8 @@ export default function Home() {
           <RunsView />
         ) : activeView === 'approvals' ? (
           <ApprovalsView />
+        ) : activeView === 'calendar' ? (
+          <CalendarView />
         ) : !selectedAgent ? (
           <>
             <div className="workspaceTopbar">
