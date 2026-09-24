@@ -6055,3 +6055,823 @@ button {
     min-width: auto;
   }
 }
+
+/* =========================================================
+   LOGIN SCREEN
+========================================================= */
+
+.loginOverlay {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 30% 20%, #1a0533 0%, #0d0d0f 60%);
+  padding: 24px;
+}
+
+.loginCard {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 20px;
+  padding: 44px 40px 36px;
+  width: 100%;
+  max-width: 420px;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+  animation: loginFadeIn 0.4s ease;
+}
+
+@keyframes loginFadeIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.loginBrand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.loginLogo {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  background: linear-gradient(135deg, #a78bfa, #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.loginSubtitle {
+  font-size: 11px;
+  color: #6b7280;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 4px 0 0;
+}
+
+.loginHeading {
+  font-size: 22px;
+  font-weight: 700;
+  color: #f3f3f3;
+  margin: 0 0 4px;
+  text-align: center;
+}
+
+.loginHint {
+  font-size: 13px;
+  color: #6b7280;
+  text-align: center;
+  margin: 0 0 28px;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.loginField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.loginField label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.loginField input {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #f3f3f3;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.loginField input:focus {
+  border-color: #a78bfa;
+}
+
+.loginPasswordWrap {
+  position: relative;
+}
+
+.loginPasswordWrap input {
+  width: 100%;
+  padding-right: 60px;
+}
+
+.loginShowPass {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.loginShowPass:hover { color: #a78bfa; }
+
+.loginError {
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #f87171;
+  font-size: 13px;
+}
+
+.loginBtn {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  border: none;
+  border-radius: 10px;
+  padding: 13px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  margin-top: 4px;
+}
+
+.loginBtn:hover { opacity: 0.9; }
+.loginBtn:active { transform: scale(0.98); }
+.loginBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.loginDefaultHint {
+  font-size: 11px;
+  color: #4b5563;
+  text-align: center;
+  margin: 16px 0 0;
+}
+
+/* =========================================================
+   SIDEBAR USER INFO
+========================================================= */
+
+.sidebarUser {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.07);
+}
+
+.sidebarUserName {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e5e7eb;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebarUserRole {
+  display: block;
+  font-size: 10px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+/* =========================================================
+   CALENDAR PAGE
+========================================================= */
+
+.calendarPage {
+  padding: 28px 32px;
+  min-height: 100vh;
+  background: #0d0d0f;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Header */
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.calendarHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.calendarTitle {
+  font-size: 22px;
+  font-weight: 800;
+  color: #f3f3f3;
+  margin: 0;
+}
+
+.calendarMonthTag {
+  background: rgba(167,139,250,0.15);
+  color: #a78bfa;
+  border-radius: 20px;
+  padding: 3px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.calendarHeaderRight {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Calendar Buttons */
+.calBtn {
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1px solid transparent;
+}
+
+.calBtnGhost {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.10);
+  color: #d1d5db;
+}
+
+.calBtnGhost:hover {
+  background: rgba(255,255,255,0.10);
+  color: #f3f3f3;
+}
+
+.calBtnPrimary {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff;
+  border-color: transparent;
+}
+
+.calBtnPrimary:hover { opacity: 0.88; }
+.calBtnSm { padding: 5px 12px; font-size: 12px; }
+
+/* Quick Entry */
+.calQuickEntry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 12px;
+  padding: 12px 16px;
+  flex-wrap: wrap;
+}
+
+.calQuickLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  white-space: nowrap;
+}
+
+.calQuickInput {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 8px;
+  padding: 7px 11px;
+  color: #f3f3f3;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.calQuickInput:focus { border-color: #a78bfa; }
+
+.calQuickDate { width: 150px; }
+.calQuickTitle { flex: 1; min-width: 180px; }
+
+/* Filters */
+.calFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.calFilterGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.calFilterLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+.calFilterBtn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.calFilterBtn:hover { background: rgba(255,255,255,0.08); color: #f3f3f3; }
+.calFilterBtn.active { background: rgba(167,139,250,0.20); color: #a78bfa; border-color: rgba(167,139,250,0.4); }
+.calFilterAdd { border-style: dashed; }
+
+.calFilterRemove {
+  margin-left: 5px;
+  opacity: 0.5;
+  font-size: 10px;
+}
+.calFilterRemove:hover { opacity: 1; color: #ef4444; }
+
+/* Grid */
+.calGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.07);
+}
+
+.calDayName {
+  background: rgba(255,255,255,0.04);
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calCell {
+  background: #111113;
+  min-height: 110px;
+  padding: 8px 6px 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border: 1px solid transparent;
+  position: relative;
+}
+
+.calCell:hover { background: rgba(167,139,250,0.07); }
+.calCellEmpty { background: #0d0d0f; cursor: default; min-height: 110px; }
+.calCellToday { background: rgba(167,139,250,0.10); }
+.calCellToday .calCellDay { color: #a78bfa; font-weight: 800; }
+.calCellSelected { border-color: #a78bfa !important; background: rgba(167,139,250,0.12); }
+
+.calCellDay {
+  font-size: 13px;
+  font-weight: 600;
+  color: #9ca3af;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.calCellItems {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.calCellPill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 4px;
+  padding: 2px 5px;
+  font-size: 10px;
+  color: #d1d5db;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calPillStatus {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.calCellMore {
+  font-size: 10px;
+  color: #6b7280;
+  padding: 1px 5px;
+}
+
+/* Drawer */
+.calDrawer {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 14px;
+  overflow: hidden;
+  animation: drawerSlide 0.2s ease;
+}
+
+@keyframes drawerSlide {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.calDrawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.04);
+}
+
+.calDrawerDate {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f3f3f3;
+}
+
+.calDrawerCount {
+  font-size: 12px;
+  color: #6b7280;
+  margin-left: 10px;
+}
+
+.calDrawerClose {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s;
+}
+
+.calDrawerClose:hover { color: #f3f3f3; background: rgba(255,255,255,0.06); }
+
+.calDrawerTabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+.calDrawerTab {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 11px 16px;
+  font-size: 13px;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+
+.calDrawerTab.active { color: #a78bfa; border-bottom-color: #a78bfa; }
+.calDrawerTab:hover { color: #d1d5db; }
+
+.calDrawerContent {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.calDrawerEmpty {
+  color: #4b5563;
+  font-size: 13px;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.calDrawerItem {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.calDrawerStatutory {
+  border-left: 3px solid #7c3aed;
+}
+
+.calDrawerItemHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.calDrawerBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.calDrawerBadgeStatutory {
+  font-size: 10px;
+  color: #a78bfa;
+  border: 1px solid rgba(167,139,250,0.3);
+  border-radius: 20px;
+  padding: 2px 8px;
+}
+
+.calDrawerBadgeEntity {
+  font-size: 10px;
+  color: #38bdf8;
+  border: 1px solid rgba(56,189,248,0.3);
+  border-radius: 20px;
+  padding: 2px 8px;
+}
+
+.calDrawerTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f3f3f3;
+  flex: 1;
+}
+
+.calDrawerDelete {
+  background: none;
+  border: none;
+  color: #4b5563;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: auto;
+}
+.calDrawerDelete:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
+
+.calDrawerDesc {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.calDrawerStatusRow {
+  display: flex;
+  gap: 6px;
+}
+
+.calStatusBtn {
+  flex: 1;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 6px;
+  padding: 6px 0;
+  font-size: 12px;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: 600;
+}
+
+.calStatusBtn:hover { background: rgba(255,255,255,0.08); color: #f3f3f3; }
+.calStatusBtn.calStatusActive { font-weight: 700; }
+
+/* Instagram / Social */
+.calIgForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 4px;
+}
+
+.calIgCard {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-left: 3px solid #e1306c;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.calIgCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.calIgPlatform {
+  font-size: 11px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #e1306c, #c13584);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.calIgRef {
+  font-size: 11px;
+  color: #38bdf8;
+  border: 1px solid rgba(56,189,248,0.3);
+  border-radius: 20px;
+  padding: 1px 8px;
+}
+
+.calIgCaption {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 4px;
+}
+
+.calIgUrl {
+  font-size: 11px;
+  color: #60a5fa;
+  text-decoration: none;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.calIgCheckins {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 10px;
+  margin-top: 8px;
+}
+
+.calIgCheckinsLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.calCheckinRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  flex-wrap: wrap;
+}
+
+.calCheckinDate {
+  font-size: 11px;
+  color: #6b7280;
+  min-width: 80px;
+}
+
+.calCheckinStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 10px;
+  color: #6b7280;
+  min-width: 44px;
+}
+
+.calCheckinStat b {
+  font-size: 14px;
+  color: #f3f3f3;
+  font-weight: 700;
+}
+
+.calCheckinNotes {
+  font-size: 11px;
+  color: #9ca3af;
+  font-style: italic;
+  flex: 1;
+}
+
+.calCheckinForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 8px;
+}
+
+.calCheckinInput {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 7px;
+  padding: 6px 10px;
+  color: #f3f3f3;
+  font-size: 12px;
+  outline: none;
+  width: 90px;
+}
+
+.calCheckinInput:focus { border-color: #a78bfa; }
+.calCheckinInputFull { flex: 1; min-width: 160px; width: auto; }
+
+/* Modal */
+.calModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.calModalCard {
+  background: #181820;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 16px;
+  padding: 28px;
+  width: 100%;
+  max-width: 440px;
+  animation: loginFadeIn 0.2s ease;
+}
+
+.calModalLarge { max-width: 600px; }
+
+.calModalTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f3f3f3;
+  margin-bottom: 18px;
+}
+
+.calModalInput {
+  width: 100%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 8px;
+  padding: 10px 13px;
+  color: #f3f3f3;
+  font-size: 13px;
+  outline: none;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+}
+
+.calModalInput:focus { border-color: #a78bfa; }
+
+.calModalForm {
+  display: flex;
+  flex-direction: column;
+}
+
+.calModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.calPosterText {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 14px;
+  color: #d1d5db;
+  font-size: 13px;
+  font-family: "Courier New", monospace;
+  line-height: 1.7;
+  resize: vertical;
+  outline: none;
+}
+
