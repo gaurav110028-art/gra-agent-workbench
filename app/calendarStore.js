@@ -8,6 +8,7 @@
 const TASKS_KEY = "gra-calendar-tasks";
 const ENTITIES_KEY = "gra-calendar-entities";
 const INSTAGRAM_KEY = "gra-instagram-posts";
+const NOTES_KEY = "gra-calendar-notes";
 const AUTH_USERS_KEY = "gra-auth-users";
 const AUTH_SESSION_KEY = "gra-auth-session";
 
@@ -205,6 +206,51 @@ export function getInstagramPostsForDate(dateStr) {
 export function getInstagramPostsForMonth(year, month) {
   const prefix = `${year}-${String(month).padStart(2, "0")}`;
   return getAllInstagramPosts().filter((p) => p.calendarDate.startsWith(prefix));
+}
+
+/* =========================================================
+   Date Notes Functions
+========================================================= */
+
+export function getAllNotes() {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = localStorage.getItem(NOTES_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function getNotesForDate(dateStr) {
+  return getAllNotes().filter((n) => n.date === dateStr);
+}
+
+export function getNotesForMonth(year, month) {
+  const prefix = `${year}-${String(month).padStart(2, "0")}`;
+  return getAllNotes().filter((n) => n.date && n.date.startsWith(prefix));
+}
+
+export function addNote(dateStr, content, title = "") {
+  if (typeof window === "undefined") return null;
+  const current = getAllNotes();
+  const newNote = {
+    id: `note-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+    date: dateStr,
+    title: title.trim(),
+    content: content.trim(),
+    createdAt: new Date().toISOString(),
+  };
+  const updated = [newNote, ...current];
+  localStorage.setItem(NOTES_KEY, JSON.stringify(updated));
+  return newNote;
+}
+
+export function deleteNote(noteId) {
+  if (typeof window === "undefined") return;
+  const current = getAllNotes();
+  const updated = current.filter((n) => n.id !== noteId);
+  localStorage.setItem(NOTES_KEY, JSON.stringify(updated));
 }
 
 /* Auth functions */
