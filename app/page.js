@@ -26,8 +26,13 @@ export default function Home() {
 
   const [agentName, setAgentName] = useState('');
   const [agentStatus, setAgentStatus] = useState('paused');
+  const [theme, setTheme] = useState('dark');
 
   useEffect(() => {
+    const savedTheme = localStorage.getItem('gra-theme') || 'dark';
+    setTheme(savedTheme);
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
     const savedAgents = localStorage.getItem('gra-agents');
 
     if (savedAgents) {
@@ -138,6 +143,13 @@ export default function Home() {
     setOpenMenuId(null);
   };
 
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    localStorage.setItem('gra-theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+  };
+
   const toggleAgentStatus = (agent) => {
     const updatedStatus =
       agent.status === 'running'
@@ -222,7 +234,8 @@ export default function Home() {
         sidebarCollapsed
           ? 'sidebarCollapsed'
           : ''
-      }`}
+      } ${theme === 'light' ? 'lightTheme' : 'darkTheme'}`}
+      data-theme={theme}
     >
       <aside className="sidebar">
         <button
@@ -361,6 +374,24 @@ export default function Home() {
         </nav>
 
         <div className="sidebarBottom">
+          <button
+            className="themeToggleButton"
+            onClick={toggleTheme}
+            title={
+              theme === 'dark'
+                ? 'Switch to Light Mode'
+                : 'Switch to Dark Mode'
+            }
+          >
+            <span className="themeToggleIcon">
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </span>
+
+            <span className="sidebarNavLabel">
+              {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+            </span>
+          </button>
+
           <button
             className="siteInfoButton"
             onClick={() =>
