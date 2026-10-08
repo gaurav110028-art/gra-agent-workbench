@@ -1709,7 +1709,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
                 disabled={busy}
                 title="Select the audit documents from Sources, then run real file analysis"
               >
-                {auditProcessing ? 'Claude Haiku analyzing...' : '▶ Run Audit Demo'}
+                {auditProcessing ? 'Claude Haiku analyzing...' : 'Run Audit Demo'}
               </button>
             )}
 
@@ -1719,7 +1719,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
               onClick={() => startEngineRun('test')}
               disabled={busy}
             >
-              {busy && runMode === 'test' ? 'Running...' : '▶ Test Run'}
+              {busy && runMode === 'test' ? 'Running...' : 'Test Run'}
             </button>
 
             <button
@@ -1729,7 +1729,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
               disabled={busy}
               title="Execute AI, HTTP and Resend steps for real"
             >
-              {busy && runMode === 'live' ? 'Running live...' : '⚡ Run Workflow'}
+              {busy && runMode === 'live' ? 'Running live...' : 'Run Workflow'}
             </button>
 
             <button type="button" className="workflowActionButton" onClick={clearWorkflow} disabled={busy}>

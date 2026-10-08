@@ -18,7 +18,7 @@ function node(id, type, name, x, y, config = {}, description) {
       name,
       description: description || item?.description || '',
       nodeType: type,
-      icon: item?.icon || '◇',
+      icon: item?.icon || '?',
       shape: item?.shape || 'rounded',
       group: item?.group || 'Block',
       config: { ...getDefaultConfig(type), ...config },
@@ -49,7 +49,7 @@ const templates = {
     short: 'Resend + CSV / Sheet',
     category: 'Client Communication',
     accent: '#f59e0b',
-    icon: '✉',
+    icon: '@',
     description:
       'Read a client list from Google Sheets or an uploaded CSV, pause for partner approval, then send one personalised Resend email per row using {{$item.*}} tags.',
     tags: ['Resend', 'Google Sheets', 'CSV', 'Approval Gate'],
@@ -117,7 +117,7 @@ const templates = {
     short: 'Monthly GST follow-ups',
     category: 'GST Compliance',
     accent: '#16a34a',
-    icon: '▦',
+    icon: '#',
     description:
       'Every month, read the GST tracker, filter clients whose purchase data or GSTR-2B reconciliation is pending, escalate urgent ones over WhatsApp and send chaser emails to the rest.',
     tags: ['Cron', 'Google Sheets', 'Filter', 'IF / Else', 'WhatsApp', 'Resend'],
@@ -345,7 +345,7 @@ const templates = {
     short: 'Daily compliance alerts',
     category: 'Compliance Calendar',
     accent: '#06b6d4',
-    icon: '⑂',
+    icon: 'Y',
     description:
       'Every morning read the compliance calendar, route each upcoming item by type (TDS, ROC, MCA) to the right message, merge the results and log what was sent back to the sheet.',
     tags: ['Cron', 'Google Sheets', 'Switch Router', 'WhatsApp', 'Merge', 'Sheets Append'],
@@ -494,7 +494,7 @@ const templates = {
     short: 'Inbox triage with AI',
     category: 'Client Service',
     accent: '#6366f1',
-    icon: '✉',
+    icon: '@',
     description:
       'When a client email arrives, an AI Agent classifies it (GST / Income Tax / ROC / Billing), scores urgency and drafts a reply. Urgent queries alert the partner on WhatsApp; every reply waits at an Approval Gate before Resend sends it.',
     tags: ['Email Trigger', 'AI Agent', 'IF / Else', 'WhatsApp', 'Approval Gate', 'Resend'],
