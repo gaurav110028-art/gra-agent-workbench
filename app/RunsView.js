@@ -638,12 +638,48 @@ export default function RunsView() {
                         <div className="runStepInfo">
                           <strong>
                             {step.name}
+                            {typeof step.durationMs === 'number' && (
+                              <small className="runStepDuration">
+                                {step.durationMs} ms
+                              </small>
+                            )}
                           </strong>
 
                           <span>
                             {step.note ||
                               'No details'}
                           </span>
+
+                          {(step.input !== undefined ||
+                            step.output !== undefined) && (
+                            <details className="runStepPayload">
+                              <summary>Input / Output JSON</summary>
+                              <div>
+                                <div>
+                                  <b>Input</b>
+                                  <pre>
+                                    {step.input === undefined
+                                      ? '—'
+                                      : JSON.stringify(step.input, null, 2)}
+                                  </pre>
+                                </div>
+                                <div>
+                                  <b>{step.error ? 'Error' : 'Output'}</b>
+                                  <pre>
+                                    {step.error
+                                      ? JSON.stringify(
+                                          { error: step.error, output: step.output },
+                                          null,
+                                          2
+                                        )
+                                      : step.output === undefined
+                                        ? '—'
+                                        : JSON.stringify(step.output, null, 2)}
+                                  </pre>
+                                </div>
+                              </div>
+                            </details>
+                          )}
                         </div>
 
                         <div className="runStepStatus">

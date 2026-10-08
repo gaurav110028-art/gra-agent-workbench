@@ -9,6 +9,7 @@ import QueryInbox from './QueryInbox';
 import SettingsView from './SettingsView';
 import CalendarView from './CalendarView';
 import { getQueryStats, subscribeToQueries } from './queryStore';
+import { agentTemplates, seedAgentWorkflow } from './workflowTemplates';
 import {
   AgentsIcon,
   InboxIcon,
@@ -38,6 +39,7 @@ export default function Home() {
 
   const [agentName, setAgentName] = useState('');
   const [agentStatus, setAgentStatus] = useState('paused');
+  const [selectedTemplateId, setSelectedTemplateId] = useState('blank');
   const [theme, setTheme] = useState('dark');
 
   useEffect(() => {
@@ -46,13 +48,40 @@ export default function Home() {
     document.documentElement.setAttribute('data-theme', savedTheme);
 
     const savedAgents = localStorage.getItem('gra-agents');
+    const seeded = localStorage.getItem('gra-agents-seeded');
+
+    let loadedAgents = null;
 
     if (savedAgents) {
       try {
-        setAgents(JSON.parse(savedAgents));
+        loadedAgents = JSON.parse(savedAgents);
       } catch {
         localStorage.removeItem('gra-agents');
       }
+    }
+
+    if (Array.isArray(loadedAgents) && loadedAgents.length > 0) {
+      setAgents(loadedAgents);
+    } else if (!seeded) {
+      /* First visit: pre-populate ready-to-run CA & consultancy agents. */
+      const base = Date.now();
+
+      const seededAgents = agentTemplates.map((template, index) => {
+        const id = base + index;
+        seedAgentWorkflow(template.id, id);
+
+        return {
+          id,
+          name: template.name,
+          status: 'paused',
+          templateId: template.id,
+          category: template.category,
+        };
+      });
+
+      localStorage.setItem('gra-agents', JSON.stringify(seededAgents));
+      localStorage.setItem('gra-agents-seeded', 'true');
+      setAgents(seededAgents);
     }
 
     const savedSidebarState =
@@ -97,19 +126,36 @@ export default function Home() {
   };
 
   const addAgent = () => {
-    if (!agentName.trim()) return;
+    const template = agentTemplates.find(
+      (item) => item.id === selectedTemplateId
+    );
+
+    const name = agentName.trim() || template?.name || '';
+
+    if (!name) return;
+
+    const id = Date.now();
+
+    if (template) {
+      seedAgentWorkflow(template.id, id);
+    }
 
     const newAgent = {
-      id: Date.now(),
-      name: agentName.trim(),
+      id,
+      name,
       status: agentStatus,
+      ...(template
+        ? { templateId: template.id, category: template.category }
+        : {}),
     };
 
     saveAgents([...agents, newAgent]);
 
     setAgentName('');
     setAgentStatus('paused');
+    setSelectedTemplateId('blank');
     setShowAddAgent(false);
+    openAgent(newAgent);
   };
 
   const openAgent = (agent) => {
@@ -597,16 +643,40 @@ export default function Home() {
                     </div>
 
                     <div className="panelBody">
-                      <img
-                        src="/gra-agent-logo.png"
-                        alt="AI & Automation"
-                        className="agentLogo"
-                      />
+                      {(() => {
+                        const template = agentTemplates.find(
+                          (item) => item.id === agent.templateId
+                        );
+
+                        if (!template) {
+                          return (
+                            <img
+                              src="/gra-agent-logo.png"
+                              alt="AI & Automation"
+                              className="agentLogo"
+                            />
+                          );
+                        }
+
+                        return (
+                          <div
+                            className="agentTemplateSummary"
+                            style={{ '--template-accent': template.accent }}
+                          >
+                            <p>{template.description}</p>
+                            <div className="agentTemplateTags">
+                              {template.tags.slice(0, 4).map((tag) => (
+                                <span key={tag}>{tag}</span>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     <div className="panelFooter">
                       <span>
-                        Agent workspace
+                        {agent.category || 'Agent workspace'}
                       </span>
 
                       <span className="openAgentText">
@@ -729,6 +799,43 @@ export default function Home() {
 
             <h2>Add Agent</h2>
 
+            <label>Start From a Template</label>
+
+            <div className="templatePicker" role="radiogroup" aria-label="Agent templates">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={selectedTemplateId === 'blank'}
+                className={`templateOption ${selectedTemplateId === 'blank' ? 'selected' : ''}`}
+                onClick={() => setSelectedTemplateId('blank')}
+                style={{ '--template-accent': 'var(--text-muted)' }}
+              >
+                <span className="templateOptionIcon">+</span>
+                <span className="templateOptionText">
+                  <strong>Blank workflow</strong>
+                  <span>Start from an empty canvas</span>
+                </span>
+              </button>
+
+              {agentTemplates.map((template) => (
+                <button
+                  type="button"
+                  role="radio"
+                  key={template.id}
+                  aria-checked={selectedTemplateId === template.id}
+                  className={`templateOption ${selectedTemplateId === template.id ? 'selected' : ''}`}
+                  onClick={() => setSelectedTemplateId(template.id)}
+                  style={{ '--template-accent': template.accent }}
+                >
+                  <span className="templateOptionIcon">{template.icon}</span>
+                  <span className="templateOptionText">
+                    <strong>{template.name}</strong>
+                    <span>{template.short} · {template.category}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+
             <label>Agent Name</label>
 
             <input
@@ -739,11 +846,14 @@ export default function Home() {
                 )
               }
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && !e.nativeEvent.isComposing && e.keyCode !== 229) {
                   addAgent();
                 }
               }}
-              placeholder="Example: GST Reconciliation Agent"
+              placeholder={
+                agentTemplates.find((item) => item.id === selectedTemplateId)?.name ||
+                'Example: GST Reconciliation Agent'
+              }
               autoFocus
             />
 
