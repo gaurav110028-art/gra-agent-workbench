@@ -417,9 +417,65 @@ export default function ApprovalsView() {
 
     if (
       !action ||
-      action.type !== 'email'
+      (action.type !== 'email' &&
+        action.type !== 'bulkEmail')
     ) {
       return null;
+    }
+
+    if (action.type === 'bulkEmail') {
+      const messages = Array.isArray(action.messages)
+        ? action.messages
+        : [];
+
+      const results = [];
+
+      for (const message of messages) {
+        try {
+          const response = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: message.to,
+              subject: message.subject,
+              body: message.body,
+              approvalId: approval.id,
+              runId: approval.runId,
+              nodeId: action.nodeId,
+            }),
+          });
+
+          const payload = await response.json().catch(() => null);
+
+          if (!response.ok) {
+            throw new Error(payload?.error || 'Email sending failed.');
+          }
+
+          results.push({ to: message.to, status: 'sent', id: payload?.id });
+        } catch (error) {
+          results.push({
+            to: message.to,
+            status: 'failed',
+            error: error?.message || 'Email sending failed.',
+          });
+        }
+      }
+
+      const sent = results.filter((item) => item.status === 'sent');
+      const failed = results.filter((item) => item.status !== 'sent');
+
+      return {
+        status: sent.length > 0 && failed.length === 0 ? 'sent' : failed.length === results.length ? 'failed' : 'sent',
+        provider: 'Resend',
+        id: sent[0]?.id,
+        to: `${sent.length} of ${results.length} recipient(s)`,
+        subject: action.subject,
+        results,
+        sentAt: new Date().toISOString(),
+        ...(failed.length
+          ? { error: `${failed.length} failed: ${failed[0].error}` }
+          : {}),
+      };
     }
 
     try {
@@ -517,7 +573,9 @@ export default function ApprovalsView() {
 
       if (
         decision === 'Approved' &&
-        updatedApproval?.postApprovalAction?.type === 'email'
+        ['email', 'bulkEmail'].includes(
+          updatedApproval?.postApprovalAction?.type
+        )
       ) {
         actionResult =
           await sendApprovedEmail(
