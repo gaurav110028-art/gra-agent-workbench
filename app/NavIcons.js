@@ -10,6 +10,41 @@ const base = {
   focusable: false,
 };
 
+export function WebhookIcon() {
+  return (
+    <svg {...base}>
+      <path d="M7 17l10-10M9 7h8v8" />
+    </svg>
+  );
+}
+
+export function UsersIcon() {
+  return (
+    <svg {...base}>
+      <circle cx="10" cy="8" r="3.5" />
+      <path d="M3.5 19a6.5 6.5 0 0 1 13 0M16 5a3 3 0 0 1 0 6M20.5 19a5.5 5.5 0 0 0-3.5-5.1" />
+    </svg>
+  );
+}
+
+export function SheetIcon() {
+  return (
+    <svg {...base}>
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <path d="M4 10h16M4 15h16M10 4v16" />
+    </svg>
+  );
+}
+
+export function BellIcon() {
+  return (
+    <svg {...base}>
+      <path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z" />
+      <path d="M10 20a2 2 0 0 0 4 0" />
+    </svg>
+  );
+}
+
 export function AgentsIcon() {
   return (
     <svg {...base}>

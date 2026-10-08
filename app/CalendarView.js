@@ -452,7 +452,7 @@ export default function CalendarView() {
         {cells.map((day, idx) => {
           const { tasks, notes } = getItemsForDay(day);
           const dateStr = day ? toDateStr(viewYear, viewMonth, day) : null;
-          const isSelected = dateStr === selectedDate;
+          const isSelected = Boolean(dateStr) && dateStr === selectedDate;
           const todayClass = isToday(day) ? " calCellToday" : "";
           const selectedClass = isSelected ? " calCellSelected" : "";
 
