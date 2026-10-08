@@ -981,7 +981,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
             },
             markerEnd: {
               type: MarkerType.ArrowClosed,
-              color: '#8a8a8a',
+              color: 'var(--text-muted)',
             },
           },
           current
@@ -2901,7 +2901,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
               },
               markerEnd: {
                 type: MarkerType.ArrowClosed,
-                color: '#888',
+                color: 'var(--text-muted)',
               },
             }}
             fitView
@@ -2909,7 +2909,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
             <Background
               gap={22}
               size={1}
-              color="#272727"
+              color="var(--border-strong)"
             />
 
             <Controls />
@@ -2918,10 +2918,10 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
               nodeColor={(node) =>
                 getTheme(node.data?.nodeType)
               }
-              maskColor="rgba(0,0,0,0.65)"
+              maskColor="var(--minimap-mask)"
               style={{
-                background: '#151515',
-                border: '1px solid #2e2e2e',
+                background: 'var(--bg-surface-2)',
+                border: '1px solid var(--border)',
               }}
             />
           </ReactFlow>

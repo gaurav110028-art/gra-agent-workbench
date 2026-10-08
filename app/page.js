@@ -9,6 +9,18 @@ import QueryInbox from './QueryInbox';
 import SettingsView from './SettingsView';
 import CalendarView from './CalendarView';
 import { getQueryStats, subscribeToQueries } from './queryStore';
+import {
+  AgentsIcon,
+  InboxIcon,
+  RunsIcon,
+  ApprovalsIcon,
+  SettingsIcon,
+  CalendarIcon,
+  SunIcon,
+  MoonIcon,
+  InfoIcon,
+  ChevronIcon,
+} from './NavIcons';
 
 export default function Home() {
   const [agents, setAgents] = useState([]);
@@ -252,7 +264,7 @@ export default function Home() {
               : 'Collapse sidebar'
           }
         >
-          {sidebarCollapsed ? '›' : '‹'}
+          <ChevronIcon direction={sidebarCollapsed ? 'right' : 'left'} />
         </button>
 
         <div className="brand" />
@@ -272,6 +284,9 @@ export default function Home() {
                 : undefined
             }
           >
+            <span className="navIcon">
+              <AgentsIcon />
+            </span>
             <span className="sidebarNavLabel">
               Agents
             </span>
@@ -290,6 +305,9 @@ export default function Home() {
                 : undefined
             }
           >
+            <span className="navIcon">
+              <InboxIcon />
+            </span>
             <span className="sidebarNavLabel">
               Query Inbox
             </span>
@@ -313,6 +331,9 @@ export default function Home() {
                 : undefined
             }
           >
+            <span className="navIcon">
+              <RunsIcon />
+            </span>
             <span className="sidebarNavLabel">
               Runs
             </span>
@@ -331,6 +352,9 @@ export default function Home() {
                 : undefined
             }
           >
+            <span className="navIcon">
+              <ApprovalsIcon />
+            </span>
             <span className="sidebarNavLabel">
               Approvals
             </span>
@@ -349,6 +373,9 @@ export default function Home() {
                 : undefined
             }
           >
+            <span className="navIcon">
+              <SettingsIcon />
+            </span>
             <span className="sidebarNavLabel">
               Settings
             </span>
@@ -367,6 +394,9 @@ export default function Home() {
                 : undefined
             }
           >
+            <span className="navIcon">
+              <CalendarIcon />
+            </span>
             <span className="sidebarNavLabel">
               Calendar
             </span>
@@ -384,7 +414,7 @@ export default function Home() {
             }
           >
             <span className="themeToggleIcon">
-              {theme === 'dark' ? '☀️' : '🌙'}
+              {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
             </span>
 
             <span className="sidebarNavLabel">
@@ -404,7 +434,7 @@ export default function Home() {
             }
           >
             <span className="siteInfoIcon">
-              ⓘ
+              <InfoIcon />
             </span>
 
             <span className="sidebarNavLabel">
