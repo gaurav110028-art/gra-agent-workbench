@@ -381,22 +381,8 @@ export default function QueryInbox() {
                   refreshData();
                 }
               }}
-              style={{
-                background: '#ef444418',
-                color: '#f87171',
-                border: '1px solid #ef444440',
-                borderRadius: '6px',
-                padding: '6px 12px',
-                fontSize: '12px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-              }}
             >
-              <span>🗑️</span> Clear All ({queries.length})
+              Clear All ({queries.length})
             </button>
           )}
         </div>
@@ -605,21 +591,15 @@ function QueryDetail({
                 onClose();
               }
             }}
-            style={{
-              background: '#ef444415',
-              color: '#ef4444',
-              border: '1px solid #ef444435',
-              borderRadius: '6px',
-              padding: '4px 10px',
-              fontSize: '12px',
-              fontWeight: '600',
-              cursor: 'pointer',
-            }}
           >
-            🗑️ Delete
+            Delete
           </button>
-          <button className="queryDetailCloseBtn" onClick={onClose}>
-            x
+          <button
+            className="queryDetailCloseBtn"
+            onClick={onClose}
+            aria-label="Close query details"
+          >
+            ×
           </button>
         </div>
       </div>

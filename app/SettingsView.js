@@ -8,6 +8,13 @@ import {
   removeTeamMember,
   subscribeToTeam,
 } from './queryStore';
+import {
+  WebhookIcon,
+  UsersIcon,
+  SheetIcon,
+  BellIcon,
+  InfoIcon,
+} from './NavIcons';
 
 /* ---------------------------------------------------------
    CONSTANTS
@@ -35,11 +42,11 @@ export default function SettingsView() {
         {/* Settings Nav */}
         <div className="settingsNav">
           {[
-            ['webhook', '↗', 'WhatsApp Webhook'],
-            ['team', '👤', 'Team Members'],
-            ['sheets', '▦', 'Google Sheets'],
-            ['notifications', '🔔', 'Notifications'],
-            ['about', 'ⓘ', 'About'],
+            ['webhook', <WebhookIcon key="i" />, 'WhatsApp Webhook'],
+            ['team', <UsersIcon key="i" />, 'Team Members'],
+            ['sheets', <SheetIcon key="i" />, 'Google Sheets'],
+            ['notifications', <BellIcon key="i" />, 'Notifications'],
+            ['about', <InfoIcon key="i" />, 'About'],
           ].map(([id, icon, label]) => (
             <button
               key={id}
