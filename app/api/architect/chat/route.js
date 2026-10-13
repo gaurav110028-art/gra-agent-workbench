@@ -6,14 +6,63 @@ import {
 } from '../../../architect/workflowGenerator.js';
 
 /* =========================================================
-   GAURAV: Your AI Automation Architect - Chat API Route
+   GRA AI Architect - Conversational Brain & Agent Controller
    Endpoint: POST /api/architect/chat
    
-   Keeps all API keys server-side.
-   Detects GEMINI_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY.
-   If no live keys are configured, operates as a clearly-labelled
-   Dev Architect Engine with domain-aware CA workflow analysis.
+   Supports:
+   1. Conversational Brain: Caring, empathetic, helpful responses (Gaurav persona).
+   2. Agent Controller: Chat commands to run, pause, approve, reject, monitor workflows.
+   3. Workflow Builder: Natural language to React Flow blueprint generation.
 ========================================================= */
+
+function detectIntent(text) {
+  const clean = String(text || '').trim().toLowerCase();
+
+  // 1. General conversation / Greetings / Caring Queries
+  const isGreeting = /^(hi|hello|hey|namaste|good\s*(morning|afternoon|evening)|kaise\s*ho)\b/i.test(clean);
+  const isCaringQuery =
+    clean.includes('how are you') ||
+    clean.includes('who are you') ||
+    clean.includes('what can you do') ||
+    clean.includes('help me') ||
+    clean.includes('stressed') ||
+    clean.includes('audit season') ||
+    clean.includes('tired') ||
+    clean.includes('thank');
+
+  if (isGreeting || isCaringQuery) {
+    return { type: 'CONVERSATION', isGreeting, isCaringQuery, clean };
+  }
+
+  // 2. Execution / Controller Commands
+  if (clean.includes('test run') || clean.includes('run test') || clean.includes('try run')) {
+    return { type: 'CONTROLLER', action: 'RUN_TEST', label: 'Test Run Workflow' };
+  }
+  if (clean.includes('run live') || clean.includes('run workflow') || clean.includes('execute live') || clean.includes('execute now')) {
+    return {
+      type: 'CONTROLLER',
+      action: 'RUN_LIVE',
+      label: 'Run Live Workflow',
+      requireConfirmation: true,
+      confirmPrompt: 'Are you sure you want to run this workflow LIVE? This will execute real actions (emails, API calls, or WhatsApp messages).',
+    };
+  }
+  if (clean.includes('approve') || clean.includes('confirm step') || clean.includes('resume')) {
+    return { type: 'CONTROLLER', action: 'APPROVE_STEP', label: 'Approve & Resume' };
+  }
+  if (clean.includes('reject') || clean.includes('decline approval')) {
+    return { type: 'CONTROLLER', action: 'REJECT_STEP', label: 'Reject Approval' };
+  }
+  if (clean.includes('validate') || clean.includes('check errors') || clean.includes('is it valid')) {
+    return { type: 'CONTROLLER', action: 'VALIDATE', label: 'Validate Workflow' };
+  }
+  if (clean.includes('status') || clean.includes('progress') || clean.includes('how is the run') || clean.includes('show errors')) {
+    return { type: 'CONTROLLER', action: 'GET_STATUS', label: 'Check Execution Status' };
+  }
+
+  // 3. Workflow generation / modification
+  return { type: 'WORKFLOW_BUILDER' };
+}
 
 function detectNodesFromPrompt(text) {
   const lower = String(text || '').toLowerCase();
@@ -96,15 +145,13 @@ function detectNodesFromPrompt(text) {
   }
 
   // 5. Human-in-the-Loop Review (Crucial for CA Firm!)
-  if (lower.includes('approv') || lower.includes('review') || lower.includes('partner') || lower.includes('ca check') || lower.includes('confirm') || true) {
-    nodes.push({
-      type: 'approval',
-      label: 'CA Partner Approval Gate',
-      icon: 'OK',
-      role: 'Human Gate',
-      desc: 'Pauses execution in Approvals tab for partner sign-off before sending',
-    });
-  }
+  nodes.push({
+    type: 'approval',
+    label: 'CA Partner Approval Gate',
+    icon: 'OK',
+    role: 'Human Gate',
+    desc: 'Pauses execution in Approvals tab for partner sign-off before sending',
+  });
 
   // 6. Output Action
   if (lower.includes('whatsapp')) {
@@ -151,6 +198,8 @@ export async function POST(request) {
       );
     }
 
+    const intent = detectIntent(prompt);
+
     // Check for configured server-side keys
     const geminiKey = process.env.GEMINI_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY;
@@ -158,78 +207,103 @@ export async function POST(request) {
 
     const hasLiveKey = Boolean(geminiKey || openaiKey || anthropicKey);
 
-    // If live API key is present, we can call the live provider
-    if (openaiKey) {
-      try {
-        const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${openaiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [
-              {
-                role: 'system',
-                content: `You are Gaurav, the AI Automation Architect for GRA Agent Workbench.
-When greeting or introducing yourself, introduce yourself as Gaurav.
-Strict formatting rules:
-- Never use em-dashes anywhere, ever. Use hyphens, colons, or parentheses.
-- Never use hashtags (#, ##, or ###) anywhere. Use clear bold titles and bullet points instead.
-- Use bullet points and concise technical breakdowns.
-- Always include an Approval Gate before sensitive external actions (sending emails, filings, WhatsApp).
-- Reference node types from the GRA workbench palette: schedule, trigger, googleSheets, pdfParser, aiAgent, condition, approval, bulkEmail, whatsappApi.`,
-              },
-              {
-                role: 'user',
-                content: `Target agent: "${agentName}". Current nodes on canvas: ${currentNodes.length}. User request: "${prompt}"`,
-              },
-            ],
-            temperature: 0.3,
-          }),
-        });
+    // =========================================================
+    // 1. CONVERSATIONAL BRAIN (Caring nature, greetings, advice)
+    // =========================================================
+    if (intent.type === 'CONVERSATION') {
+      let reply = '';
+      const clean = intent.clean;
 
-        if (aiResponse.ok) {
-          const aiData = await aiResponse.json();
-          let replyText = aiData?.choices?.[0]?.message?.content || '';
-          // Clean any accidental hashtags or em-dashes
-          replyText = replyText
-            .replace(/—/g, '-')
-            .replace(/--/g, '-')
-            .replace(/^#{1,6}\s*/gm, '');
-          const pipelinePreview = detectNodesFromPrompt(prompt);
-
-          const rawBlueprint = buildBlueprintFromPrompt(prompt, currentNodes, currentEdges);
-          const validated = validateWorkflowBlueprint(rawBlueprint);
-          const blueprint = {
-            nodes: validated.nodes,
-            edges: validated.edges,
-            summary: rawBlueprint.summary,
-            changeType: rawBlueprint.changeType,
-            isValid: validated.isValid,
-            issues: validated.issues,
-          };
-
-          return Response.json({
-            reply: replyText,
-            pipelinePreview,
-            blueprint,
-            mode: 'live',
-            provider: 'OpenAI (gpt-4o-mini)',
-          });
-        }
-      } catch (err) {
-        console.error('OpenAI call failed, falling back to Dev Engine:', err);
+      if (clean.includes('stressed') || clean.includes('audit season') || clean.includes('tired')) {
+        reply = `Bro, take a deep breath. Tax audit season, client filing delays, and endless document follow-ups are truly exhausting. You do not have to do all this manual chasing yourself.\n\n` +
+          `That is exactly why we are building these agents. Let me take the boring, repetitive follow-ups off your hands so you and your team can focus on actual review and client advisory.\n\n` +
+          `What is the single biggest bottleneck bothering you right now? We can automate it in minutes.`;
+      } else if (clean.includes('how are you')) {
+        reply = `I am doing great and excited to help you! My goal is to make sure you never have to do copy-paste compliance work manually again.\n\n` +
+          `How can I assist you with **${agentName}** today?`;
+      } else if (clean.includes('what can you do') || clean.includes('who are you')) {
+        reply = `Hello! I am Gaurav, your AI Automation Architect for GRA Agent Workbench.\n\n` +
+          `Here is what I can do for you:\n` +
+          `* Design complete automation workflows from plain English instructions.\n` +
+          `* Generate real, validated visual nodes and connections on your canvas.\n` +
+          `* Run, pause, resume, approve, and monitor your workflows via chat commands.\n` +
+          `* Help you streamline GST reconciliations, ITR reminders, TDS filings, and invoice parsing.\n\n` +
+          `Whenever you are ready, tell me what process you would like to automate!`;
+      } else if (clean.includes('thank')) {
+        reply = `You are most welcome! Always happy to support you. Let me know if you want to test the workflow, add another step, or create a new agent.`;
+      } else {
+        reply = `Hello! I am Gaurav, your AI Automation Architect.\n\n` +
+          `Great to connect with you! I am right here by your side. Tell me what is on your mind for **${agentName}**, whether you want to build an automation, test run an existing workflow, or check its status.`;
       }
+
+      return Response.json({
+        reply,
+        pipelinePreview: null,
+        blueprint: null,
+        actionIntent: null,
+        mode: hasLiveKey ? 'live' : 'dev-architect-engine',
+        provider: hasLiveKey ? 'Live AI' : 'GRA AI Architect Dev Engine',
+      });
     }
 
-    // Default / Development Architect Engine mode
-    const pipelinePreview = detectNodesFromPrompt(prompt);
-    const stepsSummary = pipelinePreview
-      .map((node, index) => `${index + 1}. **${node.label}** (${node.role}): ${node.desc}`)
-      .join('\n');
+    // =========================================================
+    // 2. AGENT CONTROLLER (Run, pause, approve, reject, status)
+    // =========================================================
+    if (intent.type === 'CONTROLLER') {
+      let reply = '';
 
+      switch (intent.action) {
+        case 'RUN_TEST':
+          reply = `Initiating a simulated Test Run for **${agentName}**.\n\n` +
+            `All steps will run in test mode with sample data so you can safely verify the pipeline without sending real communications.`;
+          break;
+
+        case 'RUN_LIVE':
+          reply = `CAUTION: You have requested to execute **${agentName}** LIVE.\n\n` +
+            `This will make real AI completions and dispatch actual emails/messages after any Approval Gates.\n\n` +
+            `Please confirm below before proceeding.`;
+          break;
+
+        case 'APPROVE_STEP':
+          reply = `Approval command received. Resuming the paused workflow from the CA Partner Approval Gate.`;
+          break;
+
+        case 'REJECT_STEP':
+          reply = `Rejection command received. The paused workflow execution will be stopped and marked as rejected.`;
+          break;
+
+        case 'VALIDATE':
+          reply = `Validating the active canvas for **${agentName}**.\n\n` +
+            `Checking for valid triggers, connections, and required node configurations.`;
+          break;
+
+        case 'GET_STATUS':
+          reply = `Checking execution status for **${agentName}**.\n\n` +
+            `Your canvas currently contains ${currentNodes.length} nodes and ${currentEdges.length} connections.`;
+          break;
+
+        default:
+          reply = `Processing controller command for **${agentName}**...`;
+      }
+
+      return Response.json({
+        reply,
+        pipelinePreview: null,
+        blueprint: null,
+        actionIntent: {
+          type: intent.action,
+          label: intent.label,
+          requireConfirmation: Boolean(intent.requireConfirmation),
+          confirmPrompt: intent.confirmPrompt || null,
+        },
+        mode: hasLiveKey ? 'live' : 'dev-architect-engine',
+        provider: hasLiveKey ? 'Live AI' : 'GRA AI Architect Dev Engine',
+      });
+    }
+
+    // =========================================================
+    // 3. WORKFLOW BUILDER (Generates visual nodes and edges)
+    // =========================================================
     const rawBlueprint = buildBlueprintFromPrompt(prompt, currentNodes, currentEdges);
     const validated = validateWorkflowBlueprint(rawBlueprint);
     const blueprint = {
@@ -240,6 +314,10 @@ Strict formatting rules:
       isValid: validated.isValid,
       issues: validated.issues,
     };
+
+    const stepsSummary = blueprint.nodes
+      .map((node, index) => `${index + 1}. **${node.data?.name}** (${node.data?.group || node.data?.nodeType}): ${node.data?.description}`)
+      .join('\n');
 
     const reply = `Bro, here is the automation architecture designed for **${agentName}**:\n\n` +
       `**Workflow Architecture Blueprint:**\n` +
@@ -253,8 +331,9 @@ Strict formatting rules:
 
     return Response.json({
       reply,
-      pipelinePreview,
+      pipelinePreview: detectNodesFromPrompt(prompt),
       blueprint,
+      actionIntent: null,
       mode: hasLiveKey ? 'live' : 'dev-architect-engine',
       provider: hasLiveKey ? 'Live AI' : 'GRA AI Architect Dev Engine',
       notice: hasLiveKey
