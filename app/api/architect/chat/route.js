@@ -23,10 +23,10 @@ RULES:
 function isWorkflowCreationRequest(text) {
   const clean = String(text || '').trim().toLowerCase();
   const keywords = [
-    'create workflow', 'build workflow', 'make workflow', 'generate workflow',
-    'create agent', 'build agent', 'add workflow', 'setup workflow',
-    'chaser workflow', 'reconciliation workflow', 'invoice workflow',
-    'notice workflow', 'create pipeline', 'build pipeline',
+    'workflow', 'agent', 'automation', 'pipeline', 'flow', 'nodes',
+    'chaser', 'reconcil', 'invoice', 'parser', 'reminder', 'schedule',
+    'make a', 'make an', 'create a', 'create an', 'build a', 'build an',
+    'email automation', 'mail automation', 'whatsapp', 'bot',
   ];
   return keywords.some((k) => clean.includes(k));
 }
