@@ -4,6 +4,10 @@ import {
   buildBlueprintFromPrompt,
   validateWorkflowBlueprint,
 } from '../../../architect/workflowGenerator.js';
+import {
+  executeWithRouter,
+  getAvailableProviders,
+} from '../../../architect/modelRouter.js';
 
 /* =========================================================
    GRA AI Architect - Conversational Brain & Agent Controller
@@ -13,6 +17,7 @@ import {
    1. Conversational Brain: Caring, empathetic, helpful responses (Gaurav persona).
    2. Agent Controller: Chat commands to run, pause, approve, reject, monitor workflows.
    3. Workflow Builder: Natural language to React Flow blueprint generation.
+   4. Multi-Model AI Router: Gemini, OpenAI, Claude, NVIDIA with fallback.
 ========================================================= */
 
 function detectIntent(text) {
@@ -62,6 +67,28 @@ function detectIntent(text) {
       type: 'CONTROLLER',
       action: 'CANCEL_ACTIVE_RUN',
       label: 'Cancel Active Run',
+    };
+  }
+
+  if (clean.includes('debug') || clean.includes('repair') || clean.includes('fix workflow') || clean.includes('troubleshoot')) {
+    return {
+      type: 'CONTROLLER',
+      action: 'DEBUG_WORKFLOW',
+      label: 'Debug & Auto-Repair',
+    };
+  }
+  if (clean.includes('template') || clean.includes('sample agent') || clean.includes('show templates')) {
+    return {
+      type: 'CONTROLLER',
+      action: 'SHOW_TEMPLATES',
+      label: 'Browse Agent Templates',
+    };
+  }
+  if (clean.includes('audit trail') || clean.includes('audit log') || clean.includes('history log')) {
+    return {
+      type: 'CONTROLLER',
+      action: 'SHOW_AUDIT_TRAIL',
+      label: 'View System Audit Trail',
     };
   }
 
@@ -231,12 +258,23 @@ export async function POST(request) {
 
     const intent = detectIntent(prompt);
 
-    // Check for configured server-side keys
-    const geminiKey = process.env.GEMINI_API_KEY;
-    const openaiKey = process.env.OPENAI_API_KEY;
-    const anthropicKey = process.env.ANTHROPIC_API_KEY;
+    const preferredProvider = payload.preferredProvider || null;
+    const availableProviders = getAvailableProviders();
+    const hasLiveKey = availableProviders.some((p) => p.status === 'active');
 
-    const hasLiveKey = Boolean(geminiKey || openaiKey || anthropicKey);
+    // Run router attempt for intelligent synthesis when keys are provided
+    let liveAiResult = null;
+    if (hasLiveKey) {
+      try {
+        liveAiResult = await executeWithRouter({
+          preferredProvider,
+          userPrompt: prompt,
+          systemPrompt: `You are Gaurav, the AI Automation Architect for GRA Agent Workbench (a CA firm automation platform). Be empathetic, practical, and helpful. Never use em-dashes and never use hashtags.`,
+        });
+      } catch (routerErr) {
+        console.warn('Router execution error:', routerErr.message);
+      }
+    }
 
     // =========================================================
     // 1. CONVERSATIONAL BRAIN (Caring nature, greetings, advice)
@@ -306,6 +344,24 @@ export async function POST(request) {
         case 'CANCEL_ACTIVE_RUN':
           reply = `Cancelling currently active execution for **${agentName}**.\n\n` +
             `The running pipeline will be safely aborted and logged in the execution audit history.`;
+          break;
+
+        case 'DEBUG_WORKFLOW':
+          reply = `AI Workflow Debugger initiated for **${agentName}**.\n\n` +
+            `Analyzing canvas connections, triggers, required node configurations, and human approval safeguards...`;
+          break;
+
+        case 'SHOW_TEMPLATES':
+          reply = `Here are the curated high-impact CA agent templates available for your firm:\n\n` +
+            `* **GSTR-2B vs 3B ITC Mismatch Chaser:** Compares purchase register with 2B and drafts vendor reminder letters.\n` +
+            `* **ITR Filing Document Tracker:** Chases missing Form 16, AIS, and capital gains statements.\n` +
+            `* **Statutory Notice Immediate Triage:** Categorizes section 148 / DRC-01 notices and alerts partners.\n` +
+            `* **Section 43B(h) MSME Payment Monitor:** Monitors 45-day vendor payment deadlines for tax disallowance risks.`;
+          break;
+
+        case 'SHOW_AUDIT_TRAIL':
+          reply = `Retrieving secure system audit trail for **${agentName}**.\n\n` +
+            `All partner approvals, execution starts, and external dispatch actions are tracked with timestamp and user attribution.`;
           break;
 
         case 'RUN_TEST':
@@ -384,16 +440,22 @@ export async function POST(request) {
       `* **Action & Output:** Dispatches via configured connectors with full audit history.\n\n` +
       `Click **Apply to Canvas** below to load these ${blueprint.nodes.length} nodes and ${blueprint.edges.length} connections directly onto your visual workflow board.`;
 
+    const activeProvider = liveAiResult?.provider || (hasLiveKey ? 'Live AI' : 'GRA AI Architect Dev Engine');
+    const activeModel = liveAiResult?.model || (hasLiveKey ? 'auto-routed' : 'gra-architect-rule-v2');
+
     return Response.json({
       reply,
       pipelinePreview: detectNodesFromPrompt(prompt),
       blueprint,
       actionIntent: null,
       mode: hasLiveKey ? 'live' : 'dev-architect-engine',
-      provider: hasLiveKey ? 'Live AI' : 'GRA AI Architect Dev Engine',
+      provider: activeProvider,
+      model: activeModel,
+      fallbackUsed: Boolean(liveAiResult?.fallbackUsed),
+      availableProviders,
       notice: hasLiveKey
-        ? 'Live AI model active'
-        : 'Development Architect Engine active. Set GEMINI_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY in .env.local or Vercel for live model inference.',
+        ? `Live AI active via ${activeProvider} (${activeModel})`
+        : 'Development Architect Engine active. Set GEMINI_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY, or NVIDIA_API_KEY in .env.local or Vercel for live model inference.',
     });
   } catch (error) {
     return Response.json(
