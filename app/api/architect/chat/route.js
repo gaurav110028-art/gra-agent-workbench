@@ -283,7 +283,10 @@ export async function POST(request) {
       let reply = '';
       const clean = intent.clean;
 
-      if (clean.includes('stressed') || clean.includes('audit season') || clean.includes('tired')) {
+      // If live AI is available (Gemini/OpenAI), use its real live generated answer!
+      if (liveAiResult?.text) {
+        reply = liveAiResult.text;
+      } else if (clean.includes('stressed') || clean.includes('audit season') || clean.includes('tired')) {
         reply = `Bro, take a deep breath. Tax audit season, client filing delays, and endless document follow-ups are truly exhausting. You do not have to do all this manual chasing yourself.\n\n` +
           `That is exactly why we are building these agents. Let me take the boring, repetitive follow-ups off your hands so you and your team can focus on actual review and client advisory.\n\n` +
           `What is the single biggest bottleneck bothering you right now? We can automate it in minutes.`;
@@ -305,13 +308,22 @@ export async function POST(request) {
           `Great to connect with you! I am right here by your side. Tell me what is on your mind for **${agentName}**, whether you want to build an automation, test run an existing workflow, or check its status.`;
       }
 
+      const activeProvider = liveAiResult?.provider || (hasLiveKey ? 'Live AI' : 'GRA AI Architect Dev Engine');
+      const activeModel = liveAiResult?.model || (hasLiveKey ? 'auto-routed' : 'gra-architect-rule-v2');
+
       return Response.json({
         reply,
         pipelinePreview: null,
         blueprint: null,
         actionIntent: null,
         mode: hasLiveKey ? 'live' : 'dev-architect-engine',
-        provider: hasLiveKey ? 'Live AI' : 'GRA AI Architect Dev Engine',
+        provider: activeProvider,
+        model: activeModel,
+        fallbackUsed: Boolean(liveAiResult?.fallbackUsed),
+        availableProviders,
+        notice: hasLiveKey
+          ? `Live AI active via ${activeProvider} (${activeModel})`
+          : 'Development Architect Engine active. Set GEMINI_API_KEY in Vercel for live model inference.',
       });
     }
 
