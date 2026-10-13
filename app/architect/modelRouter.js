@@ -44,7 +44,7 @@ export function getAvailableProviders() {
     providers.push({
       id: 'gemini',
       name: 'Google Gemini',
-      model: 'gemini-2.0-flash',
+      model: 'gemini-3.8-flash',
       status: 'active',
     });
   }
@@ -129,10 +129,10 @@ async function callGemini({ systemPrompt, userPrompt, temperature = 0.3 }) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY is not configured');
 
-  // gemini-2.5-flash is ultra-fast and currently primary on Google AI Studio
+  // Google API explicitly requested gemini-3.8-flash (current generation)
   const candidateModels = [
+    'gemini-3.8-flash',
     'gemini-2.5-flash',
-    'gemini-2.0-flash',
   ];
   let lastError = null;
 
