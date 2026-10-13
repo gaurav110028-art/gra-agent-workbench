@@ -8,6 +8,13 @@ const CHAT_STORAGE_PREFIX = 'gra-gaurav-history-';
 
 export const GAURAV_SUGGESTIONS = [
   {
+    id: 'schedule-247',
+    title: 'Schedule 24/7 Daily Run',
+    prompt:
+      'Schedule this agent to run 24/7 every morning at 09:00 AM IST with persistent logs.',
+    badge: '24/7 Automation',
+  },
+  {
     id: 'pending-docs',
     title: 'Client Document Chaser',
     prompt:
