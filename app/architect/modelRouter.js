@@ -129,12 +129,10 @@ async function callGemini({ systemPrompt, userPrompt, temperature = 0.3 }) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY is not configured');
 
-  // Current working models (Oct 2026) in priority order
-  // gemini-2.0-flash = stable fast model, gemini-3.8-flash = latest gen
+  // gemini-2.5-flash is ultra-fast and currently primary on Google AI Studio
   const candidateModels = [
-    'gemini-2.0-flash',
-    'gemini-3.8-flash',
     'gemini-2.5-flash',
+    'gemini-2.0-flash',
   ];
   let lastError = null;
 
