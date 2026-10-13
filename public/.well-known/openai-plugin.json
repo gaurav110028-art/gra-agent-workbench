@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "GRA Agent Workbench",
+  "name_for_model": "gra_agent_workbench",
+  "description_for_human": "Create, execute, schedule, and monitor CA automation agents, workflows, and client compliance chasers directly in ChatGPT.",
+  "description_for_model": "Plugin and MCP server for GRA Agent Workbench. Allows ChatGPT to trigger automation workflows (ITR chasing, GST reconciliation, tax notices), fetch real-time run statuses, check pending client compliance queries, and register 24/7 background schedules.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "mcp",
+    "url": "https://gra-agent-workbench.vercel.app/api/mcp"
+  },
+  "logo_url": "https://gra-agent-workbench.vercel.app/gra-ai-logo.png",
+  "contact_email": "contact@sharmaandassociates.in",
+  "legal_info_url": "https://gra-agent-workbench.vercel.app"
+}
