@@ -131,8 +131,8 @@ export async function GET(request) {
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       start(controller) {
-        // Send initial endpoint event
-        const endpointEvent = `event: endpoint\ndata: /api/mcp\n\n`;
+        // Send initial endpoint event with full URL for OpenAI MCP client
+        const endpointEvent = `event: endpoint\ndata: https://gra-agent-workbench.vercel.app/api/mcp\n\n`;
         controller.enqueue(encoder.encode(endpointEvent));
 
         // Keep-alive heartbeat comment
