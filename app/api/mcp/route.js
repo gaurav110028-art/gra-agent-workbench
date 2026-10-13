@@ -129,23 +129,34 @@ export async function GET(request) {
   // If OpenAI requests SSE stream (standard MCP SSE transport)
   if (acceptHeader.includes('text/event-stream')) {
     const encoder = new TextEncoder();
+    let timer;
+
     const stream = new ReadableStream({
       start(controller) {
-        // Send initial endpoint event with full URL for OpenAI MCP client
+        // 1. Initial endpoint event required by MCP SSE standard
         const endpointEvent = `event: endpoint\ndata: https://gra-agent-workbench.vercel.app/api/mcp\n\n`;
         controller.enqueue(encoder.encode(endpointEvent));
 
-        // Keep-alive heartbeat comment
-        const heartbeat = `: keep-alive\n\n`;
-        controller.enqueue(encoder.encode(heartbeat));
+        // 2. Periodic keep-alive heartbeat ping every 15 seconds
+        timer = setInterval(() => {
+          try {
+            controller.enqueue(encoder.encode(`: keep-alive\n\n`));
+          } catch {
+            clearInterval(timer);
+          }
+        }, 15000);
+      },
+      cancel() {
+        if (timer) clearInterval(timer);
       },
     });
 
     return new Response(stream, {
       headers: {
         ...CORS_HEADERS,
-        'Content-Type': 'text/event-stream',
+        'Content-Type': 'text/event-stream; charset=utf-8',
         'Cache-Control': 'no-cache, no-transform',
+        'X-Accel-Buffering': 'no',
         Connection: 'keep-alive',
       },
     });
