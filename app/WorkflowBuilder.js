@@ -1644,6 +1644,43 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
     [nodes, edges, agentId, setNodes, setEdges]
   );
 
+  const handleExecuteControlAction = useCallback(
+    async (actionIntent) => {
+      if (!actionIntent || !actionIntent.type) return;
+
+      switch (actionIntent.type) {
+        case 'RUN_TEST':
+          await startEngineRun('test');
+          break;
+
+        case 'RUN_LIVE':
+          await startEngineRun('live');
+          break;
+
+        case 'APPROVE_STEP':
+          await approveHumanStep();
+          break;
+
+        case 'REJECT_STEP':
+          rejectHumanStep();
+          break;
+
+        case 'VALIDATE':
+          validateWorkflow(true);
+          break;
+
+        case 'GET_STATUS':
+          setPanelMode('run');
+          setConsoleCollapsed(false);
+          break;
+
+        default:
+          console.warn('Unknown control action:', actionIntent.type);
+      }
+    },
+    [startEngineRun, approveHumanStep, rejectHumanStep, validateWorkflow]
+  );
+
   const busy = runStatus === 'running' || auditProcessing;
 
   /* =========================================================
@@ -1903,6 +1940,8 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
         currentNodes={nodes}
         currentEdges={edges}
         onApplyBlueprint={handleApplyBlueprint}
+        onExecuteControlAction={handleExecuteControlAction}
+        runStatus={runStatus}
       />
     </div>
   );
