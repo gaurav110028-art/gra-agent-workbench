@@ -123,7 +123,35 @@ const EXPOSED_TOOLS = [
   },
 ];
 
-export async function GET() {
+export async function GET(request) {
+  const acceptHeader = request?.headers?.get('accept') || '';
+
+  // If OpenAI requests SSE stream (standard MCP SSE transport)
+  if (acceptHeader.includes('text/event-stream')) {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      start(controller) {
+        // Send initial endpoint event
+        const endpointEvent = `event: endpoint\ndata: /api/mcp\n\n`;
+        controller.enqueue(encoder.encode(endpointEvent));
+
+        // Keep-alive heartbeat comment
+        const heartbeat = `: keep-alive\n\n`;
+        controller.enqueue(encoder.encode(heartbeat));
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        ...CORS_HEADERS,
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache, no-transform',
+        Connection: 'keep-alive',
+      },
+    });
+  }
+
+  // Standard JSON response
   return Response.json(
     {
       name: 'gra-agent-workbench-mcp',
@@ -139,7 +167,15 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const body = await request.json();
+    let body = {};
+    const text = await request.text();
+    if (text && text.trim()) {
+      try {
+        body = JSON.parse(text);
+      } catch {
+        body = {};
+      }
+    }
     const { method, params = {}, id = 1 } = body;
 
     switch (method) {
