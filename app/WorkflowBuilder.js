@@ -53,6 +53,7 @@ import {
 import { nodeTypes } from './workflow/WorkflowNode';
 import NodeInspector from './workflow/NodeInspector';
 import ExecutionConsole from './workflow/ExecutionConsole';
+import GauravChatDrawer from './architect/GauravChatDrawer';
 
 /* =========================================================
    HELPERS
@@ -137,6 +138,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
 
   const [panelMode, setPanelMode] = useState(null);
   const [consoleCollapsed, setConsoleCollapsed] = useState(false);
+  const [showGauravDrawer, setShowGauravDrawer] = useState(false);
 
   const [validationIssues, setValidationIssues] = useState([]);
   const [validationErrorIds, setValidationErrorIds] = useState([]);
@@ -1688,6 +1690,16 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
               {publishMessage && <span className="workflowPublishMessage">{publishMessage}</span>}
             </div>
 
+            <button
+              type="button"
+              className={`workflowActionButton gauravArchitectToggleBtn ${showGauravDrawer ? 'active' : ''}`}
+              onClick={() => setShowGauravDrawer((current) => !current)}
+              title="Open GAURAV: Your AI Automation Architect"
+            >
+              <span className="gauravSparkle">✨</span>
+              <strong>GAURAV Architect</strong>
+            </button>
+
             <button type="button" className="workflowActionButton" onClick={() => validateWorkflow(true)} disabled={busy}>
               ✓ Validate
             </button>
@@ -1826,6 +1838,15 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
           />
         )}
       </section>
+
+      <GauravChatDrawer
+        isOpen={showGauravDrawer}
+        onClose={() => setShowGauravDrawer(false)}
+        agentId={agentId}
+        agentName={agentName}
+        currentNodes={nodes}
+        currentEdges={edges}
+      />
     </div>
   );
 }
