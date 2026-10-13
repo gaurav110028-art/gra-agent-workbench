@@ -22,10 +22,12 @@ import {
   InfoIcon,
   ChevronIcon,
 } from './NavIcons';
+import GauravChatDrawer from './architect/GauravChatDrawer';
 
 export default function Home() {
   const [agents, setAgents] = useState([]);
   const [selectedAgent, setSelectedAgent] = useState(null);
+  const [showSidebarArchitect, setShowSidebarArchitect] = useState(false);
 
   const [activeView, setActiveView] = useState('dashboard');
   const [activeTab, setActiveTab] = useState('workflow');
@@ -316,6 +318,19 @@ export default function Home() {
         <div className="brand" />
 
         <nav className="nav">
+          <button
+            className={`navItem navItemArchitect ${showSidebarArchitect ? 'active' : ''}`}
+            onClick={() => setShowSidebarArchitect((current) => !current)}
+            title={sidebarCollapsed ? 'GRA AI Architect' : undefined}
+          >
+            <span className="navIcon navIconArchitectLogo">
+              <img src="/gra-ai-logo.png" alt="GRA AI Architect" className="sidebarAiLogo" />
+            </span>
+            <span className="sidebarNavLabel">
+              GRA AI Architect
+            </span>
+          </button>
+
           <button
             className={`navItem ${
               activeView === 'dashboard' &&
@@ -932,6 +947,13 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      <GauravChatDrawer
+        isOpen={showSidebarArchitect}
+        onClose={() => setShowSidebarArchitect(false)}
+        agentId={selectedAgent?.id || 'global'}
+        agentName={selectedAgent?.name || 'GRA Workspace'}
+      />
     </main>
   );
 }
