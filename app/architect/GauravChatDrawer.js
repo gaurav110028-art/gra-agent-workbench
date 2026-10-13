@@ -266,7 +266,7 @@ export default function GauravChatDrawer({
                   title="Select AI Model Provider"
                 >
                   <option value="auto">Auto Router (Smart Fallback)</option>
-                  <option value="gemini">Google Gemini (1.5 Flash)</option>
+                  <option value="gemini">Google Gemini (2.0 Flash)</option>
                   <option value="openai">OpenAI (GPT-4o mini)</option>
                   <option value="anthropic">Anthropic (Claude Haiku 4.5)</option>
                   <option value="nvidia">NVIDIA NIM (Llama 3.1 70B)</option>
