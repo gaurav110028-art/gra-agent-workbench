@@ -43,7 +43,7 @@ export function getInitialMessages(agentName = 'Agent') {
       id: 'init-1',
       sender: 'assistant',
       timestamp: new Date().toISOString(),
-      content: `Hello Gaurav! I am **GAURAV**, your **AI Automation Architect**.\n\nTell me what automation you need for **${agentName}** in plain English. For example:\n* *"Check pending client documents every morning and draft reminder emails."*\n* *"Extract invoice line items and pause for CA partner approval."*\n\nI will design the workflow architecture, select the right nodes, and prepare everything for your visual canvas.`,
+      content: `Hello! I am Gaurav, your AI Automation Architect.\n\nTell me what automation you need for ${agentName} in plain English. For example:\n* Check pending client documents every morning and draft reminder emails.\n* Extract invoice line items and pause for CA partner approval.\n\nI will design the workflow architecture, select the right nodes, and prepare everything for your visual canvas.`,
       pipelinePreview: null,
     },
   ];
