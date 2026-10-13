@@ -8,6 +8,13 @@ const CHAT_STORAGE_PREFIX = 'gra-gaurav-history-';
 
 export const GAURAV_SUGGESTIONS = [
   {
+    id: 'debug-repair',
+    title: 'Debug & Auto-Repair',
+    prompt:
+      'Debug this workflow, identify any missing triggers or approvals, and propose repairs.',
+    badge: 'AI Diagnostics',
+  },
+  {
     id: 'schedule-247',
     title: 'Schedule 24/7 Daily Run',
     prompt:
