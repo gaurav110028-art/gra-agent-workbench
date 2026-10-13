@@ -1,7 +1,7 @@
 /* =========================================================
    MULTI-MODEL AI ROUTER & PROVIDER ADAPTERS
    Supports:
-   1. Google Gemini (Gemini 1.5 Flash / 2.0 Flash)
+   1. Google Gemini (Gemini 2.0 Flash / 3.8 Flash)
    2. OpenAI (GPT-4o / GPT-4o-mini)
    3. Anthropic Claude (Claude 3.5 Sonnet / Haiku 4.5)
    4. NVIDIA NIM (DeepSeek / Llama-3 / Mistral via NVIDIA API)
@@ -44,7 +44,7 @@ export function getAvailableProviders() {
     providers.push({
       id: 'gemini',
       name: 'Google Gemini',
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash',
       status: 'active',
     });
   }
@@ -129,18 +129,19 @@ async function callGemini({ systemPrompt, userPrompt, temperature = 0.3 }) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY is not configured');
 
-  // List of active models to try in order
+  // Current working models (Oct 2026) in priority order
+  // gemini-2.0-flash = stable fast model, gemini-3.8-flash = latest gen
   const candidateModels = [
-    'gemini-2.5-flash',
     'gemini-2.0-flash',
-    'gemini-pro',
-    'gemini-1.5-flash',
+    'gemini-3.8-flash',
+    'gemini-2.5-flash',
   ];
   let lastError = null;
 
   for (const model of candidateModels) {
     try {
-      const url = `${GEMINI_BASE_URL}/${model}:generateContent`;
+      // API key as query param (Google AI Studio recommended method)
+      const url = `${GEMINI_BASE_URL}/${model}:generateContent?key=${apiKey}`;
 
       const requestBody = {
         contents: [
@@ -165,7 +166,6 @@ async function callGemini({ systemPrompt, userPrompt, temperature = 0.3 }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-goog-api-key': apiKey,
         },
         body: JSON.stringify(requestBody),
       });
@@ -181,9 +181,11 @@ async function callGemini({ systemPrompt, userPrompt, temperature = 0.3 }) {
       if (!res.ok) {
         const msg = raw?.error?.message || `HTTP ${res.status}`;
         lastError = new Error(`Gemini ${model}: ${msg}`);
+        console.warn(`Gemini model ${model} failed: ${msg}, trying next...`);
       }
     } catch (err) {
       lastError = err;
+      console.warn(`Gemini model ${model} exception: ${err.message}, trying next...`);
     }
   }
 
