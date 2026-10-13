@@ -21,12 +21,12 @@ function renderBoldText(text) {
 function formatMessageContent(content) {
   if (!content) return null;
 
-  // 1. Remove em-dashes and replace with clean hyphen/colon
+  // Remove em-dashes and replace with clean hyphen/colon
   const withoutEmDashes = String(content)
     .replace(/—/g, ' - ')
     .replace(/--/g, ' - ');
 
-  // 2. Split lines and process
+  // Split lines and process
   const lines = withoutEmDashes.split('\n');
   const elements = [];
 
@@ -34,10 +34,9 @@ function formatMessageContent(content) {
     let line = rawLine.trim();
     if (!line) return;
 
-    // 3. Strip any hashtags completely
+    // Strip any hashtags completely
     line = line.replace(/^#{1,6}\s*/, '');
 
-    // Check if line is a section header (e.g., ends with colon or was a heading)
     const isHeading =
       rawLine.trim().startsWith('#') ||
       (line.endsWith(':') && line.length < 55 && !line.startsWith('*') && !/^\d+\./.test(line));
@@ -82,6 +81,7 @@ export default function GauravChatDrawer({
   agentName = 'Agent',
   currentNodes = [],
   currentEdges = [],
+  onApplyBlueprint,
 }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -89,6 +89,8 @@ export default function GauravChatDrawer({
   const [error, setError] = useState('');
   const [engineMode, setEngineMode] = useState('dev-architect-engine');
   const [providerNotice, setProviderNotice] = useState('');
+  const [appliedMsgIds, setAppliedMsgIds] = useState(new Set());
+  const [expandedConfigId, setExpandedConfigId] = useState(null);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -155,6 +157,7 @@ export default function GauravChatDrawer({
         timestamp: new Date().toISOString(),
         content: data.reply || 'Workflow architecture mapped successfully.',
         pipelinePreview: data.pipelinePreview || null,
+        blueprint: data.blueprint || null,
         provider: data.provider || 'GRA AI Architect',
       };
 
@@ -169,6 +172,16 @@ export default function GauravChatDrawer({
     }
   };
 
+  const handleApply = (msgId, blueprint, mode = 'replace') => {
+    if (!blueprint || !onApplyBlueprint) return;
+    onApplyBlueprint(blueprint, mode);
+    setAppliedMsgIds((prev) => new Set([...prev, msgId]));
+  };
+
+  const toggleConfigInspector = (msgId) => {
+    setExpandedConfigId((current) => (current === msgId ? null : msgId));
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -180,6 +193,8 @@ export default function GauravChatDrawer({
     if (window.confirm('Clear conversation history with Gaurav for this agent?')) {
       const initial = clearGauravHistory(agentId, agentName);
       setMessages(initial);
+      setAppliedMsgIds(new Set());
+      setExpandedConfigId(null);
       setError('');
     }
   };
@@ -302,34 +317,85 @@ export default function GauravChatDrawer({
                   {formatMessageContent(msg.content)}
                 </div>
 
-                {/* Pipeline Card */}
-                {Array.isArray(msg.pipelinePreview) &&
-                  msg.pipelinePreview.length > 0 && (
-                    <div className="gauravPipelineCard">
-                      <div className="gauravPipelineHeader">
-                        <span>Proposed Workflow Architecture</span>
-                        <small>{msg.pipelinePreview.length} Nodes</small>
+                {/* Phase 2: Interactive Workflow Blueprint Card */}
+                {msg.blueprint && Array.isArray(msg.blueprint.nodes) && (
+                  <div className="gauravBlueprintCard">
+                    <div className="gauravBlueprintHeader">
+                      <div className="gauravBlueprintTitle">
+                        <span>✨ Visual Workflow Blueprint</span>
+                        <small>
+                          {msg.blueprint.nodes.length} nodes · {msg.blueprint.edges?.length || 0} connections
+                        </small>
                       </div>
-                      <div className="gauravPipelineSteps">
-                        {msg.pipelinePreview.map((step, idx) => (
-                          <div key={idx} className="gauravPipelineItem">
-                            <span className="gauravStepNum">{idx + 1}</span>
-                            <span className="gauravStepIcon">{step.icon}</span>
-                            <div className="gauravStepInfo">
-                              <strong>{step.label}</strong>
-                              <small>{step.desc}</small>
+                      {appliedMsgIds.has(msg.id) ? (
+                        <span className="gauravAppliedBadge">✓ Applied to Canvas</span>
+                      ) : (
+                        <span className="gauravReadyBadge">● Ready to Apply</span>
+                      )}
+                    </div>
+
+                    <div className="gauravBlueprintNodesList">
+                      {msg.blueprint.nodes.map((node, nIdx) => (
+                        <div key={node.id} className="gauravBlueprintNodeItem">
+                          <span className="gauravNodeIndex">{nIdx + 1}</span>
+                          <span className="gauravNodeIcon">{node.data?.icon || '•'}</span>
+                          <div className="gauravNodeMeta">
+                            <strong>{node.data?.name}</strong>
+                            <small>{node.data?.description || node.data?.nodeType}</small>
+                          </div>
+                          <span className="gauravNodeGroupTag">{node.data?.group || node.data?.nodeType}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="gauravBlueprintActions">
+                      <button
+                        type="button"
+                        className="gauravApplyBtn"
+                        onClick={() => handleApply(msg.id, msg.blueprint, 'replace')}
+                        title="Load this workflow directly onto canvas"
+                      >
+                        <span>✨ Apply to Canvas</span>
+                      </button>
+
+                      {currentNodes.length > 0 && (
+                        <button
+                          type="button"
+                          className="gauravAppendBtn"
+                          onClick={() => handleApply(msg.id, msg.blueprint, 'append')}
+                          title="Append to existing workflow nodes"
+                        >
+                          <span>➕ Append</span>
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        className="gauravInspectBtn"
+                        onClick={() => toggleConfigInspector(msg.id)}
+                        title="View node configurations and schemas"
+                      >
+                        <span>{expandedConfigId === msg.id ? '▲ Hide Config' : '▼ Inspect Config'}</span>
+                      </button>
+                    </div>
+
+                    {expandedConfigId === msg.id && (
+                      <div className="gauravBlueprintDetails">
+                        <div className="gauravDetailsHeader">Verified Node Configuration:</div>
+                        {msg.blueprint.nodes.map((node) => (
+                          <div key={node.id} className="gauravNodeConfigRow">
+                            <div className="gauravNodeConfigTitle">
+                              <strong>{node.data?.name}</strong> (<code>{node.data?.nodeType}</code>)
                             </div>
-                            <span className="gauravStepRole">{step.role}</span>
+                            <pre className="gauravNodeConfigJson">
+                              {JSON.stringify(node.data?.config || {}, null, 2)}
+                            </pre>
                           </div>
                         ))}
                       </div>
-                      <div className="gauravPipelineFooter">
-                        <span className="gauravPhase2Pill">
-                          Phase 2 Ready: One-click "Build on Canvas" unlocks in Phase 2
-                        </span>
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -344,7 +410,7 @@ export default function GauravChatDrawer({
                 />
               </div>
               <div className="gauravMsgBubble gauravLoadingBubble">
-                <span className="gauravThinkingText">Architecting workflow</span>
+                <span className="gauravThinkingText">Generating visual workflow blueprint</span>
                 <span className="gauravThinkingDots">
                   <i>.</i>
                   <i>.</i>
@@ -370,7 +436,7 @@ export default function GauravChatDrawer({
               ref={inputRef}
               rows={2}
               className="gauravTextarea"
-              placeholder="Describe your automation in plain English..."
+              placeholder="Describe your automation (e.g. 'Create client doc chaser', 'Add WhatsApp alert')..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -381,14 +447,14 @@ export default function GauravChatDrawer({
               className="gauravSendButton"
               onClick={() => handleSend()}
               disabled={loading || !input.trim()}
-              title="Send message (Enter)"
+              title="Send instruction (Enter)"
             >
               {loading ? '…' : '↑'}
             </button>
           </div>
           <div className="gauravInputHelp">
             <span>Press Enter to send, Shift+Enter for new line.</span>
-            <span>GRA AI Architect v1.0</span>
+            <span>GRA AI Architect v2.0</span>
           </div>
         </div>
       </aside>
