@@ -1588,6 +1588,62 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
     </>
   );
 
+  const handleApplyBlueprint = useCallback(
+    ({ nodes: newNodes, edges: newEdges, summary }, mode = 'replace') => {
+      if (!Array.isArray(newNodes) || newNodes.length === 0) return;
+
+      if (mode === 'append' && nodes.length > 0) {
+        const maxX = Math.max(...nodes.map((n) => n.position.x), 0);
+        const shiftX = maxX + 300;
+
+        const shiftedNodes = newNodes.map((n, i) => ({
+          ...n,
+          id: `${n.id}_${Date.now()}_${i}`,
+          position: { x: n.position.x + shiftX, y: n.position.y },
+        }));
+
+        const lastExisting = nodes[nodes.length - 1];
+        const firstNew = shiftedNodes[0];
+
+        const linkingEdge = {
+          id: `e-${lastExisting.id}-${firstNew.id}`,
+          source: lastExisting.id,
+          target: firstNew.id,
+          style: { stroke: '#6a6a6a', strokeWidth: 2 },
+          markerEnd: { type: 'arrowclosed', color: 'var(--text-muted)' },
+        };
+
+        const remappedEdges = (newEdges || []).map((e) => {
+          const sNode = shiftedNodes.find((sn) => sn.id.startsWith(e.source));
+          const tNode = shiftedNodes.find((sn) => sn.id.startsWith(e.target));
+          return {
+            ...e,
+            id: `e-${sNode?.id || e.source}-${tNode?.id || e.target}`,
+            source: sNode?.id || e.source,
+            target: tNode?.id || e.target,
+          };
+        });
+
+        const combinedNodes = [...nodes, ...shiftedNodes];
+        const combinedEdges = [...edges, linkingEdge, ...remappedEdges];
+
+        setNodes(combinedNodes);
+        setEdges(combinedEdges);
+        saveWorkflowDraft({ agentId, nodes: combinedNodes, edges: combinedEdges });
+      } else {
+        setNodes(newNodes);
+        setEdges(newEdges || []);
+        saveWorkflowDraft({ agentId, nodes: newNodes, edges: newEdges || [] });
+      }
+
+      setPublishMessage(summary || 'Workflow updated by GRA AI Architect.');
+      setTimeout(() => {
+        validateWorkflow(false);
+      }, 150);
+    },
+    [nodes, edges, agentId, setNodes, setEdges]
+  );
+
   const busy = runStatus === 'running' || auditProcessing;
 
   /* =========================================================
@@ -1846,6 +1902,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
         agentName={agentName}
         currentNodes={nodes}
         currentEdges={edges}
+        onApplyBlueprint={handleApplyBlueprint}
       />
     </div>
   );
