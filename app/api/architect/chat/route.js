@@ -427,6 +427,29 @@ export async function POST(request) {
     // =========================================================
     // 3. WORKFLOW BUILDER (Generates visual nodes and edges)
     // =========================================================
+    // If live AI is available (Gemini/OpenAI), ask model to tailor the architecture explanation and nodes
+    let dynamicAiExplanation = null;
+    if (hasLiveKey && !liveAiResult?.text) {
+      try {
+        const aiPrompt = `The user wants to create or modify an automation workflow for an Indian CA firm: "${prompt}".
+Explain in 3-4 crisp bullet points how this workflow should run from Trigger -> Data Intake -> AI Processing -> Partner Approval -> Client Dispatch.
+Follow these rules:
+1. Always require a CA Partner Approval Gate before sending communications.
+2. Be practical, no em-dashes, no hashtags, conversational Hinglish/English tone.`;
+
+        const explanationRes = await executeWithRouter({
+          preferredProvider,
+          userPrompt: aiPrompt,
+          systemPrompt: `You are Gaurav, expert CA firm AI Automation Architect for GRA Agent Workbench. Be concise, sharp, and helpful.`,
+        });
+        if (explanationRes?.text) {
+          dynamicAiExplanation = explanationRes.text;
+        }
+      } catch (e) {
+        console.warn('AI workflow explanation error:', e.message);
+      }
+    }
+
     const rawBlueprint = buildBlueprintFromPrompt(prompt, currentNodes, currentEdges);
     const validated = validateWorkflowBlueprint(rawBlueprint);
     const blueprint = {
@@ -442,18 +465,18 @@ export async function POST(request) {
       .map((node, index) => `${index + 1}. **${node.data?.name}** (${node.data?.group || node.data?.nodeType}): ${node.data?.description}`)
       .join('\n');
 
-    const reply = `Bro, here is the automation architecture designed for **${agentName}**:\n\n` +
-      `**Workflow Architecture Blueprint:**\n` +
+    const reply = (dynamicAiExplanation ? `${dynamicAiExplanation}\n\n` : '') +
+      `**Workflow Architecture Blueprint (${blueprint.nodes.length} Nodes):**\n` +
       `${stepsSummary}\n\n` +
-      `**Key Design Rules Applied:**\n` +
-      `* **Input & Trigger:** Starts cleanly without requiring manual initiation every day.\n` +
-      `* **AI Preparation:** Pre-fills and drafts compliance data or itemized calculations.\n` +
+      `**CA Firm Best Practices Applied:**\n` +
+      `* **Input & Trigger:** Starts reliably without manual trigger overhead.\n` +
+      `* **AI Preparation:** Uses Google Gemini / AI model to draft compliance data.\n` +
       `* **Human-in-the-Loop:** Includes a mandatory **CA Partner Approval Gate** so no client receives an email without partner sign-off.\n` +
       `* **Action & Output:** Dispatches via configured connectors with full audit history.\n\n` +
       `Click **Apply to Canvas** below to load these ${blueprint.nodes.length} nodes and ${blueprint.edges.length} connections directly onto your visual workflow board.`;
 
-    const activeProvider = liveAiResult?.provider || (hasLiveKey ? 'Live AI' : 'GRA AI Architect Dev Engine');
-    const activeModel = liveAiResult?.model || (hasLiveKey ? 'auto-routed' : 'gra-architect-rule-v2');
+    const activeProvider = liveAiResult?.provider || (hasLiveKey ? 'Google Gemini' : 'GRA AI Architect Dev Engine');
+    const activeModel = liveAiResult?.model || (hasLiveKey ? 'gemini-1.5-flash' : 'gra-architect-rule-v2');
 
     return Response.json({
       reply,
@@ -467,7 +490,7 @@ export async function POST(request) {
       availableProviders,
       notice: hasLiveKey
         ? `Live AI active via ${activeProvider} (${activeModel})`
-        : 'Development Architect Engine active. Set GEMINI_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY, or NVIDIA_API_KEY in .env.local or Vercel for live model inference.',
+        : 'Development Architect Engine active. Set GEMINI_API_KEY in Vercel for live model inference.',
     });
   } catch (error) {
     return Response.json(
