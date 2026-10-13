@@ -82,6 +82,8 @@ export default function GauravChatDrawer({
   currentNodes = [],
   currentEdges = [],
   onApplyBlueprint,
+  onExecuteControlAction,
+  runStatus = 'idle',
 }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -91,6 +93,8 @@ export default function GauravChatDrawer({
   const [providerNotice, setProviderNotice] = useState('');
   const [appliedMsgIds, setAppliedMsgIds] = useState(new Set());
   const [expandedConfigId, setExpandedConfigId] = useState(null);
+  const [executedActionIds, setExecutedActionIds] = useState(new Set());
+  const [confirmingActionId, setConfirmingActionId] = useState(null);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -158,6 +162,7 @@ export default function GauravChatDrawer({
         content: data.reply || 'Workflow architecture mapped successfully.',
         pipelinePreview: data.pipelinePreview || null,
         blueprint: data.blueprint || null,
+        actionIntent: data.actionIntent || null,
         provider: data.provider || 'GRA AI Architect',
       };
 
@@ -189,12 +194,27 @@ export default function GauravChatDrawer({
     }
   };
 
+  const handleTriggerControlAction = (msgId, actionIntent) => {
+    if (!actionIntent || !onExecuteControlAction) return;
+
+    if (actionIntent.requireConfirmation && confirmingActionId !== msgId) {
+      setConfirmingActionId(msgId);
+      return;
+    }
+
+    setConfirmingActionId(null);
+    setExecutedActionIds((prev) => new Set([...prev, msgId]));
+    onExecuteControlAction(actionIntent);
+  };
+
   const handleClear = () => {
     if (window.confirm('Clear conversation history with Gaurav for this agent?')) {
       const initial = clearGauravHistory(agentId, agentName);
       setMessages(initial);
       setAppliedMsgIds(new Set());
       setExpandedConfigId(null);
+      setExecutedActionIds(new Set());
+      setConfirmingActionId(null);
       setError('');
     }
   };
@@ -394,6 +414,78 @@ export default function GauravChatDrawer({
                         ))}
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* Phase 3: Interactive Agent Controller Action Card */}
+                {msg.actionIntent && (
+                  <div className="gauravControllerCard">
+                    <div className="gauravControllerHeader">
+                      <div className="gauravControllerTitle">
+                        <span>⚡ Agent Controller Command</span>
+                        <small>Target: {agentName} · Canvas Nodes: {currentNodes.length}</small>
+                      </div>
+                      <span className={`gauravActionBadge ${executedActionIds.has(msg.id) ? 'isExecuted' : 'isPending'}`}>
+                        {executedActionIds.has(msg.id) ? '✓ Executed' : '● Ready'}
+                      </span>
+                    </div>
+
+                    <div className="gauravControllerDetails">
+                      <div className="gauravActionMetaRow">
+                        <span className="gauravActionKey">Action:</span>
+                        <strong className="gauravActionVal">{msg.actionIntent.label}</strong>
+                      </div>
+                      <div className="gauravActionMetaRow">
+                        <span className="gauravActionKey">Status:</span>
+                        <span className="gauravActionStatusVal">
+                          {runStatus === 'running'
+                            ? 'Running...'
+                            : runStatus === 'waiting'
+                            ? 'Waiting for Partner Approval'
+                            : runStatus === 'completed'
+                            ? 'Completed'
+                            : runStatus === 'blocked'
+                            ? 'Blocked / Attention Required'
+                            : 'Ready to Trigger'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {confirmingActionId === msg.id && (
+                      <div className="gauravConfirmNotice">
+                        <strong>⚠️ Confirmation Required:</strong>
+                        <p>{msg.actionIntent.confirmPrompt || 'Are you sure you want to proceed with this live action?'}</p>
+                      </div>
+                    )}
+
+                    <div className="gauravControllerActions">
+                      <button
+                        type="button"
+                        className={`gauravTriggerActionBtn ${
+                          confirmingActionId === msg.id ? 'isConfirming' : ''
+                        }`}
+                        onClick={() => handleTriggerControlAction(msg.id, msg.actionIntent)}
+                        disabled={loading || (runStatus === 'running' && msg.actionIntent.type !== 'GET_STATUS')}
+                      >
+                        {confirmingActionId === msg.id ? (
+                          <span>⚠️ Click to Confirm & Execute Now</span>
+                        ) : executedActionIds.has(msg.id) ? (
+                          <span>🔄 Trigger Again ({msg.actionIntent.label})</span>
+                        ) : (
+                          <span>▶ Execute {msg.actionIntent.label}</span>
+                        )}
+                      </button>
+
+                      {confirmingActionId === msg.id && (
+                        <button
+                          type="button"
+                          className="gauravCancelConfirmBtn"
+                          onClick={() => setConfirmingActionId(null)}
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
