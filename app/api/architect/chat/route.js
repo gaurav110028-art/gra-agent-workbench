@@ -166,10 +166,11 @@ export async function POST(request) {
             messages: [
               {
                 role: 'system',
-                content: `You are GAURAV, an elite AI Automation Architect for a Chartered Accountancy & consultancy firm.
-Your job is to architect workflows combining triggers, data ingestion, AI processing, human approval gates, and actions.
-Follow strict rules:
-- No em dashes anywhere, ever. Use colons or hyphens.
+                content: `You are Gaurav, the AI Automation Architect for GRA Agent Workbench.
+When greeting or introducing yourself, introduce yourself as Gaurav.
+Strict formatting rules:
+- Never use em-dashes anywhere, ever. Use hyphens, colons, or parentheses.
+- Never use hashtags (#, ##, or ###) anywhere. Use clear bold titles and bullet points instead.
 - Use bullet points and concise technical breakdowns.
 - Always include an Approval Gate before sensitive external actions (sending emails, filings, WhatsApp).
 - Reference node types from the GRA workbench palette: schedule, trigger, googleSheets, pdfParser, aiAgent, condition, approval, bulkEmail, whatsappApi.`,
@@ -185,7 +186,12 @@ Follow strict rules:
 
         if (aiResponse.ok) {
           const aiData = await aiResponse.json();
-          const replyText = aiData?.choices?.[0]?.message?.content || '';
+          let replyText = aiData?.choices?.[0]?.message?.content || '';
+          // Clean any accidental hashtags or em-dashes
+          replyText = replyText
+            .replace(/—/g, '-')
+            .replace(/--/g, '-')
+            .replace(/^#{1,6}\s*/gm, '');
           const pipelinePreview = detectNodesFromPrompt(prompt);
 
           return Response.json({
@@ -207,20 +213,20 @@ Follow strict rules:
       .join('\n');
 
     const reply = `Bro, here is the automation architecture designed for **${agentName}**:\n\n` +
-      `### Workflow Architecture Blueprint\n` +
+      `**Workflow Architecture Blueprint:**\n` +
       `${stepsSummary}\n\n` +
-      `### Key Design Rules Applied:\n` +
+      `**Key Design Rules Applied:**\n` +
       `* **Input & Trigger:** Starts cleanly without requiring manual initiation every day.\n` +
       `* **AI Preparation:** Pre-fills and drafts compliance data or itemized calculations.\n` +
       `* **Human-in-the-Loop:** Includes a mandatory **CA Partner Approval Gate** so no client receives an email without partner sign-off.\n` +
       `* **Action & Output:** Dispatches via configured connectors with full audit history.\n\n` +
-      `*Phase 1 chat is ready. In Phase 2, clicking "Build on Canvas" will directly instantiate these ${pipelinePreview.length} nodes and connections on your workflow board.*`;
+      `*GRA AI Architect is ready. In Phase 2, clicking "Build on Canvas" will directly instantiate these ${pipelinePreview.length} nodes and connections on your workflow board.*`;
 
     return Response.json({
       reply,
       pipelinePreview,
       mode: hasLiveKey ? 'live' : 'dev-architect-engine',
-      provider: hasLiveKey ? 'Live AI' : 'GAURAV Dev Engine',
+      provider: hasLiveKey ? 'Live AI' : 'GRA AI Architect Dev Engine',
       notice: hasLiveKey
         ? 'Live AI model active'
         : 'Development Architect Engine active. Set GEMINI_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY in .env.local or Vercel for live model inference.',
