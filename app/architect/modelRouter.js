@@ -152,7 +152,7 @@ async function callGemini({ systemPrompt, userPrompt, temperature = 0.3 }) {
         ],
         generationConfig: {
           temperature,
-          maxOutputTokens: 1000,
+          maxOutputTokens: 180,
         },
       };
 
