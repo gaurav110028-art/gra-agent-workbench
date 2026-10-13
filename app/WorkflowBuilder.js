@@ -1649,6 +1649,81 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
       if (!actionIntent || !actionIntent.type) return;
 
       switch (actionIntent.type) {
+        case 'SCHEDULE_DAILY': {
+          try {
+            const res = await fetch('/api/architect/schedule', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'REGISTER_SCHEDULE',
+                agentId,
+                agentName,
+                cronExpression: '0 9 * * *',
+                frequency: actionIntent.frequency || 'Daily at 09:00 AM IST',
+                workflowSnapshot: { nodes, edges },
+              }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+              setPublishMessage(`24/7 schedule registered: ${data.schedule?.frequency || 'Daily 09:00 AM IST'}`);
+            }
+          } catch (err) {
+            console.error('Failed to register schedule:', err);
+          }
+          break;
+        }
+
+        case 'PAUSE_SCHEDULE': {
+          try {
+            await fetch('/api/architect/schedule', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'PAUSE_SCHEDULE', agentId, agentName }),
+            });
+            setPublishMessage(`Future scheduled runs paused for ${agentName}.`);
+          } catch (err) {
+            console.error('Failed to pause schedule:', err);
+          }
+          break;
+        }
+
+        case 'RESUME_SCHEDULE': {
+          try {
+            await fetch('/api/architect/schedule', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'RESUME_SCHEDULE', agentId, agentName }),
+            });
+            setPublishMessage(`24/7 schedule resumed for ${agentName}.`);
+          } catch (err) {
+            console.error('Failed to resume schedule:', err);
+          }
+          break;
+        }
+
+        case 'CANCEL_ACTIVE_RUN': {
+          if (currentRunRef.current?.id) {
+            try {
+              await fetch('/api/architect/schedule', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'CANCEL_ACTIVE_RUN',
+                  agentId,
+                  runId: currentRunRef.current.id,
+                  reason: 'User cancelled via GRA AI Architect',
+                }),
+              });
+            } catch (err) {
+              console.error('Failed to cancel active run:', err);
+            }
+          }
+          runnerRef.current?.rejectPaused?.();
+          setRunStatus('blocked');
+          setPublishMessage(`Active run cancelled for ${agentName}.`);
+          break;
+        }
+
         case 'RUN_TEST':
           await startEngineRun('test');
           break;
@@ -1678,7 +1753,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
           console.warn('Unknown control action:', actionIntent.type);
       }
     },
-    [startEngineRun, approveHumanStep, rejectHumanStep, validateWorkflow]
+    [startEngineRun, approveHumanStep, rejectHumanStep, validateWorkflow, agentId, agentName, nodes, edges]
   );
 
   const busy = runStatus === 'running' || auditProcessing;
