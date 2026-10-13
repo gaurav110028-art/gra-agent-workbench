@@ -129,27 +129,45 @@ async function callGemini({ systemPrompt, userPrompt, temperature = 0.3 }) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY is not configured');
 
-  // List of active models to try in order (gemini-2.0-flash is current standard)
-  const candidateModels = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-pro-latest'];
+  // List of active models to try in order
+  const candidateModels = [
+    'gemini-2.5-flash',
+    'gemini-2.0-flash',
+    'gemini-pro',
+    'gemini-1.5-flash',
+  ];
   let lastError = null;
 
   for (const model of candidateModels) {
     try {
-      const url = `${GEMINI_BASE_URL}/${model}:generateContent?key=${apiKey}`;
+      const url = `${GEMINI_BASE_URL}/${model}:generateContent`;
 
-      const contents = [];
+      const requestBody = {
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: userPrompt }],
+          },
+        ],
+        generationConfig: {
+          temperature,
+          maxOutputTokens: 1000,
+        },
+      };
+
       if (systemPrompt) {
-        contents.push({ role: 'user', parts: [{ text: `System Instruction: ${systemPrompt}` }] });
+        requestBody.system_instruction = {
+          parts: [{ text: systemPrompt }],
+        };
       }
-      contents.push({ role: 'user', parts: [{ text: userPrompt }] });
 
       const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents,
-          generationConfig: { temperature, maxOutputTokens: 1200 },
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
+        body: JSON.stringify(requestBody),
       });
 
       const raw = await res.json().catch(() => null);
@@ -161,7 +179,8 @@ async function callGemini({ systemPrompt, userPrompt, temperature = 0.3 }) {
       }
 
       if (!res.ok) {
-        lastError = new Error(raw?.error?.message || `Gemini ${model} returned HTTP ${res.status}`);
+        const msg = raw?.error?.message || `HTTP ${res.status}`;
+        lastError = new Error(`Gemini ${model}: ${msg}`);
       }
     } catch (err) {
       lastError = err;
