@@ -1,5 +1,10 @@
 export const runtime = 'nodejs';
 
+import {
+  buildBlueprintFromPrompt,
+  validateWorkflowBlueprint,
+} from '../../../architect/workflowGenerator.js';
+
 /* =========================================================
    GAURAV: Your AI Automation Architect - Chat API Route
    Endpoint: POST /api/architect/chat
@@ -136,6 +141,7 @@ export async function POST(request) {
     const payload = await request.json();
     const prompt = String(payload.prompt || '').trim();
     const currentNodes = Array.isArray(payload.currentNodes) ? payload.currentNodes : [];
+    const currentEdges = Array.isArray(payload.currentEdges) ? payload.currentEdges : [];
     const agentName = String(payload.agentName || 'Agent');
 
     if (!prompt) {
@@ -194,9 +200,21 @@ Strict formatting rules:
             .replace(/^#{1,6}\s*/gm, '');
           const pipelinePreview = detectNodesFromPrompt(prompt);
 
+          const rawBlueprint = buildBlueprintFromPrompt(prompt, currentNodes, currentEdges);
+          const validated = validateWorkflowBlueprint(rawBlueprint);
+          const blueprint = {
+            nodes: validated.nodes,
+            edges: validated.edges,
+            summary: rawBlueprint.summary,
+            changeType: rawBlueprint.changeType,
+            isValid: validated.isValid,
+            issues: validated.issues,
+          };
+
           return Response.json({
             reply: replyText,
             pipelinePreview,
+            blueprint,
             mode: 'live',
             provider: 'OpenAI (gpt-4o-mini)',
           });
@@ -212,6 +230,17 @@ Strict formatting rules:
       .map((node, index) => `${index + 1}. **${node.label}** (${node.role}): ${node.desc}`)
       .join('\n');
 
+    const rawBlueprint = buildBlueprintFromPrompt(prompt, currentNodes, currentEdges);
+    const validated = validateWorkflowBlueprint(rawBlueprint);
+    const blueprint = {
+      nodes: validated.nodes,
+      edges: validated.edges,
+      summary: rawBlueprint.summary,
+      changeType: rawBlueprint.changeType,
+      isValid: validated.isValid,
+      issues: validated.issues,
+    };
+
     const reply = `Bro, here is the automation architecture designed for **${agentName}**:\n\n` +
       `**Workflow Architecture Blueprint:**\n` +
       `${stepsSummary}\n\n` +
@@ -220,11 +249,12 @@ Strict formatting rules:
       `* **AI Preparation:** Pre-fills and drafts compliance data or itemized calculations.\n` +
       `* **Human-in-the-Loop:** Includes a mandatory **CA Partner Approval Gate** so no client receives an email without partner sign-off.\n` +
       `* **Action & Output:** Dispatches via configured connectors with full audit history.\n\n` +
-      `*GRA AI Architect is ready. In Phase 2, clicking "Build on Canvas" will directly instantiate these ${pipelinePreview.length} nodes and connections on your workflow board.*`;
+      `Click **Apply to Canvas** below to load these ${blueprint.nodes.length} nodes and ${blueprint.edges.length} connections directly onto your visual workflow board.`;
 
     return Response.json({
       reply,
       pipelinePreview,
+      blueprint,
       mode: hasLiveKey ? 'live' : 'dev-architect-engine',
       provider: hasLiveKey ? 'Live AI' : 'GRA AI Architect Dev Engine',
       notice: hasLiveKey
