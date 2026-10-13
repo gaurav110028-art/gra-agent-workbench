@@ -34,7 +34,38 @@ function detectIntent(text) {
     return { type: 'CONVERSATION', isGreeting, isCaringQuery, clean };
   }
 
-  // 2. Execution / Controller Commands
+  // 2. 24/7 Automation & Schedule Controller Commands
+  if (clean.includes('schedule') || clean.includes('run every') || clean.includes('automate daily') || clean.includes('24/7')) {
+    return {
+      type: 'CONTROLLER',
+      action: 'SCHEDULE_DAILY',
+      label: 'Schedule 24/7 Daily Run',
+      frequency: 'Daily at 09:00 AM IST',
+    };
+  }
+  if (clean.includes('pause schedule') || clean.includes('pause future') || clean.includes('pause agent')) {
+    return {
+      type: 'CONTROLLER',
+      action: 'PAUSE_SCHEDULE',
+      label: 'Pause Future Runs',
+    };
+  }
+  if (clean.includes('resume schedule') || clean.includes('resume agent') || clean.includes('unpause')) {
+    return {
+      type: 'CONTROLLER',
+      action: 'RESUME_SCHEDULE',
+      label: 'Resume 24/7 Schedule',
+    };
+  }
+  if (clean.includes('cancel') || clean.includes('stop active') || clean.includes('stop running') || clean.includes('abort run') || clean.includes('terminate')) {
+    return {
+      type: 'CONTROLLER',
+      action: 'CANCEL_ACTIVE_RUN',
+      label: 'Cancel Active Run',
+    };
+  }
+
+  // 3. Execution / Controller Commands
   if (clean.includes('test run') || clean.includes('run test') || clean.includes('try run')) {
     return { type: 'CONTROLLER', action: 'RUN_TEST', label: 'Test Run Workflow' };
   }
@@ -60,7 +91,7 @@ function detectIntent(text) {
     return { type: 'CONTROLLER', action: 'GET_STATUS', label: 'Check Execution Status' };
   }
 
-  // 3. Workflow generation / modification
+  // 4. Workflow generation / modification
   return { type: 'WORKFLOW_BUILDER' };
 }
 
@@ -253,6 +284,30 @@ export async function POST(request) {
       let reply = '';
 
       switch (intent.action) {
+        case 'SCHEDULE_DAILY':
+          reply = `Configuring 24/7 background schedule for **${agentName}**.\n\n` +
+            `* **Schedule:** Daily at 09:00 AM IST\n` +
+            `* **Trigger Type:** Automated timer trigger\n` +
+            `* **Execution Mode:** Background cloud execution (runs reliably even if your browser is closed)\n` +
+            `* **Safety Retries:** 3 automatic retry attempts with exponential backoff on transient errors\n\n` +
+            `Click **Register 24/7 Schedule** below to activate persistent automation.`;
+          break;
+
+        case 'PAUSE_SCHEDULE':
+          reply = `Pausing future 24/7 automated runs for **${agentName}**.\n\n` +
+            `Upcoming scheduled triggers will be held without cancelling any execution that is actively running right now.`;
+          break;
+
+        case 'RESUME_SCHEDULE':
+          reply = `Resuming 24/7 automated runs for **${agentName}**.\n\n` +
+            `The agent is now active and will fire on its next scheduled interval.`;
+          break;
+
+        case 'CANCEL_ACTIVE_RUN':
+          reply = `Cancelling currently active execution for **${agentName}**.\n\n` +
+            `The running pipeline will be safely aborted and logged in the execution audit history.`;
+          break;
+
         case 'RUN_TEST':
           reply = `Initiating a simulated Test Run for **${agentName}**.\n\n` +
             `All steps will run in test mode with sample data so you can safely verify the pipeline without sending real communications.`;
