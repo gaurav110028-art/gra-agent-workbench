@@ -8,6 +8,73 @@ import {
   clearGauravHistory,
 } from './gauravStore';
 
+function renderBoldText(text) {
+  const parts = String(text || '').split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
+function formatMessageContent(content) {
+  if (!content) return null;
+
+  // 1. Remove em-dashes and replace with clean hyphen/colon
+  const withoutEmDashes = String(content)
+    .replace(/—/g, ' - ')
+    .replace(/--/g, ' - ');
+
+  // 2. Split lines and process
+  const lines = withoutEmDashes.split('\n');
+  const elements = [];
+
+  lines.forEach((rawLine, index) => {
+    let line = rawLine.trim();
+    if (!line) return;
+
+    // 3. Strip any hashtags completely
+    line = line.replace(/^#{1,6}\s*/, '');
+
+    // Check if line is a section header (e.g., ends with colon or was a heading)
+    const isHeading =
+      rawLine.trim().startsWith('#') ||
+      (line.endsWith(':') && line.length < 55 && !line.startsWith('*') && !/^\d+\./.test(line));
+
+    if (isHeading) {
+      elements.push(
+        <h4 key={index} className="gauravMsgHeading">
+          {line.replace(/\*\*/g, '')}
+        </h4>
+      );
+    } else if (line.startsWith('* ') || line.startsWith('- ')) {
+      elements.push(
+        <div key={index} className="gauravMsgBulletRow">
+          <span className="gauravBulletDot">•</span>
+          <span className="gauravBulletText">{renderBoldText(line.slice(2))}</span>
+        </div>
+      );
+    } else if (/^\d+\.\s*/.test(line)) {
+      const match = line.match(/^(\d+)\.\s*(.*)/);
+      elements.push(
+        <div key={index} className="gauravMsgNumberedRow">
+          <span className="gauravNumBadge">{match ? match[1] : '•'}</span>
+          <span className="gauravNumText">{renderBoldText(match ? match[2] : line)}</span>
+        </div>
+      );
+    } else {
+      elements.push(
+        <p key={index} className="gauravMsgParagraph">
+          {renderBoldText(line)}
+        </p>
+      );
+    }
+  });
+
+  return elements;
+}
+
 export default function GauravChatDrawer({
   isOpen,
   onClose,
@@ -88,15 +155,15 @@ export default function GauravChatDrawer({
         timestamp: new Date().toISOString(),
         content: data.reply || 'Workflow architecture mapped successfully.',
         pipelinePreview: data.pipelinePreview || null,
-        provider: data.provider || 'GAURAV Dev Engine',
+        provider: data.provider || 'GRA AI Architect',
       };
 
       const finalMessages = [...nextMessages, botMsg];
       setMessages(finalMessages);
       saveGauravHistory(agentId, finalMessages);
     } catch (err) {
-      console.error('GAURAV chat request failed:', err);
-      setError(err?.message || 'Failed to reach GAURAV Architect service.');
+      console.error('GRA AI Architect chat request failed:', err);
+      setError(err?.message || 'Failed to reach GRA AI Architect service.');
     } finally {
       setLoading(false);
     }
@@ -110,7 +177,7 @@ export default function GauravChatDrawer({
   };
 
   const handleClear = () => {
-    if (window.confirm('Clear conversation history with GAURAV for this agent?')) {
+    if (window.confirm('Clear conversation history with Gaurav for this agent?')) {
       const initial = clearGauravHistory(agentId, agentName);
       setMessages(initial);
       setError('');
@@ -124,18 +191,22 @@ export default function GauravChatDrawer({
       <aside
         className="gauravDrawerContainer"
         onClick={(e) => e.stopPropagation()}
-        aria-label="GAURAV AI Automation Architect"
+        aria-label="GRA AI Architect"
       >
         {/* Header */}
         <div className="gauravDrawerHeader">
           <div className="gauravDrawerBrand">
             <div className="gauravAvatar">
-              <span className="gauravAvatarLetter">G</span>
+              <img
+                src="/gra-ai-logo.png"
+                alt="GRA AI Architect"
+                className="gauravAvatarImg"
+              />
               <span className="gauravPulseDot" />
             </div>
             <div className="gauravBrandText">
               <div className="gauravTitleRow">
-                <h3>GAURAV</h3>
+                <h3>GRA AI Architect</h3>
                 <span
                   className={`gauravModeBadge ${
                     engineMode === 'live' ? 'isLive' : 'isDev'
@@ -205,13 +276,19 @@ export default function GauravChatDrawer({
               }`}
             >
               {msg.sender === 'assistant' && (
-                <div className="gauravMsgAvatar">G</div>
+                <div className="gauravMsgAvatar">
+                  <img
+                    src="/gra-ai-logo.png"
+                    alt="Gaurav"
+                    className="gauravMsgAvatarImg"
+                  />
+                </div>
               )}
 
               <div className="gauravMsgBubble">
                 <div className="gauravMsgHeader">
                   <strong>
-                    {msg.sender === 'user' ? 'You' : 'GAURAV'}
+                    {msg.sender === 'user' ? 'You' : 'Gaurav'}
                   </strong>
                   <small>
                     {new Date(msg.timestamp).toLocaleTimeString([], {
@@ -222,9 +299,7 @@ export default function GauravChatDrawer({
                 </div>
 
                 <div className="gauravMsgContent">
-                  {msg.content.split('\n\n').map((para, i) => (
-                    <p key={i}>{para}</p>
-                  ))}
+                  {formatMessageContent(msg.content)}
                 </div>
 
                 {/* Pipeline Card */}
@@ -261,7 +336,13 @@ export default function GauravChatDrawer({
 
           {loading && (
             <div className="gauravMessageRow isAssistant">
-              <div className="gauravMsgAvatar">G</div>
+              <div className="gauravMsgAvatar">
+                <img
+                  src="/gra-ai-logo.png"
+                  alt="Gaurav"
+                  className="gauravMsgAvatarImg"
+                />
+              </div>
               <div className="gauravMsgBubble gauravLoadingBubble">
                 <span className="gauravThinkingText">Architecting workflow</span>
                 <span className="gauravThinkingDots">
@@ -307,7 +388,7 @@ export default function GauravChatDrawer({
           </div>
           <div className="gauravInputHelp">
             <span>Press Enter to send, Shift+Enter for new line.</span>
-            <span>GAURAV v1.0</span>
+            <span>GRA AI Architect v1.0</span>
           </div>
         </div>
       </aside>
