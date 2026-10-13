@@ -266,10 +266,11 @@ export default function GauravChatDrawer({
                   title="Select AI Model Provider"
                 >
                   <option value="auto">Auto Router (Smart Fallback)</option>
+                  <option value="groq">Groq (Llama 3.3 70B - Ultra Fast)</option>
+                  <option value="openrouter">OpenRouter (Free 70B Models)</option>
                   <option value="gemini">Google Gemini (3.8 Flash)</option>
                   <option value="openai">OpenAI (GPT-4o mini)</option>
                   <option value="anthropic">Anthropic (Claude Haiku 4.5)</option>
-                  <option value="nvidia">NVIDIA NIM (Llama 3.1 70B)</option>
                 </select>
               </div>
             </div>
