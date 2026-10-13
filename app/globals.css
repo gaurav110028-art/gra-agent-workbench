@@ -10043,3 +10043,255 @@ textarea:focus-visible {
   color: var(--text-muted);
 }
 
+/* =========================================================
+   Phase 2: Visual Workflow Blueprint Card Styles
+========================================================= */
+
+.gauravBlueprintCard {
+  margin-top: 14px;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: var(--bg-main);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.gauravBlueprintHeader {
+  padding: 10px 14px;
+  background: rgba(16, 185, 129, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.gauravBlueprintTitle {
+  display: flex;
+  flex-direction: column;
+}
+
+.gauravBlueprintTitle span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #34d399;
+  letter-spacing: -0.01em;
+}
+
+.gauravBlueprintTitle small {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.gauravReadyBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.gauravAppliedBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.gauravBlueprintNodesList {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.gauravBlueprintNodeItem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.15s ease;
+}
+
+.gauravBlueprintNodeItem:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.gauravNodeIndex {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  width: 14px;
+}
+
+.gauravNodeIcon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--bg-surface-3);
+  color: #34d399;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.gauravNodeMeta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.gauravNodeMeta strong {
+  font-size: 11.5px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gauravNodeMeta small {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gauravNodeGroupTag {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 6px;
+  background: var(--bg-surface-3);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+/* Actions */
+.gauravBlueprintActions {
+  padding: 10px 12px;
+  background: var(--bg-surface-2);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.gauravApplyBtn {
+  flex: 1;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: 1px solid #34d399;
+  border-radius: 7px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+  transition: all 0.15s ease;
+}
+
+.gauravApplyBtn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.5);
+  transform: translateY(-1px);
+}
+
+.gauravAppendBtn {
+  padding: 8px 12px;
+  background: var(--bg-surface-3);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-primary);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.gauravAppendBtn:hover {
+  background: var(--bg-surface-hover);
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.gauravInspectBtn {
+  padding: 8px 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.gauravInspectBtn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+/* Config Inspector Drawer */
+.gauravBlueprintDetails {
+  padding: 12px;
+  background: var(--bg-main);
+  border-top: 1px solid var(--border);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.gauravDetailsHeader {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.gauravNodeConfigRow {
+  margin-bottom: 8px;
+}
+
+.gauravNodeConfigTitle {
+  font-size: 11px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.gauravNodeConfigTitle code {
+  color: #34d399;
+  font-size: 10px;
+}
+
+.gauravNodeConfigJson {
+  margin: 0;
+  padding: 6px 8px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.4;
+  max-height: 90px;
+  overflow-y: auto;
+}
+
+
