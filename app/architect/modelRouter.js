@@ -129,34 +129,46 @@ async function callGemini({ systemPrompt, userPrompt, temperature = 0.3 }) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY is not configured');
 
-  const model = 'gemini-1.5-flash';
-  const url = `${GEMINI_BASE_URL}/${model}:generateContent?key=${apiKey}`;
+  // List of active models to try in order (gemini-2.0-flash is current standard)
+  const candidateModels = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-pro-latest'];
+  let lastError = null;
 
-  const contents = [];
-  if (systemPrompt) {
-    contents.push({ role: 'user', parts: [{ text: `System Instruction: ${systemPrompt}` }] });
+  for (const model of candidateModels) {
+    try {
+      const url = `${GEMINI_BASE_URL}/${model}:generateContent?key=${apiKey}`;
+
+      const contents = [];
+      if (systemPrompt) {
+        contents.push({ role: 'user', parts: [{ text: `System Instruction: ${systemPrompt}` }] });
+      }
+      contents.push({ role: 'user', parts: [{ text: userPrompt }] });
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents,
+          generationConfig: { temperature, maxOutputTokens: 1200 },
+        }),
+      });
+
+      const raw = await res.json().catch(() => null);
+      if (res.ok && raw?.candidates?.[0]?.content?.parts?.[0]?.text) {
+        const text = raw.candidates[0].content.parts[0].text;
+        const inTokens = raw?.usageMetadata?.promptTokenCount || 0;
+        const outTokens = raw?.usageMetadata?.candidatesTokenCount || 0;
+        return { text, model, inTokens, outTokens, provider: 'gemini' };
+      }
+
+      if (!res.ok) {
+        lastError = new Error(raw?.error?.message || `Gemini ${model} returned HTTP ${res.status}`);
+      }
+    } catch (err) {
+      lastError = err;
+    }
   }
-  contents.push({ role: 'user', parts: [{ text: userPrompt }] });
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents,
-      generationConfig: { temperature, maxOutputTokens: 1200 },
-    }),
-  });
-
-  const raw = await res.json().catch(() => null);
-  if (!res.ok) {
-    throw new Error(raw?.error?.message || `Gemini returned HTTP ${res.status}`);
-  }
-
-  const text = raw?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  const inTokens = raw?.usageMetadata?.promptTokenCount || 0;
-  const outTokens = raw?.usageMetadata?.candidatesTokenCount || 0;
-
-  return { text, model, inTokens, outTokens, provider: 'gemini' };
+  throw lastError || new Error('All Gemini candidate models failed.');
 }
 
 /**
