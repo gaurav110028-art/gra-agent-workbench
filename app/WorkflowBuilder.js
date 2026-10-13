@@ -1724,6 +1724,37 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
           break;
         }
 
+        case 'DEBUG_WORKFLOW': {
+          try {
+            const res = await fetch('/api/architect/advanced', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'DEBUG_AND_REPAIR', nodes, edges }),
+            });
+            const data = await res.json();
+            if (data?.report?.repairedBlueprint) {
+              handleApplyBlueprint(data.report.repairedBlueprint, 'replace');
+              setPublishMessage(data.report.repairedBlueprint.summary || 'Workflow auto-repaired.');
+            } else if (!data?.report?.hasErrors) {
+              setPublishMessage('Workflow verified: 0 structural errors detected.');
+            }
+          } catch (err) {
+            console.error('Debug and repair failed:', err);
+          }
+          break;
+        }
+
+        case 'SHOW_TEMPLATES': {
+          setPublishMessage('Tip: Pick a template when creating an agent, or ask Gaurav to generate one.');
+          break;
+        }
+
+        case 'SHOW_AUDIT_TRAIL': {
+          setPanelMode('run');
+          setConsoleCollapsed(false);
+          break;
+        }
+
         case 'RUN_TEST':
           await startEngineRun('test');
           break;
