@@ -10470,4 +10470,49 @@ textarea:focus-visible {
   border-color: var(--border-strong);
 }
 
+/* =========================================================
+   PHASE 5: MULTI-MODEL AI ROUTER STYLES
+========================================================= */
+
+.gauravModelSelectRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.gauravModelDropdown {
+  background: var(--bg-surface-2);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 11px;
+  padding: 3px 6px;
+  outline: none;
+  cursor: pointer;
+  max-width: 175px;
+}
+
+.gauravModelDropdown:focus {
+  border-color: #3b82f6;
+}
+
+.gauravMsgMetaRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gauravMsgModelBadge {
+  font-size: 9px;
+  padding: 1px 6px;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 10px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
 
