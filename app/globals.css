@@ -9377,44 +9377,71 @@ textarea:focus-visible {
 }
 
 /* =========================================================
-   GAURAV: Your AI Automation Architect — Phase 1 Styles
+/* =========================================================
+   GRA AI Architect — Phase 1 & Visual Refresh Styles
 ========================================================= */
+
+.navItemArchitect {
+  margin-bottom: 8px !important;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(99, 102, 241, 0.14)) !important;
+  border: 1px solid rgba(16, 185, 129, 0.35) !important;
+  color: #34d399 !important;
+  font-weight: 600;
+}
+
+.navItemArchitect:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(99, 102, 241, 0.25)) !important;
+  border-color: #34d399 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.3);
+}
+
+.navItemArchitect.active {
+  background: linear-gradient(135deg, #10b981, #6366f1) !important;
+  color: #ffffff !important;
+  border-color: #6ee7b7 !important;
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.4);
+}
+
+.sidebarAiLogo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
+}
+
+.topbarAiLogo {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  border-radius: 3px;
+}
 
 .gauravArchitectToggleBtn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(168, 85, 247, 0.22)) !important;
-  border: 1px solid rgba(168, 85, 247, 0.45) !important;
-  color: #c084fc !important;
+  gap: 7px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(99, 102, 241, 0.2)) !important;
+  border: 1px solid rgba(16, 185, 129, 0.45) !important;
+  color: #34d399 !important;
   font-weight: 600;
-  box-shadow: 0 0 12px rgba(168, 85, 247, 0.15);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
   transition: all 0.2s ease;
 }
 
 .gauravArchitectToggleBtn:hover {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.35)) !important;
-  border-color: #c084fc !important;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.28), rgba(99, 102, 241, 0.32)) !important;
+  border-color: #34d399 !important;
   color: #ffffff !important;
-  box-shadow: 0 0 18px rgba(168, 85, 247, 0.3);
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.3);
   transform: translateY(-1px);
 }
 
 .gauravArchitectToggleBtn.active {
-  background: linear-gradient(135deg, #6366f1, #a855f7) !important;
-  border-color: #d8b4fe !important;
+  background: linear-gradient(135deg, #10b981, #6366f1) !important;
+  border-color: #6ee7b7 !important;
   color: #ffffff !important;
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
-}
-
-.gauravSparkle {
-  font-size: 13px;
-  animation: gauravSparklePulse 2s infinite ease-in-out;
-}
-
-@keyframes gauravSparklePulse {
-  0%, 100% { transform: scale(1); opacity: 0.9; }
-  50% { transform: scale(1.2); opacity: 1; }
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
 }
 
 /* Drawer Overlay & Panel */
@@ -9469,17 +9496,21 @@ textarea:focus-visible {
 
 .gauravAvatar {
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
+  background: #0f172a;
+  border: 1px solid rgba(16, 185, 129, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  font-weight: 700;
-  font-size: 18px;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+}
+
+.gauravAvatarImg {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .gauravPulseDot {
@@ -9633,7 +9664,7 @@ textarea:focus-visible {
 
 .gauravSuggestionChip:hover {
   background: var(--bg-surface-hover);
-  border-color: rgba(168, 85, 247, 0.4);
+  border-color: rgba(16, 185, 129, 0.4);
   transform: translateY(-1px);
 }
 
@@ -9641,7 +9672,7 @@ textarea:focus-visible {
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  color: #c084fc;
+  color: #34d399;
   letter-spacing: 0.04em;
 }
 
@@ -9681,17 +9712,21 @@ textarea:focus-visible {
 }
 
 .gauravMsgAvatar {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
+  background: #0f172a;
+  border: 1px solid rgba(16, 185, 129, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  font-weight: 700;
-  font-size: 12px;
   flex-shrink: 0;
+}
+
+.gauravMsgAvatarImg {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
 }
 
 .gauravMsgBubble {
@@ -9705,8 +9740,8 @@ textarea:focus-visible {
 }
 
 .gauravMessageRow.isUser .gauravMsgBubble {
-  background: rgba(99, 102, 241, 0.16);
-  border-color: rgba(99, 102, 241, 0.35);
+  background: rgba(16, 185, 129, 0.14);
+  border-color: rgba(16, 185, 129, 0.35);
 }
 
 .gauravMsgHeader {
@@ -9727,25 +9762,73 @@ textarea:focus-visible {
   color: var(--text-muted);
 }
 
-.gauravMsgContent p {
-  margin: 0 0 8px 0;
-}
-
-.gauravMsgContent p:last-child {
-  margin-bottom: 0;
-}
-
-.gauravMsgContent strong {
-  color: var(--text-primary);
-}
-
-.gauravMsgContent h3 {
-  font-size: 12px;
+/* Clean Typography (NO HASHTAGS) */
+.gauravMsgHeading {
+  margin: 12px 0 6px 0;
+  font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  color: #c084fc;
-  margin: 10px 0 4px 0;
-  letter-spacing: 0.04em;
+  color: #34d399;
+  letter-spacing: -0.01em;
+}
+
+.gauravMsgHeading:first-child {
+  margin-top: 2px;
+}
+
+.gauravMsgBulletRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 4px 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.gauravBulletDot {
+  color: #34d399;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.gauravBulletText {
+  flex: 1;
+}
+
+.gauravMsgNumberedRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 5px 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.gauravNumBadge {
+  min-width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.gauravNumText {
+  flex: 1;
+}
+
+.gauravMsgParagraph {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.gauravMsgParagraph:last-child {
+  margin-bottom: 0;
 }
 
 /* Pipeline Breakdown Card */
