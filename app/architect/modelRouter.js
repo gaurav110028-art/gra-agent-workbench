@@ -4,7 +4,7 @@
    1. Google Gemini (Gemini 2.0 Flash / 3.8 Flash)
    2. OpenAI (GPT-4o / GPT-4o-mini)
    3. Anthropic Claude (Claude 3.5 Sonnet / Haiku 4.5)
-   4. NVIDIA NIM (DeepSeek / Llama-3 / Mistral via NVIDIA API)
+   4. Groq (Llama-3.3 70B / Gemma2 via Groq LPU, permanent free tier)
 
    Features:
    - Configurable priority router with automatic fallback
@@ -21,9 +21,10 @@ globalThis.__gra_ai_telemetry = globalThis.__gra_ai_telemetry || {
   fallbackEvents: 0,
   byProvider: {
     gemini: { calls: 0, errors: 0, totalInputTokens: 0, totalOutputTokens: 0 },
+    groq: { calls: 0, errors: 0, totalInputTokens: 0, totalOutputTokens: 0 },
+    openrouter: { calls: 0, errors: 0, totalInputTokens: 0, totalOutputTokens: 0 },
     openai: { calls: 0, errors: 0, totalInputTokens: 0, totalOutputTokens: 0 },
     anthropic: { calls: 0, errors: 0, totalInputTokens: 0, totalOutputTokens: 0 },
-    nvidia: { calls: 0, errors: 0, totalInputTokens: 0, totalOutputTokens: 0 },
     dev_engine: { calls: 0, errors: 0, totalInputTokens: 0, totalOutputTokens: 0 },
   },
   recentLogs: [],
@@ -32,7 +33,8 @@ globalThis.__gra_ai_telemetry = globalThis.__gra_ai_telemetry || {
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 const OPENAI_BASE_URL = 'https://api.openai.com/v1/chat/completions';
 const ANTHROPIC_BASE_URL = 'https://api.anthropic.com/v1/messages';
-const NVIDIA_BASE_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
+const GROQ_BASE_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 /**
  * Returns available provider list based on configured environment keys
@@ -45,6 +47,24 @@ export function getAvailableProviders() {
       id: 'gemini',
       name: 'Google Gemini',
       model: 'gemini-3.8-flash',
+      status: 'active',
+    });
+  }
+
+  if (process.env.GROQ_API_KEY) {
+    providers.push({
+      id: 'groq',
+      name: 'Groq (Ultra Fast)',
+      model: 'llama-3.3-70b-versatile',
+      status: 'active',
+    });
+  }
+
+  if (process.env.OPENROUTER_API_KEY) {
+    providers.push({
+      id: 'openrouter',
+      name: 'OpenRouter (Free Models)',
+      model: 'meta-llama/llama-3.3-70b-instruct:free',
       status: 'active',
     });
   }
@@ -63,15 +83,6 @@ export function getAvailableProviders() {
       id: 'anthropic',
       name: 'Anthropic Claude',
       model: 'claude-haiku-4-5-20251001',
-      status: 'active',
-    });
-  }
-
-  if (process.env.NVIDIA_API_KEY) {
-    providers.push({
-      id: 'nvidia',
-      name: 'NVIDIA NIM',
-      model: 'meta/llama-3.1-70b-instruct',
       status: 'active',
     });
   }
@@ -268,18 +279,20 @@ async function callAnthropic({ systemPrompt, userPrompt, temperature = 0.3 }) {
 }
 
 /**
- * Call NVIDIA NIM API
+ * Call Groq API (OpenAI-compatible, permanent free tier)
+ * Signup: console.groq.com (no credit card needed)
+ * Models: llama-3.3-70b-versatile, gemma2-9b-it, mixtral-8x7b-32768
  */
-async function callNvidia({ systemPrompt, userPrompt, temperature = 0.3 }) {
-  const apiKey = process.env.NVIDIA_API_KEY;
-  if (!apiKey) throw new Error('NVIDIA_API_KEY is not configured');
+async function callGroq({ systemPrompt, userPrompt, temperature = 0.3 }) {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error('GROQ_API_KEY is not configured');
 
-  const model = 'meta/llama-3.1-70b-instruct';
+  const model = 'llama-3.3-70b-versatile';
   const messages = [];
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
   messages.push({ role: 'user', content: userPrompt });
 
-  const res = await fetch(NVIDIA_BASE_URL, {
+  const res = await fetch(GROQ_BASE_URL, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -295,14 +308,54 @@ async function callNvidia({ systemPrompt, userPrompt, temperature = 0.3 }) {
 
   const raw = await res.json().catch(() => null);
   if (!res.ok) {
-    throw new Error(raw?.error?.message || `NVIDIA returned HTTP ${res.status}`);
+    throw new Error(raw?.error?.message || `Groq returned HTTP ${res.status}`);
   }
 
   const text = raw?.choices?.[0]?.message?.content || '';
   const inTokens = raw?.usage?.prompt_tokens || 0;
   const outTokens = raw?.usage?.completion_tokens || 0;
 
-  return { text, model, inTokens, outTokens, provider: 'nvidia' };
+  return { text, model, inTokens, outTokens, provider: 'groq' };
+}
+
+/**
+ * Call OpenRouter API (Access to free 70B models)
+ */
+async function callOpenRouter({ systemPrompt, userPrompt, temperature = 0.3 }) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) throw new Error('OPENROUTER_API_KEY is not configured');
+
+  const model = 'meta-llama/llama-3.3-70b-instruct:free';
+  const messages = [];
+  if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
+  messages.push({ role: 'user', content: userPrompt });
+
+  const res = await fetch(OPENROUTER_BASE_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://gra-agent-workbench.vercel.app',
+      'X-Title': 'GRA Agent Workbench',
+    },
+    body: JSON.stringify({
+      model,
+      temperature,
+      max_tokens: 350,
+      messages,
+    }),
+  });
+
+  const raw = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new Error(raw?.error?.message || `OpenRouter returned HTTP ${res.status}`);
+  }
+
+  const text = raw?.choices?.[0]?.message?.content || '';
+  const inTokens = raw?.usage?.prompt_tokens || 0;
+  const outTokens = raw?.usage?.completion_tokens || 0;
+
+  return { text, model, inTokens, outTokens, provider: 'openrouter' };
 }
 
 /**
@@ -317,9 +370,10 @@ export async function executeWithRouter({
 }) {
   const callProviderMap = {
     gemini: callGemini,
+    groq: callGroq,
+    openrouter: callOpenRouter,
     openai: callOpenAI,
     anthropic: callAnthropic,
-    nvidia: callNvidia,
   };
 
   // Determine priority order
@@ -328,8 +382,8 @@ export async function executeWithRouter({
     order.push(preferredProvider);
   }
 
-  // Add all other configured providers in priority: Gemini -> OpenAI -> Anthropic -> NVIDIA
-  ['gemini', 'openai', 'anthropic', 'nvidia'].forEach((p) => {
+  // Priority order: Groq (ultra fast) -> Gemini -> OpenRouter -> OpenAI -> Anthropic
+  ['groq', 'gemini', 'openrouter', 'openai', 'anthropic'].forEach((p) => {
     if (!order.includes(p)) order.push(p);
   });
 
@@ -341,9 +395,10 @@ export async function executeWithRouter({
     // Check if key is available before trying
     const hasKey =
       (providerKey === 'gemini' && process.env.GEMINI_API_KEY) ||
+      (providerKey === 'groq' && process.env.GROQ_API_KEY) ||
+      (providerKey === 'openrouter' && process.env.OPENROUTER_API_KEY) ||
       (providerKey === 'openai' && process.env.OPENAI_API_KEY) ||
-      (providerKey === 'anthropic' && process.env.ANTHROPIC_API_KEY) ||
-      (providerKey === 'nvidia' && process.env.NVIDIA_API_KEY);
+      (providerKey === 'anthropic' && process.env.ANTHROPIC_API_KEY);
 
     if (!hasKey) continue;
 
