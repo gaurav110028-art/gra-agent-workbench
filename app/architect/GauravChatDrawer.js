@@ -95,6 +95,8 @@ export default function GauravChatDrawer({
   const [expandedConfigId, setExpandedConfigId] = useState(null);
   const [executedActionIds, setExecutedActionIds] = useState(new Set());
   const [confirmingActionId, setConfirmingActionId] = useState(null);
+  const [selectedProvider, setSelectedProvider] = useState('auto');
+  const [activeModelName, setActiveModelName] = useState('gra-architect-rule-v2');
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -143,6 +145,7 @@ export default function GauravChatDrawer({
           agentName,
           currentNodes,
           currentEdges,
+          preferredProvider: selectedProvider !== 'auto' ? selectedProvider : undefined,
         }),
       });
 
@@ -154,6 +157,7 @@ export default function GauravChatDrawer({
 
       if (data.mode) setEngineMode(data.mode);
       if (data.notice) setProviderNotice(data.notice);
+      if (data.model) setActiveModelName(data.model);
 
       const botMsg = {
         id: `assistant-${Date.now()}`,
@@ -164,6 +168,8 @@ export default function GauravChatDrawer({
         blueprint: data.blueprint || null,
         actionIntent: data.actionIntent || null,
         provider: data.provider || 'GRA AI Architect',
+        model: data.model || null,
+        fallbackUsed: data.fallbackUsed || false,
       };
 
       const finalMessages = [...nextMessages, botMsg];
@@ -251,7 +257,21 @@ export default function GauravChatDrawer({
                   {engineMode === 'live' ? '● Live AI' : '● Dev Engine'}
                 </span>
               </div>
-              <p className="gauravTagline">Your AI Automation Architect</p>
+              <div className="gauravModelSelectRow">
+                <span className="gauravTagline">Your AI Automation Architect</span>
+                <select
+                  className="gauravModelDropdown"
+                  value={selectedProvider}
+                  onChange={(e) => setSelectedProvider(e.target.value)}
+                  title="Select AI Model Provider"
+                >
+                  <option value="auto">Auto Router (Smart Fallback)</option>
+                  <option value="gemini">Google Gemini (1.5 Flash)</option>
+                  <option value="openai">OpenAI (GPT-4o mini)</option>
+                  <option value="anthropic">Anthropic (Claude Haiku 4.5)</option>
+                  <option value="nvidia">NVIDIA NIM (Llama 3.1 70B)</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -325,12 +345,20 @@ export default function GauravChatDrawer({
                   <strong>
                     {msg.sender === 'user' ? 'You' : 'Gaurav'}
                   </strong>
-                  <small>
-                    {new Date(msg.timestamp).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </small>
+                  <div className="gauravMsgMetaRight">
+                    {msg.sender === 'assistant' && msg.provider && (
+                      <span className="gauravMsgModelBadge" title={`Model: ${msg.model || msg.provider}`}>
+                        {msg.provider}
+                        {msg.fallbackUsed ? ' (fallback)' : ''}
+                      </span>
+                    )}
+                    <small>
+                      {new Date(msg.timestamp).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </small>
+                  </div>
                 </div>
 
                 <div className="gauravMsgContent">
