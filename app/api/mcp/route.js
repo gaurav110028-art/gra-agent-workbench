@@ -1,4 +1,4 @@
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 
 import {
   getAllSchedules,
@@ -22,6 +22,7 @@ import {
    
    Supports:
    - initialize: MCP server handshake
+   - notifications/initialized: MCP lifecycle confirmation
    - tools/list: Exposes tools to ChatGPT
    - tools/call: Executes tools invoked by ChatGPT
    - resources/list: Exposes agent templates and recent logs
@@ -30,7 +31,8 @@ import {
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key, mcp-session-id, mcp-protocol-version',
+  'Access-Control-Expose-Headers': 'mcp-session-id, mcp-protocol-version',
 };
 
 export async function OPTIONS() {
@@ -126,7 +128,7 @@ const EXPOSED_TOOLS = [
 export async function GET(request) {
   const acceptHeader = request?.headers?.get('accept') || '';
 
-  // If OpenAI requests SSE stream (standard MCP SSE transport)
+  // If OpenAI / client requests SSE stream (standard MCP SSE transport)
   if (acceptHeader.includes('text/event-stream')) {
     const encoder = new TextEncoder();
     let timer;
@@ -137,14 +139,14 @@ export async function GET(request) {
         const endpointEvent = `event: endpoint\ndata: https://gra-agent-workbench.vercel.app/api/mcp\n\n`;
         controller.enqueue(encoder.encode(endpointEvent));
 
-        // 2. Periodic keep-alive heartbeat ping every 15 seconds
+        // 2. Periodic keep-alive heartbeat ping every 10 seconds
         timer = setInterval(() => {
           try {
             controller.enqueue(encoder.encode(`: keep-alive\n\n`));
           } catch {
             clearInterval(timer);
           }
-        }, 15000);
+        }, 10000);
       },
       cancel() {
         if (timer) clearInterval(timer);
@@ -189,6 +191,14 @@ export async function POST(request) {
     }
     const { method, params = {}, id = 1 } = body;
 
+    // Maintain session ID header
+    const sessionId = request?.headers?.get('mcp-session-id') || `gra-session-${Date.now()}`;
+    const responseHeaders = {
+      ...CORS_HEADERS,
+      'mcp-session-id': sessionId,
+      'mcp-protocol-version': '2024-11-05',
+    };
+
     switch (method) {
       // 1. MCP Initialization
       case 'initialize':
@@ -203,15 +213,28 @@ export async function POST(request) {
                 version: '1.0.0',
               },
               capabilities: {
-                tools: {},
+                tools: {
+                  listChanged: false,
+                },
                 resources: {},
               },
             },
           },
-          { headers: CORS_HEADERS }
+          { headers: responseHeaders }
         );
 
-      // 2. List Available Tools to ChatGPT
+      // 2. MCP Client Initialized Notification
+      case 'notifications/initialized':
+      case 'initialized':
+        return Response.json(
+          {
+            jsonrpc: '2.0',
+            result: { status: 'acknowledged' },
+          },
+          { headers: responseHeaders }
+        );
+
+      // 3. List Available Tools to ChatGPT
       case 'tools/list':
         return Response.json(
           {
@@ -221,17 +244,28 @@ export async function POST(request) {
               tools: EXPOSED_TOOLS,
             },
           },
-          { headers: CORS_HEADERS }
+          { headers: responseHeaders }
         );
 
-      // 3. Execute Tool Call Invoked by ChatGPT
+      // 4. Ping probe
+      case 'ping':
+        return Response.json(
+          {
+            jsonrpc: '2.0',
+            id,
+            result: {},
+          },
+          { headers: responseHeaders }
+        );
+
+      // 5. Execute Tool Call Invoked by ChatGPT
       case 'tools/call': {
         const { name, arguments: args = {} } = params;
         let contentResult = null;
 
         if (name === 'gra_trigger_agent') {
           const runId = `chatgpt-run-${Date.now()}`;
-          const execution = startBackgroundExecution(
+          startBackgroundExecution(
             runId,
             args.agentId,
             args.agentName || 'Agent',
@@ -295,7 +329,7 @@ export async function POST(request) {
                 message: `Tool "${name}" not found on GRA Workbench MCP Server.`,
               },
             },
-            { status: 404, headers: CORS_HEADERS }
+            { status: 404, headers: responseHeaders }
           );
         }
 
@@ -312,7 +346,7 @@ export async function POST(request) {
               ],
             },
           },
-          { headers: CORS_HEADERS }
+          { headers: responseHeaders }
         );
       }
 
@@ -326,7 +360,7 @@ export async function POST(request) {
               message: `Method "${method}" is not supported.`,
             },
           },
-          { status: 400, headers: CORS_HEADERS }
+          { status: 400, headers: responseHeaders }
         );
     }
   } catch (error) {
