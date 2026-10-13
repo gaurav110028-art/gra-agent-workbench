@@ -1694,10 +1694,10 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
               type="button"
               className={`workflowActionButton gauravArchitectToggleBtn ${showGauravDrawer ? 'active' : ''}`}
               onClick={() => setShowGauravDrawer((current) => !current)}
-              title="Open GAURAV: Your AI Automation Architect"
+              title="Open GRA AI Architect"
             >
-              <span className="gauravSparkle">✨</span>
-              <strong>GAURAV Architect</strong>
+              <img src="/gra-ai-logo.png" alt="GRA AI Architect" className="topbarAiLogo" />
+              <strong>GRA AI Architect</strong>
             </button>
 
             <button type="button" className="workflowActionButton" onClick={() => validateWorkflow(true)} disabled={busy}>
