@@ -151,8 +151,8 @@ function WebhookSettings() {
         </div>
 
         <div className="settingsCardHint">
-          Share this URL with the 360Biz technical team. They will configure
-          their system to POST messages to this endpoint.
+          The provider must also send an Authorization: Bearer credential with
+          webhook:ingest scope, provisioned by your server administrator. The URL alone grants no access.
         </div>
       </div>
 

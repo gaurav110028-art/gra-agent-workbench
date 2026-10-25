@@ -1,85 +1,21 @@
+import { secure } from '../../../lib/security/route.mjs';
+import { safeFetch } from '../../../lib/security/egress.mjs';
+import { SecurityError } from '../../../lib/security/errors.mjs';
 export const runtime = 'nodejs';
 
-const ALLOWED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
-const BLOCKED_HOSTS = /^(localhost|127\.|10\.|192\.168\.|169\.254\.|0\.0\.0\.0|\[::1\])/i;
-
-export async function POST(request) {
+export const POST = secure({ permission: 'http:invoke', limit: 20 }, async request => {
   let payload;
-
-  try {
-    payload = await request.json();
-  } catch {
-    return Response.json({ error: 'Invalid JSON body.' }, { status: 400 });
-  }
-
+  try { payload = await request.json(); } catch { return Response.json({ error: 'Invalid JSON body.' }, { status: 400 }); }
   const method = String(payload.method || 'GET').toUpperCase();
-
-  if (!ALLOWED_METHODS.includes(method)) {
-    return Response.json({ error: `Method ${method} is not allowed.` }, { status: 400 });
-  }
-
-  let url;
-
-  try {
-    url = new URL(String(payload.url || ''));
-  } catch {
-    return Response.json({ error: 'URL is not valid.' }, { status: 400 });
-  }
-
-  if (!/^https?:$/.test(url.protocol) || BLOCKED_HOSTS.test(url.hostname)) {
-    return Response.json({ error: 'Only public http(s) URLs are allowed.' }, { status: 400 });
-  }
-
-  const headers = {};
-
-  Object.entries(payload.headers || {}).forEach(([key, value]) => {
-    if (/^(host|cookie|authorization-proxy)$/i.test(key)) return;
-    headers[key] = String(value);
-  });
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
+  if (!['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) return Response.json({ error: 'Unsupported HTTP method.' }, { status: 400 });
+  const allowedHosts = (process.env.GRA_HTTP_ALLOWED_HOSTS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  if (process.env.VERCEL && !allowedHosts.length) throw new SecurityError(503, 'Configure the server HTTP destination allowlist before using this integration.', 'EGRESS_NOT_CONFIGURED');
   const started = Date.now();
-
-  try {
-    const response = await fetch(url.toString(), {
-      method,
-      headers,
-      body: method === 'GET' ? undefined : payload.body || undefined,
-      signal: controller.signal,
-      redirect: 'follow',
-    });
-
-    const text = await response.text();
-    const limited = text.slice(0, 20000);
-
-    let body = limited;
-
-    try {
-      body = JSON.parse(limited);
-    } catch {
-      body = limited;
-    }
-
-    return Response.json({
-      status: response.status,
-      ok: response.ok,
-      headers: Object.fromEntries(response.headers.entries()),
-      body,
-      durationMs: Date.now() - started,
-    });
-  } catch (error) {
-    return Response.json(
-      {
-        error:
-          error?.name === 'AbortError'
-            ? 'Request timed out after 15 s.'
-            : error?.message || 'Request failed.',
-        durationMs: Date.now() - started,
-      },
-      { status: 502 }
-    );
-  } finally {
-    clearTimeout(timeout);
-  }
-}
+  const response = await safeFetch(String(payload.url || ''), { method, headers: payload.headers || {}, body: method === 'GET' ? undefined : String(payload.body || ''), allowedHosts: allowedHosts.length ? allowedHosts : undefined, maxBytes: 256 * 1024 });
+  const text = await response.text();
+  const limited = text.slice(0, 20000);
+  let body = limited;
+  try { body = JSON.parse(limited); } catch { /* Plain text response. */ }
+  const headers = Object.fromEntries([...response.headers].filter(([name]) => !['set-cookie', 'set-cookie2', 'www-authenticate', 'proxy-authenticate'].includes(name)));
+  return Response.json({ status: response.status, ok: response.ok, headers, body, truncated: text.length > limited.length, durationMs: Date.now() - started });
+});

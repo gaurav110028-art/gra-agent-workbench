@@ -1,3 +1,5 @@
+import { providerFetch } from '../../../lib/security/egress.mjs';
+import { secure } from '../../../lib/security/route.mjs';
 export const runtime = 'nodejs';
 
 function escapeHtml(value = '') {
@@ -22,7 +24,7 @@ function isReasonableEmail(value) {
   );
 }
 
-export async function POST(request) {
+async function handlePOST(request, principal) {
   try {
     const apiKey =
       process.env.RESEND_API_KEY;
@@ -121,7 +123,7 @@ export async function POST(request) {
       payload.nodeId || 'email',
     ];
 
-    const response = await fetch(
+    const response = await providerFetch(
       'https://api.resend.com/emails',
       {
         method: 'POST',
@@ -149,12 +151,10 @@ export async function POST(request) {
       return Response.json(
         {
           error:
-            result?.message ||
-            result?.error ||
             'Resend rejected the email request.',
-          providerResponse: result,
+          providerStatus: response.status,
         },
-        { status: response.status }
+        { status: 502 }
       );
     }
 
@@ -175,3 +175,5 @@ export async function POST(request) {
     );
   }
 }
+
+export const POST = secure({"permission":"email:send","limit":60}, handlePOST);

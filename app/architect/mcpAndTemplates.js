@@ -73,7 +73,7 @@ export const MCP_TOOLS_REGISTRY = {
  * Execute an MCP Tool safely
  */
 export function executeMcpTool(toolName, params = {}, user = 'CA Partner') {
-  const tool = MCP_TOOLS_REGISTRY[toolName];
+  const tool = Object.hasOwn(MCP_TOOLS_REGISTRY, toolName) ? MCP_TOOLS_REGISTRY[toolName] : null;
   if (!tool) {
     throw new Error(`MCP Tool "${toolName}" is not registered or allowed.`);
   }
@@ -83,8 +83,8 @@ export function executeMcpTool(toolName, params = {}, user = 'CA Partner') {
   recordAuditTrail({
     action: 'MCP_TOOL_EXECUTION',
     toolName,
-    params,
-    result,
+    parameterNames: tool.parameters,
+    resultRecorded: false,
     user,
   });
 

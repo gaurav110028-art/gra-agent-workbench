@@ -1,3 +1,4 @@
+import { providerFetch } from '../../lib/security/egress.mjs';
 /* =========================================================
    MULTI-MODEL AI ROUTER & PROVIDER ADAPTERS
    Supports:
@@ -125,7 +126,7 @@ function recordUsage(provider, success, inTokens = 0, outTokens = 0, errorMsg = 
     provider,
     success,
     tokens: { input: inTokens, output: outTokens },
-    error: errorMsg || null,
+    error: errorMsg ? 'PROVIDER_FAILED' : null,
   });
 
   if (telemetry.recentLogs.length > 50) {
@@ -149,8 +150,8 @@ async function callGemini({ systemPrompt, userPrompt, temperature = 0.3 }) {
 
   for (const model of candidateModels) {
     try {
-      // API key as query param (Google AI Studio recommended method)
-      const url = `${GEMINI_BASE_URL}/${model}:generateContent?key=${apiKey}`;
+      // Keep credentials out of URLs and infrastructure URL logs.
+      const url = `${GEMINI_BASE_URL}/${model}:generateContent`;
 
       const requestBody = {
         contents: [
@@ -171,9 +172,10 @@ async function callGemini({ systemPrompt, userPrompt, temperature = 0.3 }) {
         };
       }
 
-      const res = await fetch(url, {
+      const res = await providerFetch(url, {
         method: 'POST',
         headers: {
+          'x-goog-api-key': apiKey,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody),
@@ -190,11 +192,9 @@ async function callGemini({ systemPrompt, userPrompt, temperature = 0.3 }) {
       if (!res.ok) {
         const msg = raw?.error?.message || `HTTP ${res.status}`;
         lastError = new Error(`Gemini ${model}: ${msg}`);
-        console.warn(`Gemini model ${model} failed: ${msg}, trying next...`);
       }
     } catch (err) {
       lastError = err;
-      console.warn(`Gemini model ${model} exception: ${err.message}, trying next...`);
     }
   }
 
@@ -213,7 +213,7 @@ async function callOpenAI({ systemPrompt, userPrompt, temperature = 0.3 }) {
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
   messages.push({ role: 'user', content: userPrompt });
 
-  const res = await fetch(OPENAI_BASE_URL, {
+  const res = await providerFetch(OPENAI_BASE_URL, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -247,7 +247,7 @@ async function callAnthropic({ systemPrompt, userPrompt, temperature = 0.3 }) {
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not configured');
 
   const model = 'claude-haiku-4-5-20251001';
-  const res = await fetch(ANTHROPIC_BASE_URL, {
+  const res = await providerFetch(ANTHROPIC_BASE_URL, {
     method: 'POST',
     headers: {
       'x-api-key': apiKey,
@@ -292,7 +292,7 @@ async function callGroq({ systemPrompt, userPrompt, temperature = 0.3 }) {
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
   messages.push({ role: 'user', content: userPrompt });
 
-  const res = await fetch(GROQ_BASE_URL, {
+  const res = await providerFetch(GROQ_BASE_URL, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -330,7 +330,7 @@ async function callOpenRouter({ systemPrompt, userPrompt, temperature = 0.3 }) {
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
   messages.push({ role: 'user', content: userPrompt });
 
-  const res = await fetch(OPENROUTER_BASE_URL, {
+  const res = await providerFetch(OPENROUTER_BASE_URL, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -378,7 +378,7 @@ export async function executeWithRouter({
 
   // Determine priority order
   const order = [];
-  if (preferredProvider && callProviderMap[preferredProvider]) {
+  if (preferredProvider && Object.hasOwn(callProviderMap, preferredProvider)) {
     order.push(preferredProvider);
   }
 
@@ -411,8 +411,7 @@ export async function executeWithRouter({
         originalProviderRequested: preferredProvider,
       };
     } catch (err) {
-      console.warn(`Provider ${providerKey} failed: ${err.message}. Trying next fallback...`);
-      recordUsage(providerKey, false, 0, 0, err.message);
+      recordUsage(providerKey, false, 0, 0, 'PROVIDER_FAILED');
       globalThis.__gra_ai_telemetry.fallbackEvents += 1;
     }
   }

@@ -1,0 +1,36 @@
+.redactor { max-width: 1440px; margin: 0 auto; padding: 32px 40px 80px; color: var(--text-primary); font-family: var(--font-sans); }
+.redactor-header, .redactor-upload, .redactor-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.redactor-back { color: var(--text-secondary); text-decoration: none; }
+.redactor-badge, .redactor-eyebrow { color: var(--accent-fg); font-size: 11px; letter-spacing: .1em; }
+.redactor-badge { background: var(--accent-bg); border: 1px solid var(--accent-border); padding: 7px 12px; border-radius: 20px; }
+.redactor-intro { margin: 52px 0 28px; }
+.redactor h1 { font-size: clamp(26px, 4vw, 38px); letter-spacing: -.04em; line-height: 1.2; margin: 12px 0; }
+.redactor h2 { font-size: 17px; margin: 0 0 12px; }
+.redactor p { color: var(--text-secondary); line-height: 1.65; font-size: 14px; }
+.redactor-notice { border: 1px solid var(--warning-border); background: var(--warning-bg); padding: 20px 24px; border-radius: var(--radius-lg); margin-bottom: 24px; }
+.redactor-notice strong { color: var(--warning-fg); }
+.redactor-notice p { margin: 8px 0 0; }
+.redactor-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 24px; min-width: 0; }
+.redactor .redactor-upload label { display: grid; gap: 8px; }
+.redactor-upload label span, .redactor-status { color: var(--text-muted); font-size: 12px; }
+.redactor button { border: 1px solid var(--border-strong); color: var(--text-primary); background: var(--bg-surface-2); border-radius: var(--radius-md); padding: 10px 14px; cursor: pointer; font: inherit; font-size: 13px; }
+.redactor button:hover:enabled { background: var(--bg-surface-hover); }
+.redactor button:disabled { opacity: .5; cursor: not-allowed; }
+.redactor button:focus-visible, .redactor textarea:focus-visible, .redactor input:focus-visible, .redactor a:focus-visible { outline: 2px solid var(--accent-fg); outline-offset: 3px; }
+.redactor .redactor-primary { background: var(--accent); border-color: var(--accent); color: var(--text-on-accent); margin-top: 20px; }
+.redactor-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr); gap: 24px; margin: 24px 0; }
+.redactor-preview, .redactor-selection { white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 13px; line-height: 1.8; max-height: 440px; overflow: auto; background: var(--bg-main); padding: 18px; border: 1px solid var(--border); border-radius: var(--radius-md); }
+.redactor mark { background: var(--warning-bg); color: var(--warning-fg); border-bottom: 2px solid var(--warning); }
+.redactor label:not(.redactor-check) { display: block; font-size: 13px; margin: 16px 0 10px; }
+.redactor textarea { width: 100%; resize: vertical; min-height: 80px; color: var(--text-primary); background: var(--bg-main); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: 12px; margin-bottom: 12px; box-sizing: border-box; }
+.redactor .redactor-selection { min-height: 180px; }
+.redactor-count { color: var(--accent-fg); margin-left: 8px; }
+.redactor-matches { list-style: none; padding: 0; max-height: 560px; overflow: auto; }
+.redactor-matches li { padding: 16px 0; border-bottom: 1px solid var(--border); }
+.redactor-matches small { color: var(--text-muted); margin-left: 12px; }
+.redactor-matches code { display: block; color: var(--warning-fg); margin: 10px 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.redactor-actions { justify-content: flex-start; gap: 8px; }
+.redactor .redactor-error { background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger-fg); border-radius: var(--radius-md); padding: 14px; }
+.redactor-check { display: flex; gap: 12px; align-items: flex-start; line-height: 1.6; font-size: 14px; }
+.redactor-check input { margin-top: 5px; flex-shrink: 0; }
+@media (max-width: 850px) { .redactor { padding: 24px 18px 48px; } .redactor-grid { grid-template-columns: 1fr; } .redactor-intro { margin-top: 32px; } .redactor-card { padding: 18px; } }

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { loginUser, getSession } from "./calendarStore";
+import { loginUser, getSession } from "../lib/auth-client";
 
 export default function LoginScreen({ onLogin }) {
   const [email, setEmail] = useState("");
@@ -10,8 +10,16 @@ export default function LoginScreen({ onLogin }) {
   const [showPass, setShowPass] = useState(false);
 
   useEffect(() => {
-    const session = getSession();
-    if (session) onLogin(session);
+    let active = true;
+    // Legacy browser records have no server authority and must not retain passwords.
+    localStorage.removeItem('gra-auth-session');
+    const stored = localStorage.getItem('gra-auth-users');
+    if (stored) {
+      try { localStorage.setItem('gra-auth-users', JSON.stringify(JSON.parse(stored).map(({ passwordHash, ...user }) => user))); }
+      catch { localStorage.removeItem('gra-auth-users'); }
+    }
+    getSession().then(session => { if (active && session) onLogin(session); }).catch(e => { if (active) setError(e.message); });
+    return () => { active = false; };
   }, [onLogin]);
 
   const handleSubmit = async (e) => {
@@ -19,7 +27,8 @@ export default function LoginScreen({ onLogin }) {
     setError("");
     setLoading(true);
     try {
-      const session = loginUser(email.trim(), password);
+      const session = await loginUser(email.trim(), password);
+      setPassword('');
       onLogin(session);
     } catch (err) {
       setError(err.message);
@@ -43,7 +52,7 @@ export default function LoginScreen({ onLogin }) {
             <input
               id="login-email"
               type="email"
-              placeholder="admin@gra.in"
+              placeholder="Your configured account email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -73,7 +82,7 @@ export default function LoginScreen({ onLogin }) {
               </button>
             </div>
           </div>
-          {error && <div className="loginError">{error}</div>}
+          {error && <div role="alert" className="loginError">{error}</div>}
           <button
             id="login-submit"
             type="submit"
@@ -83,9 +92,7 @@ export default function LoginScreen({ onLogin }) {
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
-        <p className="loginDefaultHint">
-          Default: admin@gra.in / gra2024admin
-        </p>
+        <p className="loginDefaultHint">Server accounts are provisioned by your administrator. There is no default password.</p>
       </div>
     </div>
   );

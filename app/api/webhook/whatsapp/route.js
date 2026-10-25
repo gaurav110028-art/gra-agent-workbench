@@ -1,3 +1,4 @@
+import { secure } from '../../../../lib/security/route.mjs';
 /* =========================================================
    WHATSAPP WEBHOOK ENDPOINT
    Receives messages from WhatsApp Web Extension or
@@ -11,13 +12,9 @@
 
 globalThis.__gra_queries = globalThis.__gra_queries || [];
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+const CORS_HEADERS = {};
 
-export async function OPTIONS() {
+async function handleOPTIONS(request, principal) {
   return new Response(null, {
     status: 204,
     headers: CORS_HEADERS,
@@ -45,11 +42,12 @@ function detectPriority(text) {
   return 'Normal';
 }
 
-export async function POST(request) {
+async function handlePOST(request, principal) {
   try {
     const payload = await request.json();
 
     const message = String(payload.message || '').trim();
+    if (message.length > 10000 || String(payload.senderName || '').length > 200 || String(payload.senderNumber || '').length > 50 || String(payload.groupName || '').length > 200) return Response.json({ error: 'Webhook field length limit exceeded.' }, { status: 400 });
     if (!message) {
       return Response.json(
         { error: 'Message is required.' },
@@ -93,7 +91,7 @@ export async function POST(request) {
   } catch (error) {
     return Response.json(
       {
-        error: error?.message || 'Invalid webhook payload.',
+        error: 'Invalid webhook payload.',
       },
       { status: 400, headers: CORS_HEADERS }
     );
@@ -101,7 +99,7 @@ export async function POST(request) {
 }
 
 /* Health check & query fetch for live sync */
-export async function GET() {
+async function handleGET(request, principal) {
   return Response.json(
     {
       status: 'active',
@@ -114,7 +112,7 @@ export async function GET() {
 }
 
 /* Clear buffer */
-export async function DELETE() {
+async function handleDELETE(request, principal) {
   globalThis.__gra_queries = [];
   return Response.json(
     {
@@ -124,3 +122,11 @@ export async function DELETE() {
     { headers: CORS_HEADERS }
   );
 }
+
+export const GET = secure({"permission":"queries:read","limit":120}, handleGET);
+
+export const POST = secure({"permission":"webhook:ingest","limit":60}, handlePOST);
+
+export const DELETE = secure({"permission":"admin:manage","limit":10}, handleDELETE);
+
+export const OPTIONS = secure({"preflight":true}, handleOPTIONS);

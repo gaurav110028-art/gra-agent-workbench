@@ -9,9 +9,15 @@
 ========================================================= */
 
 // In-memory server-side state (persists across API requests in Node runtime)
-globalThis.__gra_schedules = globalThis.__gra_schedules || {};
+globalThis.__gra_schedules = Object.assign(Object.create(null), globalThis.__gra_schedules || {});
 globalThis.__gra_execution_logs = globalThis.__gra_execution_logs || [];
-globalThis.__gra_active_runs = globalThis.__gra_active_runs || {};
+globalThis.__gra_active_runs = Object.assign(Object.create(null), globalThis.__gra_active_runs || {});
+
+function identifier(value) {
+  const id = String(value || '');
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9:_-]{0,127}$/.test(id) || ['constructor', 'prototype', '__proto__'].includes(id)) throw new Error('Invalid automation identifier.');
+  return id;
+}
 
 /**
  * Get all registered 24/7 schedules
@@ -25,6 +31,7 @@ export function getAllSchedules() {
  */
 export function getAgentSchedule(agentId) {
   if (!agentId) return null;
+  agentId = identifier(agentId);
   return globalThis.__gra_schedules[agentId] || null;
 }
 
@@ -33,9 +40,13 @@ export function getAgentSchedule(agentId) {
  */
 export function setAgentSchedule(agentId, scheduleData) {
   if (!agentId) return null;
+  agentId = identifier(agentId);
+  if (!Object.hasOwn(globalThis.__gra_schedules, agentId) && Object.keys(globalThis.__gra_schedules).length >= 200) throw new Error('Demo schedule capacity reached.');
 
   const existing = globalThis.__gra_schedules[agentId] || {};
   const updated = {
+    durable: false,
+    executionMode: 'simulation',
     agentId,
     agentName: scheduleData.agentName || existing.agentName || 'Automation Agent',
     enabled: scheduleData.enabled !== undefined ? Boolean(scheduleData.enabled) : true,
@@ -59,6 +70,7 @@ export function setAgentSchedule(agentId, scheduleData) {
  * Pause future runs of an agent (without cancelling any currently active run)
  */
 export function pauseAgentSchedule(agentId) {
+  agentId = identifier(agentId);
   const schedule = globalThis.__gra_schedules[agentId];
   if (!schedule) return null;
 
@@ -72,6 +84,7 @@ export function pauseAgentSchedule(agentId) {
  * Resume future runs of an agent
  */
 export function resumeAgentSchedule(agentId) {
+  agentId = identifier(agentId);
   const schedule = globalThis.__gra_schedules[agentId];
   if (!schedule) return null;
 
@@ -86,7 +99,15 @@ export function resumeAgentSchedule(agentId) {
  * Track an active background execution
  */
 export function startBackgroundExecution(runId, agentId, agentName, triggerType = 'schedule') {
+  runId = identifier(runId); agentId = identifier(agentId);
+  if (Object.keys(globalThis.__gra_active_runs).length >= 500) {
+    const completed = Object.keys(globalThis.__gra_active_runs).find(key => globalThis.__gra_active_runs[key].status !== 'running');
+    if (!completed) throw new Error('Demo execution capacity reached.');
+    delete globalThis.__gra_active_runs[completed];
+  }
   const execution = {
+    durable: false,
+    executionMode: 'simulation',
     runId,
     agentId,
     agentName,
@@ -116,6 +137,8 @@ export function startBackgroundExecution(runId, agentId, agentName, triggerType 
  * Cancel an actively executing run (distinct from pausing future runs)
  */
 export function cancelActiveExecution(runId, reason = 'Cancelled by user command') {
+  runId = identifier(runId);
+  reason = String(reason).slice(0, 1000);
   const execution = globalThis.__gra_active_runs[runId];
   if (!execution) return null;
 
@@ -139,8 +162,10 @@ export function cancelActiveExecution(runId, reason = 'Cancelled by user command
  * Complete a background execution
  */
 export function completeBackgroundExecution(runId, status = 'completed', error = null) {
+  runId = identifier(runId);
   const execution = globalThis.__gra_active_runs[runId];
   if (!execution) return null;
+  if (execution.cancelled) return execution;
 
   execution.status = status;
   execution.completedAt = new Date().toISOString();

@@ -1,4 +1,9 @@
-export const runtime = 'edge';
+import { mcpStream } from '../../../lib/security/sse.mjs';
+import { can } from '../../../lib/security/auth.mjs';
+import { after } from 'next/server';
+import { secure } from '../../../lib/security/route.mjs';
+export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 import {
   getAllSchedules,
@@ -28,14 +33,9 @@ import {
    - resources/list: Exposes agent templates and recent logs
 ========================================================= */
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key, mcp-session-id, mcp-protocol-version',
-  'Access-Control-Expose-Headers': 'mcp-session-id, mcp-protocol-version',
-};
+const CORS_HEADERS = {};
 
-export async function OPTIONS() {
+async function handleOPTIONS(request, principal) {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
 
@@ -125,44 +125,11 @@ const EXPOSED_TOOLS = [
   },
 ];
 
-export async function GET(request) {
+async function handleGET(request, principal) {
   const acceptHeader = request?.headers?.get('accept') || '';
 
   // If OpenAI / client requests SSE stream (standard MCP SSE transport)
-  if (acceptHeader.includes('text/event-stream')) {
-    const encoder = new TextEncoder();
-    let timer;
-
-    const stream = new ReadableStream({
-      start(controller) {
-        // 1. Initial endpoint event required by MCP SSE standard
-        const endpointEvent = `event: endpoint\ndata: https://gra-agent-workbench.vercel.app/api/mcp\n\n`;
-        controller.enqueue(encoder.encode(endpointEvent));
-
-        // 2. Periodic keep-alive heartbeat ping every 10 seconds
-        timer = setInterval(() => {
-          try {
-            controller.enqueue(encoder.encode(`: keep-alive\n\n`));
-          } catch {
-            clearInterval(timer);
-          }
-        }, 10000);
-      },
-      cancel() {
-        if (timer) clearInterval(timer);
-      },
-    });
-
-    return new Response(stream, {
-      headers: {
-        ...CORS_HEADERS,
-        'Content-Type': 'text/event-stream; charset=utf-8',
-        'Cache-Control': 'no-cache, no-transform',
-        'X-Accel-Buffering': 'no',
-        Connection: 'keep-alive',
-      },
-    });
-  }
+  if (acceptHeader.includes('text/event-stream')) return mcpStream(request);
 
   // Standard JSON response
   return Response.json(
@@ -178,7 +145,7 @@ export async function GET(request) {
   );
 }
 
-export async function POST(request) {
+async function handlePOST(request, principal) {
   try {
     let body = {};
     const text = await request.text();
@@ -192,12 +159,15 @@ export async function POST(request) {
     const { method, params = {}, id = 1 } = body;
 
     // Maintain session ID header
-    const sessionId = request?.headers?.get('mcp-session-id') || `gra-session-${Date.now()}`;
+    const suppliedSession = request.headers.get('mcp-session-id');
+    const sessionId = /^[a-zA-Z0-9_-]{1,128}$/.test(suppliedSession || '') ? suppliedSession : `gra-session-${crypto.randomUUID()}`;
     const responseHeaders = {
       ...CORS_HEADERS,
       'mcp-session-id': sessionId,
       'mcp-protocol-version': '2024-11-05',
     };
+
+    if (method === 'tools/call' && ['gra_trigger_agent', 'gra_schedule_agent', 'gra_cancel_execution'].includes(params.name) && !can(principal, 'mcp:write')) return Response.json({ error: 'MCP write scope is required.' }, { status: 403 });
 
     switch (method) {
       // 1. MCP Initialization
@@ -261,6 +231,10 @@ export async function POST(request) {
       // 5. Execute Tool Call Invoked by ChatGPT
       case 'tools/call': {
         const { name, arguments: args = {} } = params;
+        if (!args || typeof args !== 'object' || Array.isArray(args)) return Response.json({ error: 'MCP arguments must be an object.' }, { status: 400 });
+        const validIdentifier = value => /^[a-zA-Z0-9][a-zA-Z0-9:_-]{0,127}$/.test(String(value || '')) && !['constructor', 'prototype', '__proto__'].includes(String(value));
+        if (['gra_trigger_agent', 'gra_get_agent_status', 'gra_schedule_agent'].includes(name) && !validIdentifier(args.agentId)) return Response.json({ error: 'A valid agentId is required.' }, { status: 400 });
+        if (name === 'gra_cancel_execution' && !validIdentifier(args.runId)) return Response.json({ error: 'A valid runId is required.' }, { status: 400 });
         let contentResult = null;
 
         if (name === 'gra_trigger_agent') {
@@ -273,9 +247,10 @@ export async function POST(request) {
           );
 
           // Simulated safe execution cycle
-          setTimeout(() => {
+          after(async () => {
+            await new Promise(resolve => setTimeout(resolve, 800));
             completeBackgroundExecution(runId, 'completed');
-          }, 800);
+          });
 
           contentResult = {
             message: `Agent ${args.agentName || args.agentId} triggered successfully from ChatGPT.`,
@@ -304,7 +279,7 @@ export async function POST(request) {
           });
 
           contentResult = {
-            message: `24/7 automation scheduled for ${args.agentName || args.agentId}.`,
+            message: `Demo schedule stored for ${args.agentName || args.agentId}; durable 24/7 execution is not configured.`,
             schedule,
           };
         } else if (name === 'gra_cancel_execution') {
@@ -377,3 +352,9 @@ export async function POST(request) {
     );
   }
 }
+
+export const GET = secure({"permission":"mcp:read","limit":20}, handleGET);
+
+export const POST = secure({"permission":"mcp:read","limit":60}, handlePOST);
+
+export const OPTIONS = secure({"preflight":true}, handleOPTIONS);

@@ -253,98 +253,20 @@ export function deleteNote(noteId) {
   localStorage.setItem(NOTES_KEY, JSON.stringify(updated));
 }
 
-/* Auth functions */
-function simpleHash(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash;
-  }
-  return String(Math.abs(hash));
-}
-
-const DEFAULT_ADMIN = {
-  id: "user-admin",
-  email: "admin@gra.in",
-  name: "Gaurav (Admin)",
-  passwordHash: simpleHash("gra2024admin"),
-  role: "admin",
-  workspace: "GRA",
-  createdAt: new Date().toISOString(),
-};
-
+/* Local directory only: these records never authorize server operations. */
+export { loginUser, getSession, logoutUser } from '../lib/auth-client';
 export function getUsers() {
-  if (typeof window === "undefined") return [DEFAULT_ADMIN];
-  try {
-    const stored = localStorage.getItem(AUTH_USERS_KEY);
-    if (stored) {
-      const users = JSON.parse(stored);
-      const hasAdmin = users.find((u) => u.role === "admin");
-      if (!hasAdmin) return [DEFAULT_ADMIN, ...users];
-      return users;
-    }
-  } catch { /* ignore */ }
-  const users = [DEFAULT_ADMIN];
-  localStorage.setItem(AUTH_USERS_KEY, JSON.stringify(users));
-  return users;
+  if (typeof window === 'undefined') return [];
+  try { return JSON.parse(localStorage.getItem(AUTH_USERS_KEY) || '[]').map(({ passwordHash, ...user }) => user); } catch { return []; }
 }
-
-export function createUser(email, name, password, role = "member", workspace = "GRA") {
+export function createUser(email, name, _unusedPassword, role = 'member', workspace = 'GRA') {
   const users = getUsers();
-  if (users.find((u) => u.email.toLowerCase() === email.toLowerCase())) {
-    throw new Error("User with this email already exists.");
-  }
-  const newUser = {
-    id: `user-${Date.now()}`,
-    email: email.toLowerCase().trim(),
-    name: name.trim(),
-    passwordHash: simpleHash(password),
-    role,
-    workspace,
-    createdAt: new Date().toISOString(),
-  };
-  const updated = [...users, newUser];
-  localStorage.setItem(AUTH_USERS_KEY, JSON.stringify(updated));
-  return newUser;
+  if (users.some(u => u.email.toLowerCase() === email.toLowerCase().trim())) throw new Error('A directory entry already uses this email.');
+  const user = { id: 'user-' + Date.now(), email: email.toLowerCase().trim(), name: name.trim(), role, workspace, createdAt: new Date().toISOString() };
+  localStorage.setItem(AUTH_USERS_KEY, JSON.stringify([...users, user]));
+  return user;
 }
-
-export function deleteUser(userId) {
-  const users = getUsers().filter((u) => u.id !== userId && u.role !== "admin");
-  localStorage.setItem(AUTH_USERS_KEY, JSON.stringify(users));
-}
-
-export function loginUser(email, password) {
-  const users = getUsers();
-  const hash = simpleHash(password);
-  const user = users.find(
-    (u) => u.email.toLowerCase() === email.toLowerCase() && u.passwordHash === hash
-  );
-  if (!user) throw new Error("Invalid email or password.");
-  const session = {
-    userId: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    workspace: user.workspace,
-    loginAt: new Date().toISOString(),
-  };
-  localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
-  return session;
-}
-
-export function getSession() {
-  if (typeof window === "undefined") return null;
-  try {
-    const stored = localStorage.getItem(AUTH_SESSION_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch { /* ignore */ }
-  return null;
-}
-
-export function logoutUser() {
-  localStorage.removeItem(AUTH_SESSION_KEY);
-}
+export function deleteUser(userId) { localStorage.setItem(AUTH_USERS_KEY, JSON.stringify(getUsers().filter(u => u.id !== userId))); }
 
 export function generatePosterText(year, month) {
   const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];

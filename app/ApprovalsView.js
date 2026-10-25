@@ -1,5 +1,7 @@
 'use client';
 
+import { summarizeBulkDelivery } from '../lib/bulk-delivery.mjs';
+
 import { useEffect, useMemo, useState } from 'react';
 
 import {
@@ -461,20 +463,17 @@ export default function ApprovalsView() {
         }
       }
 
-      const sent = results.filter((item) => item.status === 'sent');
-      const failed = results.filter((item) => item.status !== 'sent');
+      const { sent, status, error } = summarizeBulkDelivery(results);
 
       return {
-        status: sent.length > 0 && failed.length === 0 ? 'sent' : failed.length === results.length ? 'failed' : 'sent',
+        status,
         provider: 'Resend',
         id: sent[0]?.id,
         to: `${sent.length} of ${results.length} recipient(s)`,
         subject: action.subject,
         results,
         sentAt: new Date().toISOString(),
-        ...(failed.length
-          ? { error: `${failed.length} failed: ${failed[0].error}` }
-          : {}),
+        ...(error ? { error } : {}),
       };
     }
 

@@ -1,4 +1,7 @@
+import { providerFetch } from '../../../lib/security/egress.mjs';
+import { secure } from '../../../lib/security/route.mjs';
 import { inflateRawSync } from 'node:zlib';
+import { inspectArchive, verifyArchive } from '../../../lib/redactor/archive.mjs';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -230,6 +233,7 @@ function stripSpreadsheetNamespace(xml = '') {
 }
 
 function unzipEntries(buffer) {
+  const records = inspectArchive(new Uint8Array(buffer));
   let endRecord = -1;
   const minimumOffset = Math.max(
     0,
@@ -355,7 +359,7 @@ function unzipEntries(buffer) {
       compressionMethod === 8
     ) {
       data =
-        inflateRawSync(compressedData);
+        inflateRawSync(compressedData, { maxOutputLength: 2 * 1024 * 1024 });
     } else {
       throw new Error(
         `Unsupported Excel compression method: ${compressionMethod}`
@@ -371,6 +375,7 @@ function unzipEntries(buffer) {
       commentLength;
   }
 
+  verifyArchive(Object.fromEntries(files), records);
   return files;
 }
 
@@ -1230,10 +1235,9 @@ function getClaudeText(
     .trim();
 }
 
-export async function POST(
-  request
-) {
+async function handlePOST(request, principal) {
   try {
+    if (process.env.GRA_ENABLE_SYNTHETIC_AUDIT !== 'true') return Response.json({ error: 'External Audit Demo is disabled. It sends source documents to Anthropic. An administrator must explicitly enable synthetic-data testing.' }, { status: 403 });
     if (
       !process.env
         .ANTHROPIC_API_KEY
@@ -1249,6 +1253,7 @@ export async function POST(
 
     const formData =
       await request.formData();
+    if (formData.get('syntheticDataConfirmed') !== 'true') return Response.json({ error: 'Explicit synthetic-data acknowledgement is required before external audit processing.' }, { status: 400 });
 
     const financialStatements =
       formData.get(
@@ -1345,12 +1350,12 @@ export async function POST(
 
     if (
       totalBytes >
-      18 * 1024 * 1024
+      3 * 1024 * 1024
     ) {
       return Response.json(
         {
           error:
-            'Combined audit Sources exceed the current 18 MB processing limit.',
+            'Combined audit Sources exceed the current 3 MiB synthetic audit limit (4 MiB multipart request maximum).',
         },
         { status: 413 }
       );
@@ -1542,7 +1547,7 @@ export async function POST(
     };
 
     const claudeResponse =
-      await fetch(
+      await providerFetch(
         ANTHROPIC_URL,
         {
           method: 'POST',
@@ -1577,22 +1582,9 @@ export async function POST(
             `Anthropic returned HTTP ${claudeResponse.status} with a non-JSON response. No automatic retry was made.`,
           providerStatus:
             claudeResponse.status,
-          providerPreview:
-            String(
-              upstreamText || ''
-            )
-              .replace(
-                /\s+/g,
-                ' '
-              )
-              .trim()
-              .slice(0, 300),
         },
         {
-          status:
-            claudeResponse.ok
-              ? 502
-              : claudeResponse.status,
+          status: 502,
         }
       );
     }
@@ -1602,10 +1594,7 @@ export async function POST(
     ) {
       return Response.json(
         {
-          error:
-            raw?.error
-              ?.message ||
-            `Claude API request failed with HTTP ${claudeResponse.status}.`,
+          error: 'External audit provider rejected the request.',
           providerStatus:
             claudeResponse.status,
           usage:
@@ -1615,8 +1604,7 @@ export async function POST(
             'claude-haiku-4-5-20251001',
         },
         {
-          status:
-            claudeResponse.status,
+          status: 502,
         }
       );
     }
@@ -1679,18 +1667,15 @@ export async function POST(
       liveEmailSent: false,
     });
   } catch (error) {
-    console.error(
-      'GRA real-data audit processing error',
-      error
-    );
 
     return Response.json(
       {
         error:
-          error?.message ||
-          'Unexpected real-data audit processing error.',
+          'Audit processing failed. No automatic retry was made.',
       },
       { status: 500 }
     );
   }
 }
+
+export const POST = secure({"permission":"audit:invoke","limit":3,"maxBytes":4194304}, handlePOST);

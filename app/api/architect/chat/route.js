@@ -1,3 +1,4 @@
+import { secure } from '../../../../lib/security/route.mjs';
 export const runtime = 'nodejs';
 
 import {
@@ -51,7 +52,7 @@ function detectControllerCommand(text) {
   return null;
 }
 
-export async function POST(request) {
+async function handlePOST(request, principal) {
   try {
     const payload = await request.json();
     const prompt = String(payload.prompt || '').trim();
@@ -59,6 +60,7 @@ export async function POST(request) {
     const currentEdges = Array.isArray(payload.currentEdges) ? payload.currentEdges : [];
     const agentName = String(payload.agentName || 'Agent');
     const preferredProvider = payload.preferredProvider || null;
+    if (prompt.length > 20000 || agentName.length > 200 || currentNodes.length > 500 || currentEdges.length > 1000) return Response.json({ error: 'Architect request exceeds supported size limits.' }, { status: 400 });
 
     if (!prompt) {
       return Response.json({ error: 'Prompt cannot be empty.' }, { status: 400 });
@@ -72,7 +74,7 @@ export async function POST(request) {
     if (ctrlCommand) {
       let reply = `Action confirmed: **${ctrlCommand.label}** for ${agentName}.`;
       if (ctrlCommand.action === 'SCHEDULE_DAILY') {
-        reply = `24/7 background schedule configured for **${agentName}** (Daily at 09:00 AM IST with cloud persistence).`;
+        reply = `Schedule action prepared for **${agentName}**. This MVP stores schedules in instance memory; durable 24/7 execution is not configured.`;
       } else if (ctrlCommand.action === 'PAUSE_SCHEDULE') {
         reply = `Future automated runs for **${agentName}** are now paused.`;
       } else if (ctrlCommand.action === 'APPROVE_STEP') {
@@ -107,7 +109,6 @@ Please explain concisely in 2-3 bullet points how this workflow should run (Trig
         systemPrompt: GAURAV_SYSTEM_PROMPT,
       });
     } catch (err) {
-      console.warn('Router error:', err.message);
     }
 
     const activeProvider = liveAiResult?.provider || (hasLiveKey ? 'Google Gemini' : 'Gaurav Architect');
@@ -178,3 +179,5 @@ Please explain concisely in 2-3 bullet points how this workflow should run (Trig
     );
   }
 }
+
+export const POST = secure({"permission":"ai:invoke","limit":10}, handlePOST);

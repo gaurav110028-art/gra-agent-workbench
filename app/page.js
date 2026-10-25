@@ -318,6 +318,10 @@ export default function Home() {
         <div className="brand" />
 
         <nav className="nav">
+          <a className="navItem" href="/redactor" title="Secure Document Redactor">
+            <span className="navIcon"><InfoIcon /></span>
+            <span className="sidebarNavLabel">Document Redactor</span>
+          </a>
           <button
             className={`navItem navItemArchitect ${showSidebarArchitect ? 'active' : ''}`}
             onClick={() => setShowSidebarArchitect((current) => !current)}
@@ -465,6 +469,7 @@ export default function Home() {
         </nav>
 
         <div className="sidebarBottom">
+          <a className="navItem" href="/logout" title="Sign out"><span className="sidebarNavLabel">Sign out</span></a>
           <button
             className="themeToggleButton"
             onClick={toggleTheme}

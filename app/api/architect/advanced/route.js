@@ -1,3 +1,4 @@
+import { secure } from '../../../../lib/security/route.mjs';
 export const runtime = 'nodejs';
 
 import {
@@ -17,7 +18,7 @@ import { debugAndRepairWorkflow } from '../../../architect/workflowDebugger.js';
    POST: Execute MCP tool, run debugger, or repair workflow
 ========================================================= */
 
-export async function GET(request) {
+async function handleGET(request, principal) {
   try {
     const { searchParams } = new URL(request.url);
     const view = searchParams.get('view') || 'all';
@@ -58,7 +59,7 @@ export async function GET(request) {
   }
 }
 
-export async function POST(request) {
+async function handlePOST(request, principal) {
   try {
     const payload = await request.json();
     const action = String(payload.action || '').toUpperCase();
@@ -67,6 +68,7 @@ export async function POST(request) {
       case 'DEBUG_AND_REPAIR': {
         const nodes = Array.isArray(payload.nodes) ? payload.nodes : [];
         const edges = Array.isArray(payload.edges) ? payload.edges : [];
+        if (nodes.length > 500 || edges.length > 1000) return Response.json({ error: 'Workflow complexity limit exceeded.' }, { status: 400 });
         const report = debugAndRepairWorkflow(nodes, edges);
 
         return Response.json({
@@ -78,7 +80,7 @@ export async function POST(request) {
       case 'EXECUTE_MCP_TOOL': {
         const toolName = String(payload.toolName || '').trim();
         const params = payload.params || {};
-        const user = payload.user || 'CA Partner';
+        const user = principal.name || principal.id;
 
         const result = executeMcpTool(toolName, params, user);
 
@@ -102,3 +104,7 @@ export async function POST(request) {
     );
   }
 }
+
+export const GET = secure({"permission":"workbench:read","limit":60}, handleGET);
+
+export const POST = secure({"permission":"workflow:write","limit":30}, handlePOST);

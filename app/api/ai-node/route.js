@@ -1,3 +1,5 @@
+import { providerFetch } from '../../../lib/security/egress.mjs';
+import { secure } from '../../../lib/security/route.mjs';
 export const runtime = 'nodejs';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
@@ -27,7 +29,7 @@ function extractJson(text) {
   }
 }
 
-export async function POST(request) {
+async function handlePOST(request, principal) {
   let payload;
 
   try {
@@ -68,7 +70,7 @@ export async function POST(request) {
 
       const model = 'gpt-4o-mini';
 
-      const response = await fetch(OPENAI_URL, {
+      const response = await providerFetch(OPENAI_URL, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -119,7 +121,7 @@ export async function POST(request) {
 
     const model = 'claude-haiku-4-5-20251001';
 
-    const response = await fetch(ANTHROPIC_URL, {
+    const response = await providerFetch(ANTHROPIC_URL, {
       method: 'POST',
       headers: {
         'x-api-key': apiKey,
@@ -165,3 +167,5 @@ export async function POST(request) {
     );
   }
 }
+
+export const POST = secure({"permission":"ai:invoke","limit":10}, handlePOST);

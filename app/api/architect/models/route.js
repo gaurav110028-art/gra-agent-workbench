@@ -1,3 +1,4 @@
+import { secure } from '../../../../lib/security/route.mjs';
 export const runtime = 'nodejs';
 
 import { getAiTelemetry, getAvailableProviders } from '../../../architect/modelRouter.js';
@@ -9,7 +10,7 @@ import { getAiTelemetry, getAvailableProviders } from '../../../architect/modelR
    GET: Fetch active providers, model status, and usage telemetry
 ========================================================= */
 
-export async function GET() {
+async function handleGET(request, principal) {
   try {
     const telemetry = getAiTelemetry();
     const available = getAvailableProviders();
@@ -27,3 +28,5 @@ export async function GET() {
     );
   }
 }
+
+export const GET = secure({"permission":"workbench:read","limit":60}, handleGET);

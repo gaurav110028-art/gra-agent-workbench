@@ -1,3 +1,5 @@
+import { secure } from '../../../../lib/security/route.mjs';
+import { after } from 'next/server';
 export const runtime = 'nodejs';
 
 import {
@@ -20,7 +22,7 @@ import {
    POST: Register, update, pause, resume, trigger, or cancel runs
 ========================================================= */
 
-export async function GET(request) {
+async function handleGET(request, principal) {
   try {
     const { searchParams } = new URL(request.url);
     const agentId = searchParams.get('agentId');
@@ -46,7 +48,7 @@ export async function GET(request) {
   }
 }
 
-export async function POST(request) {
+async function handlePOST(request, principal) {
   try {
     const payload = await request.json();
     const action = String(payload.action || '').toUpperCase();
@@ -69,7 +71,7 @@ export async function POST(request) {
 
         return Response.json({
           ok: true,
-          message: `24/7 schedule registered for ${agentName}.`,
+          message: `Demo schedule stored for ${agentName}; durable 24/7 execution is not configured.`,
           schedule,
         });
       }
@@ -97,9 +99,10 @@ export async function POST(request) {
         const execution = startBackgroundExecution(runId, agentId, agentName, payload.triggerType || 'schedule');
 
         // Simulate background execution lifecycle (doesn't block the client)
-        setTimeout(() => {
+        after(async () => {
+          await new Promise(resolve => setTimeout(resolve, 1200));
           completeBackgroundExecution(runId, 'completed');
-        }, 1200);
+        });
 
         return Response.json({
           ok: true,
@@ -135,3 +138,7 @@ export async function POST(request) {
     );
   }
 }
+
+export const GET = secure({"permission":"workbench:read","limit":120}, handleGET);
+
+export const POST = secure({"permission":"workflow:write","limit":30}, handlePOST);

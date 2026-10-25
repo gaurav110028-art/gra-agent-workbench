@@ -1187,6 +1187,9 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
       }
 
       const formData = new FormData();
+      if (fs.size + tb.size + gst.size > 3 * 1024 * 1024) throw new Error('Synthetic audit sources must total no more than 3 MiB.');
+      if (!window.confirm('This Audit Demo sends the selected source files to Anthropic. Confirm that every selected file contains synthetic data only. Never use confidential client documents.')) throw new Error('External audit cancelled before any upload.');
+      formData.append('syntheticDataConfirmed', 'true');
       formData.append('financialStatements', fs);
       formData.append('trialBalance', tb);
       formData.append('gstData', gst);
@@ -1533,7 +1536,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
 
   const footerNotice =
     selectedIsAuditIntake || selectedIsAuditExtractor || selectedIsOpeningReconciliation
-      ? 'Sources are stored in this browser for the MVP. Run Audit Demo loads only the Sources selected by this workflow. After Senior CA approval, a configured Send Email step can send through Resend.'
+      ? 'Sources are stored in this browser for the MVP. Audit Demo sends selected sources to Anthropic and requires synthetic-only confirmation; maximum 3 MiB total. After Senior CA approval, a configured Send Email step can send through Resend.'
       : 'Test Run simulates every step with sample data and renders {{variables}} without sending. Run Workflow executes AI Agent and HTTP nodes live and sends email through Resend after any Approval Gate.';
 
   const auditPanel = (
@@ -1665,7 +1668,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
             });
             const data = await res.json();
             if (res.ok) {
-              setPublishMessage(`24/7 schedule registered: ${data.schedule?.frequency || 'Daily 09:00 AM IST'}`);
+              setPublishMessage(`Demo schedule stored: ${data.schedule?.frequency || 'Daily 09:00 AM IST'}. Durable execution is not configured.`);
             }
           } catch (err) {
             console.error('Failed to register schedule:', err);
@@ -1918,7 +1921,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
                 className="workflowActionButton workflowAuditDemoButton"
                 onClick={runAuditDemo}
                 disabled={busy}
-                title="Select the audit documents from Sources, then run real file analysis"
+                title="Synthetic sources only: sends selected files to Anthropic; 3 MiB total maximum"
               >
                 {auditProcessing ? 'Claude Haiku analyzing...' : 'Run Audit Demo'}
               </button>
