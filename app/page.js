@@ -17,12 +17,11 @@ import {
   ApprovalsIcon,
   SettingsIcon,
   CalendarIcon,
-  SunIcon,
-  MoonIcon,
   InfoIcon,
   ChevronIcon,
 } from './NavIcons';
 import GauravChatDrawer from './architect/GauravChatDrawer';
+import ThemeToggle from './ThemeToggle';
 
 export default function Home() {
   const [agents, setAgents] = useState([]);
@@ -298,6 +297,7 @@ export default function Home() {
       data-theme={theme}
     >
       <aside className="sidebar">
+        <a className="mobile-workbench-brand" href="/">GRA Agent Workbench</a>
         <button
           className="sidebarToggle"
           onClick={toggleSidebar}
@@ -470,23 +470,7 @@ export default function Home() {
 
         <div className="sidebarBottom">
           <a className="navItem" href="/logout" title="Sign out"><span className="sidebarNavLabel">Sign out</span></a>
-          <button
-            className="themeToggleButton"
-            onClick={toggleTheme}
-            title={
-              theme === 'dark'
-                ? 'Switch to Light Mode'
-                : 'Switch to Dark Mode'
-            }
-          >
-            <span className="themeToggleIcon">
-              {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-            </span>
-
-            <span className="sidebarNavLabel">
-              {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-            </span>
-          </button>
+          <ThemeToggle theme={theme} onToggle={toggleTheme} />
 
           <button
             className="siteInfoButton"
@@ -581,6 +565,9 @@ export default function Home() {
                 {agents.map((agent) => (
                   <article
                     className="agentPanel clickable"
+                    tabIndex={0}
+                    aria-label={`Open ${agent.name}`}
+                    onKeyDown={e => { if (e.target === e.currentTarget && ['Enter', ' '].includes(e.key)) { e.preventDefault(); openAgent(agent); } }}
                     key={agent.id}
                     onClick={() =>
                       openAgent(agent)

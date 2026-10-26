@@ -24,3 +24,15 @@
 - PDF output is raster-only: overwrite approved RGB pixels before writing a fresh image-only PDF. Never retain source PDF objects, original text, thumbnails, metadata, annotations, attachments or hidden layers. Verify the exact output grammar and every sanitized pixel; never introduce overlay-only export.
 - PDF inspection/rendering stays in the dedicated, network-blocked worker. Bundle pinned standard fonts at build time; do not add runtime font/CMap/OCR/CDN fetches or source-dependent logs. Reject renderer warnings, ambiguous coordinates, scans/mixed images and other unsupported pages rather than skipping them. OCR is not implemented.
 - PDF changes require the PDF production-browser stage and `tests/verify-pdf-independent.py` on the actual synthetic download (Python pypdf/Pillow and Poppler required). Require per-page/final human review; decisions invalidate all acknowledgements. Preserve DOCX/XLSX verification.
+- PDF view zoom/pan must never rescale the stored raster coordinates or change approved removals. Map pointer positions through the current page bounds, keep keyboard edits bounded, and block final review/download while a draft remains unapplied. Viewing alone must not invalidate approvals.
+- Keep release QA synthetic and isolated. Give independent browser stages their own ephemeral identities when needed; never raise production authentication/rate limits to make a larger test suite pass. Only non-sensitive theme preferences may be persisted by redactor UI refinements.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

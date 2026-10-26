@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-10-26 — Phase 4: UI refinement and local release candidate
+
+- Started clean on `feature/secure-document-redactor`. Preserved all format engines, supported/blocked types, application tools, server security policies and both page/worker CSPs. No package or lockfile changes, OCR, upload/provider endpoint or persistence channel was added.
+- Reused the landing-page semantic surfaces/type/brand palette, shared a theme toggle between workbench/redactor, improved dark/light muted and primary/hover contrast, field focus and reduced-motion handling. Fixed mobile desktop-height/collapsed sidebar inheritance, retained navigation/brand identity and added keyboard agent-card entry.
+- Added pre-upload format cards and expandable detailed limits, single-file drop support, upload/review/verified-download stages, a clear empty state, focused errors, review progress and download-status invalidation after changed decisions. DOCX proposals can locate/select original text; privacy and mandatory review remain explicit.
+- Added PDF 100–300% zoom, fit, scrolling/pan, draft move/corner resize and bounded keyboard/coordinate editing. Viewport bounds map to unchanged source-raster coordinates. View-only changes preserve approvals; draft/decision edits invalidate review. Unapplied drafts block final review/download until applied or discarded.
+- Added XLSX direct cell addressing, previous/next stored-cell controls, sheet review indicators, sticky cell references and keyboard-scrollable tables. Pagination now selects a cell on the displayed page; raw/hidden/veryHidden data and formula/unsupported blockers remain visible.
+- Added two geometry test groups, a shared-token 4.5:1 contrast check and a sixth real-browser release stage using synthetic client-information/invoice/GST/balance examples and a 240-row workbook. It verifies drag/drop, DOCX selection/download/status, large-workbook navigation/export, PDF zoom/scroll/resize/pan/keyboard geometry, pending drafts, review preservation, themes/mobile and no document API/storage activity.
+- Added the four-category `docs/RELEASE_READINESS.md` checklist and updated AGENTS/architecture/security/README. Next development tooling generated its framework-guide block in AGENTS.md; retained it. No live Vercel/Redis/provider setup or smoke test was performed.
+
+### Phase 4 validation
+
+- `pnpm test`: **80/80 passed** (77 previous plus 3 geometry/contrast tests). `pnpm build`: passed, all original routes retained, no Edge warnings.
+- `pnpm test:production`: **all six stages passed**, including API/security, authentication and DOCX/XLSX/PDF regressions, independent actual XLSX/PDF download checks and the new release UI stage. All three existing independent Python commands passed. Dark/light desktop/tablet/mobile screenshots were visually inspected.
+- `pnpm audit`: no known vulnerabilities reported. `git diff --check`: passed. No new dependencies were installed.
+- Targeted QA corrected an incomplete large-workbook fixture (row definitions) without changing the engine. The first combined run hit the intended five-login-per-account budget; a distinct ephemeral viewer identity fixed test isolation, with production limits unchanged. The full consolidated suite then passed. Development-mode redactor hydration did not complete; release verification used production mode without relaxing CSP.
+- Local synthetic release-candidate testing: **GO**. Existing unverified hosted deployment: **NO-GO**, with hosted synthetic testing conditional on configuration/protection/smoke checks. Confidential production: **NO-GO**. Remaining format/OCR, heuristic review, browser/device, tenant/durability and hosted-evidence limits are documented.
+
+No commits, pushes, merges or deployments were performed.
+
 ## 2026-10-26 — Phase 3: restricted local PDF redaction
 
 - Confirmed `feature/secure-document-redactor` and a clean starting working tree. Preserved existing DOCX/XLSX engines, workbench tools, application authentication/authorization, rate limits, server egress and both page/worker CSP policies. No server upload endpoint or source/provider/storage integration was introduced.

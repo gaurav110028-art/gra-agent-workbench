@@ -16,7 +16,7 @@ function highlighted(text, ranges) {
 }
 const keyOf = unit => `${unit.ref}:${unit.field}`;
 
-export default function XlsxReview({ workbook, busy, onExport }) {
+export default function XlsxReview({ workbook, busy, onExport, onReviewChange }) {
   const [sheetIndex, setSheetIndex] = useState(0);
   const [page, setPage] = useState(0);
   const [ranges, setRanges] = useState(workbook.matches);
@@ -25,6 +25,7 @@ export default function XlsxReview({ workbook, busy, onExport }) {
   const [sheetReviews, setSheetReviews] = useState({});
   const [reviewed, setReviewed] = useState(false);
   const [error, setError] = useState('');
+  const [address, setAddress] = useState('');
   const selector = useRef(null);
   const sheet = workbook.sheets[sheetIndex];
   const units = useMemo(() => sheet.cells.flatMap(cell => [
@@ -37,7 +38,17 @@ export default function XlsxReview({ workbook, busy, onExport }) {
   const allReviewed = workbook.sheets.every((_, index) => sheetReviews[index]);
   const pages = Math.max(1, Math.ceil(units.length / 100));
 
-  function invalidate() { setReviewed(false); setSheetReviews({}); }
+  function invalidate() { setReviewed(false); setSheetReviews({}); onReviewChange?.(); }
+  function selectUnit(index) {
+    if (index < 0 || index >= units.length) return;
+    setSelectedKey(keyOf(units[index])); setPage(Math.floor(index / 100)); setError('');
+  }
+  function goToCell(event) {
+    event.preventDefault();
+    const index = units.findIndex(unit => unit.ref === address.trim().toUpperCase() && unit.field === 'value');
+    if (index < 0) { setError('That stored cell is not present on this worksheet. Blank gaps are omitted.'); return; }
+    selectUnit(index);
+  }
   function update(next) {
     if (next.length > 2000) { setError('At most 2,000 redaction proposals are supported.'); return; }
     setRanges(next); invalidate(); setError('');
@@ -62,33 +73,36 @@ export default function XlsxReview({ workbook, busy, onExport }) {
   return <div className="xlsx-review">
     <section className="redactor-card xlsx-policy">
       <h2>XLSX workbook review</h2>
+      <div className="review-progress"><progress value={Object.values(sheetReviews).filter(Boolean).length} max={workbook.sheets.length} aria-label="Worksheets reviewed" /><span>{Object.values(sheetReviews).filter(Boolean).length} / {workbook.sheets.length} worksheets reviewed</span></div>
       <p>{workbook.sheets.length} worksheets · {workbook.sheets.reduce((count, item) => count + item.cells.length, 0)} stored cells · {enabled.length} selected redactions</p>
       <ul>{workbook.warnings.map(warning => <li key={warning}>{warning}</li>)}</ul>
       {workbook.blocked.length > 0 && <div role="alert" className="redactor-error"><strong>Export blocked</strong><ul>{workbook.blocked.map(message => <li key={message}>{message}</li>)}</ul><p>Values remain available for inspection. This workbook cannot be exported securely by this increment.</p></div>}
       {error && <p role="alert" className="redactor-error">{error}</p>}
       <label htmlFor="xlsx-sheet">Worksheet (source names stay local; export uses generic names)</label>
-      <select id="xlsx-sheet" value={sheetIndex} disabled={busy} onChange={event => { setSheetIndex(+event.target.value); setPage(0); setSelectedKey(null); }}>
-        {workbook.sheets.map((item, index) => <option key={index} value={index}>{index + 1}. {item.name} — {item.state}</option>)}
+      <select id="xlsx-sheet" value={sheetIndex} disabled={busy} onChange={event => { setSheetIndex(+event.target.value); setPage(0); setSelectedKey(null); setAddress(''); setError(''); }}>
+        {workbook.sheets.map((item, index) => <option key={index} value={index}>{index + 1}. {item.name} — {item.state}{sheetReviews[index] ? ' · Reviewed' : ' · Review required'}</option>)}
       </select>
       <p className="xlsx-sheet-state">Source visibility: <strong>{sheet.state}</strong>. All source cell values below are shown, including cells in hidden rows and columns. Blank gaps are omitted; this is a raw cell review, not an Excel rendering.</p>
     </section>
     <div className="redactor-grid">
       <section className="redactor-card">
         <h2>02 / Review worksheet cells</h2>
-        <div className="xlsx-table-wrap"><table className="xlsx-cells">
+        <form className="xlsx-navigation" onSubmit={goToCell}><label htmlFor="xlsx-address">Go to stored cell</label><input id="xlsx-address" value={address} disabled={busy} maxLength={12} placeholder="e.g. B125" autoComplete="off" spellCheck={false} onChange={e => setAddress(e.target.value)} /><button type="submit" disabled={busy}>Go to cell</button></form>
+        <div className="xlsx-table-wrap" tabIndex={0} role="region" aria-label="Scrollable worksheet cells"><table className="xlsx-cells"><caption className="sr-only">All stored values and formulas, including hidden source cells</caption>
           <thead><tr><th>Cell</th><th>Source flags</th><th>Raw value / formula</th></tr></thead>
           <tbody>{units.slice(page * 100, page * 100 + 100).map(unit => <tr key={keyOf(unit)} data-selected={keyOf(unit) === keyOf(selected || {})}>
-            <td><button type="button" disabled={busy} onClick={() => setSelectedKey(keyOf(unit))} aria-label={`Select ${unit.ref} ${unit.field}`}>{unit.ref}{unit.field === 'formula' ? ' formula' : ''}</button><small>{unit.kind}</small></td>
+            <td><button type="button" disabled={busy} onClick={() => setSelectedKey(keyOf(unit))} aria-pressed={keyOf(unit) === keyOf(selected || {})} aria-label={`Select ${unit.ref} ${unit.field}`}>{unit.ref}{unit.field === 'formula' ? ' formula' : ''}</button><small>{unit.kind}</small></td>
             <td>{[sheet.state !== 'visible' ? sheet.state + ' sheet' : '', unit.rowHidden ? 'hidden row' : '', unit.columnHidden ? 'hidden column' : '', unit.formula !== null && unit.field === 'value' ? 'cached value' : ''].filter(Boolean).join(' · ') || 'visible'}</td>
             <td className="xlsx-cell-value">{unit.text ? highlighted(unit.text, enabled.filter(range => range.sheet === sheetIndex && range.ref === unit.ref && range.field === unit.field)) : <span className="xlsx-empty">(empty)</span>}</td>
           </tr>)}</tbody>
         </table></div>
         <div className="redactor-actions xlsx-pages">
-          <button type="button" disabled={busy || page === 0} onClick={() => setPage(page - 1)}>Previous cells</button>
+          <button type="button" disabled={busy || page === 0} onClick={() => selectUnit((page - 1) * 100)}>Previous cells</button>
           <span>Page {page + 1} of {pages}</span>
-          <button type="button" disabled={busy || page + 1 >= pages} onClick={() => setPage(page + 1)}>Next cells</button>
+          <button type="button" disabled={busy || page + 1 >= pages} onClick={() => selectUnit((page + 1) * 100)}>Next cells</button>
         </div>
         {selected && <>
+          <div className="redactor-actions"><button type="button" disabled={busy || units.indexOf(selected) <= 0} onClick={() => selectUnit(units.indexOf(selected) - 1)}>Previous stored cell</button><span className="format-tag">{selected.ref} · {selected.field}</span><button type="button" disabled={busy || units.indexOf(selected) + 1 >= units.length} onClick={() => selectUnit(units.indexOf(selected) + 1)}>Next stored cell</button></div>
           <label htmlFor="xlsx-selection">Select characters in {selected.ref} {selected.field} to add or correct a redaction</label>
           <textarea ref={selector} id="xlsx-selection" className="redactor-selection" value={selected.text} readOnly spellCheck={false} autoComplete="off" disabled={busy} />
           <button type="button" disabled={busy} onClick={() => useSelection()}>Add selected cell text</button>

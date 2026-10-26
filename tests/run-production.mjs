@@ -7,7 +7,7 @@ const port = process.env.GRA_TEST_PORT || '3100';
 const origin = `http://localhost:${port}`;
 const password = 'synthetic-only-test-password-2026';
 const passwordHash = await hashPassword(password);
-const users = ['admin', 'operator', 'viewer', 'logout', 'lockout'].map(id => ({ id, email: `${id}@example.test`, name: `Synthetic ${id}`, role: ['admin', 'operator', 'viewer'].includes(id) ? id : 'viewer', version: 1, passwordHash }));
+const users = ['admin', 'operator', 'viewer', 'logout', 'lockout', 'release-ui'].map(id => ({ id, email: `${id}@example.test`, name: `Synthetic ${id}`, role: ['admin', 'operator', 'viewer'].includes(id) ? id : 'viewer', version: 1, passwordHash }));
 const readToken = 'synthetic-mcp-read-token-'.repeat(3), writeToken = 'synthetic-mcp-write-token-'.repeat(3), hookToken = 'synthetic-hook-ingest-token-'.repeat(3);
 const env = {
   ...process.env, NODE_ENV: 'production', VERCEL: '', NEXT_TELEMETRY_DISABLED: '1',
@@ -15,6 +15,7 @@ const env = {
   GRA_SERVICE_TOKENS_JSON: JSON.stringify([{ id: 'reader', sha256: digest(readToken), scopes: ['mcp:read'] }, { id: 'writer', sha256: digest(writeToken), scopes: ['mcp:read', 'mcp:write'] }, { id: 'hook', sha256: digest(hookToken), scopes: ['webhook:ingest'] }]),
   GRA_HTTP_ALLOWED_HOSTS: 'approved.test', GRA_INTEGRATION_ORIGINS: 'https://extension.example', GRA_ENABLE_SYNTHETIC_AUDIT: 'false',
   GRA_TEST_URL: origin, GRA_TEST_EMAIL: 'admin@example.test', GRA_TEST_PASSWORD: password,
+  GRA_TEST_UI_EMAIL: 'release-ui@example.test',
   GRA_TEST_READ_TOKEN: readToken, GRA_TEST_WRITE_TOKEN: writeToken, GRA_TEST_HOOK_TOKEN: hookToken,
   // Never inherit real provider credentials into synthetic tests.
   OPENAI_API_KEY: '', ANTHROPIC_API_KEY: '', GEMINI_API_KEY: '', GROQ_API_KEY: '', OPENROUTER_API_KEY: '', RESEND_API_KEY: '',
@@ -39,7 +40,7 @@ try {
     await new Promise(resolve => setTimeout(resolve, 250));
   }
   if (!ready) throw new Error(`Production server did not become ready: ${startup}`);
-  const stages = ['tests/security.server.mjs', 'tests/security.browser.mjs', 'tests/redactor.browser.mjs', 'tests/xlsx.browser.mjs', 'tests/pdf.browser.mjs'];
+  const stages = ['tests/security.server.mjs', 'tests/security.browser.mjs', 'tests/redactor.browser.mjs', 'tests/xlsx.browser.mjs', 'tests/pdf.browser.mjs', 'tests/release-ui.browser.mjs'];
   const selected = process.argv.slice(2);
   if (selected.some(file => !stages.includes(file))) throw new Error('Unknown production regression stage.');
   for (const file of selected.length ? selected : stages) await run(file);
