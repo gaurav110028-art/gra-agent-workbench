@@ -3,8 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { detect, mergeRanges } from '../../lib/redactor/detect.mjs';
 import './redactor.css';
+import XlsxReview from './XlsxReview';
 
 const MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
 export default function RedactorPage() {
   const worker = useRef(null);
@@ -12,12 +14,13 @@ export default function RedactorPage() {
   const selection = useRef(null);
   const upload = useRef(null);
   const [text, setText] = useState('');
+  const [workbook, setWorkbook] = useState(null);
   const [ranges, setRanges] = useState([]);
   const [terms, setTerms] = useState('');
   const [reviewed, setReviewed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [status, setStatus] = useState('Choose a supported DOCX to begin.');
+  const [status, setStatus] = useState('Choose a supported DOCX or XLSX to begin.');
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', localStorage.getItem('gra-theme') || 'dark');
@@ -27,7 +30,7 @@ export default function RedactorPage() {
   function clear() {
     worker.current?.terminate(); worker.current = null;
     clearTimeout(timer.current);
-    setText(''); setRanges([]); setTerms(''); setReviewed(false); setError(''); setBusy(false);
+    setText(''); setWorkbook(null); setRanges([]); setTerms(''); setReviewed(false); setError(''); setBusy(false);
     setStatus('Document cleared from this workspace.');
     if (upload.current) upload.current.value = '';
   }
@@ -39,16 +42,16 @@ export default function RedactorPage() {
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
       worker.current?.terminate(); worker.current = null;
-      setBusy(false); setText(''); setRanges([]); setReviewed(false);
-      setError('Processing exceeded 15 seconds. The document was closed; try a smaller supported DOCX.');
+      setBusy(false); setText(''); setWorkbook(null); setRanges([]); setReviewed(false);
+      setError('Processing exceeded 15 seconds. The document was closed; try a smaller supported file.');
     }, 15000);
   }
   async function open(file) {
     clear();
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) { setError('Maximum file size is 5 MiB.'); return; }
-    if (!/\.docx$/i.test(file.name)) {
-      setError('PDF (including scans) and XLSX are unsupported in this increment. Choose a plain text DOCX.'); return;
+    if (!/\.(docx|xlsx)$/i.test(file.name)) {
+      setError('PDF/scans, macro-enabled, binary and legacy formats are unsupported. Choose a restricted DOCX or XLSX.'); return;
     }
     setBusy(true); setStatus('Inspecting the document locally…');
     let current;
@@ -60,6 +63,11 @@ export default function RedactorPage() {
       clearTimeout(timer.current); setBusy(false); setError('');
       if (data.type === 'error') { setError(data.message); setStatus('No output was created.'); return; }
       if (data.type === 'inspected') {
+        if (data.format === 'xlsx') {
+          setWorkbook(data.workbook);
+          setStatus(`Initial scan: ${data.workbook.matches.length} proposed redactions across ${data.workbook.sheets.length} worksheets. Review hidden data and all supported cells.`);
+          return;
+        }
         try {
           const found = detect(data.text);
           setText(data.text); setRanges(found);
@@ -67,12 +75,12 @@ export default function RedactorPage() {
         } catch (e) { clear(); setError(e.message); }
       }
       if (data.type === 'exported') {
-        const url = URL.createObjectURL(new Blob([data.bytes], { type: MIME }));
+        const url = URL.createObjectURL(new Blob([data.bytes], { type: data.format === 'xlsx' ? XLSX_MIME : MIME }));
         const link = document.createElement('a');
-        link.href = url; link.download = 'gra-redacted-review-required.docx';
+        link.href = url; link.download = `gra-redacted-review-required.${data.format === 'xlsx' ? 'xlsx' : 'docx'}`;
         link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
         setReviewed(false);
-        setStatus('Approved removals verified. Download created. Open and inspect it in Word before sharing; verification cannot find missed sensitive content.');
+        setStatus(`Approved removals verified. Download created. Open and inspect it in ${data.format === 'xlsx' ? 'Excel' : 'Word'} before sharing; verification cannot find missed sensitive content.`);
       }
     };
     current.onerror = () => {
@@ -118,7 +126,7 @@ export default function RedactorPage() {
       <header className="redactor-header">
         <a href="/" className="redactor-back">← GRA Agent Workbench</a>
         <a href="/logout" className="redactor-back">Sign out</a>
-        <span className="redactor-badge">LOCAL PROCESSING · FIRST INCREMENT</span>
+        <span className="redactor-badge">LOCAL PROCESSING · RESTRICTED DOCX / XLSX</span>
       </header>
       <section className="redactor-intro">
         <p className="redactor-eyebrow">CONFIDENTIAL DOCUMENT TOOLS</p>
@@ -126,8 +134,8 @@ export default function RedactorPage() {
         <p>Find sensitive identifiers. Review every removal. Export a rebuilt document.</p>
       </section>
       <aside className="redactor-notice">
-        <strong>Supported: plain text DOCX only · 5 MiB maximum</strong>
-        <p>PDF, scanned documents and XLSX are not supported yet. DOCX tables, images, headers, footers, comments, revisions, fields, links, hidden text, embedded objects and custom XML are rejected. Metadata is stripped. Direct bold, italic, underline, font size, alignment and basic page geometry are retained; named styles and exact pagination are not.</p>
+        <strong>Supported: restricted DOCX and XLSX · 5 MiB maximum</strong>
+        <p>DOCX supports plain body text with basic direct formatting. Tables, images, headers, footers, comments, revisions, fields, links, hidden text and embedded/custom XML content are rejected. XLSX supports multiple sheets and ordinary cells with limited direct formatting; hidden data is exposed for review. Formulas/caches can be inspected, but formulas and unsupported workbook features block export. XLSX sheet names are replaced and output sheets, rows and columns are unhidden. Metadata is stripped. PDF/scanned, macro-enabled, encrypted and legacy formats are unsupported.</p>
         <p>Document processing stays in this tab. There are no document uploads or AI calls. Detection can miss names, addresses and unusual identifiers. This is a restricted first increment, not a guarantee of anonymity.</p>
       </aside>
       <section className="redactor-card redactor-upload">
@@ -137,6 +145,11 @@ export default function RedactorPage() {
       </section>
       <p role="status" aria-live="polite" className="redactor-status">{status}</p>
       {error && <p role="alert" className="redactor-error">{error}</p>}
+      {workbook && <XlsxReview workbook={workbook} busy={busy} onExport={(selections, confirmed) => {
+        if (!worker.current) { setError('Reopen the workbook before exporting.'); return; }
+        setBusy(true); setError(''); setStatus('Rebuilding and verifying the XLSX locally…'); deadline();
+        worker.current.postMessage({ type: 'export', ranges: selections, reviewed: confirmed });
+      }} />}
       {text && <>
         <div className="redactor-grid">
           <section className="redactor-card">

@@ -1,5 +1,9 @@
 # GRA Agent Workbench architecture
 
+## Current document capabilities — Phase 2
+
+`/redactor` supports the original restricted DOCX workflow and a restricted, values-only XLSX workflow. Both use the same authenticated page and CSP-constrained local worker; no upload API, provider call, telemetry channel or document persistence was added. The server hardening below remains intact. See ADR 002 for the XLSX contract; historical statements about XLSX being wholly unsupported refer to the earlier phases.
+
 ## Current security architecture — Phase 1.5
 
 The historical baseline audit below is superseded by the fixes and remaining-risk assessment in [SECURITY.md](SECURITY.md). The app now uses server-issued encrypted iron-session cookies, one-hour active-session records, server-configured admin/operator/viewer identities, scoped machine tokens and mandatory `secure()` wrappers on every API method. `proxy.js` guards workbench/redactor page entry; authorization is also enforced inside API handlers. Browser-local team/reviewer records do not grant server permissions.
@@ -54,10 +58,56 @@ Review uses character offsets over paragraph text joined with newlines. Users ca
 
 ### Follow-on increments
 
-PDF requires a licensed, genuine content-removal engine, sanitization of annotations/forms/attachments/metadata and independent extraction/object checks. Scans need a local or explicitly controlled OCR pipeline and image pixel removal with verification; no rectangle overlay exports. XLSX requires explicit handling of hidden sheets/rows/columns, shared strings, formulas/caches, links, comments, drawings and metadata; DOCX expansion requires equivalent coverage for tables, headers and other stories. Each remains unsupported until independently tested.
+PDF requires a licensed, genuine content-removal engine, sanitization of annotations/forms/attachments/metadata and independent extraction/object checks. Scans need a local or explicitly controlled OCR pipeline and image pixel removal with verification; no rectangle overlay exports. Restricted XLSX support is now implemented in ADR 002; formulas, advanced workbook features and DOCX expansion still need their own independently tested handling.
 
 ## Verification and dependency baseline
 
 `pnpm test` runs synthetic Node core cases. `python tests/verify-independent.py` independently opens generated output using Python's ZIP/CRC/XML libraries. `pnpm test:browser` against a built production server covers actual file import, worker loading under CSP, manual/custom proposals, acknowledgement, verified download, failed-verification/no-download behavior, malformed/unsupported inputs, mobile width, existing navigation and absence of document network/storage activity. See CHANGELOG.md for actual run results. Word/LibreOffice visual fidelity and non-Chromium browsers have not been validated; the UI requires inspection of exports in Word before sharing.
 
 The original lock resolved Next.js 16.4.0 and React/React DOM 19.3.0. Build/audit identified two critical and one high Next.js advisory, so this increment pins Next.js 16.4.3, React/React DOM 19.3.1, React Flow 12.12.0, fflate 0.8.3 and @xmldom/xmldom 0.9.12. Playwright 1.62.1 is development-only. The patched audit reports no known vulnerabilities; this does not resolve the application-level security findings above. Library references: [fflate](https://github.com/101arrowz/fflate), [xmldom](https://github.com/xmldom/xmldom), [Next.js security notice](https://nextjs.org/blog/nextjs-security-update-october-14-2026).
+
+## ADR 002 — restricted browser-side XLSX reconstruction
+
+Decision: extend the existing local worker with a format-specific parser and canonical XLSX writer using the already pinned fflate and @xmldom/xmldom. A broad spreadsheet library's load/edit/save path would increase the number of features/parts requiring sanitization. The first increment instead has an explicit capability allowlist and creates every exported ZIP entry from reviewed model values. No new runtime dependency, key or server endpoint is required.
+
+Browser processing keeps originals off Vercel/providers and retains the existing CSP/privacy boundary. It limits CPU/memory and compatibility, so unsupported workbooks are rejected or shown as inspection-only, never described as fully redacted. A backend would add confidential upload/retention/authorization duties without removing the OOXML sanitization problem; it is not introduced here.
+
+### Modules and flow
+
+- `lib/redactor/ooxml.mjs`: bounded UTF-8/XML parsing, XLSX ZIP preflight/CRC verification, namespace/attribute guards, XML and SpreadsheetML string escaping.
+- `xlsx-styles.mjs`: a restricted style reader/writer; no source style XML or typeface/theme labels are copied.
+- `xlsx.mjs`: package/content-type/relationship validation, worksheet model, fresh archive writer, redaction and fail-closed export verification.
+- `xlsx-detect.mjs`: cell-addressed suggestions using existing PAN/Aadhaar/GSTIN/TAN/IFSC/email/phone patterns, 9–18 digit bank-account candidates, and bounded literal custom terms.
+- `redactor.worker.js`: owns the format/model and exports only after review; its own CSP still blocks network access.
+- `XlsxReview.js`: worksheet selector, paginated raw-cell table, hidden-state labels, formula/cache inspection, enabled/rejected proposals, manual range correction/addition, custom terms, per-sheet acknowledgement and final review.
+
+### Supported input and output
+
+| Structure | First increment contract |
+| --- | --- |
+| Container | UTF-8 transitional OOXML `.xlsx`; extension/MIME/signature/content types and root/workbook relationships must agree |
+| Worksheets | 1–20 ordinary worksheets; source order and stored cell addresses retained; output names are always Sheet1, Sheet2, etc. |
+| Visibility | visible/hidden/veryHidden sheets and explicit hidden/zero-height rows/zero-width columns are identified in raw review; output sheets, rows and columns are unhidden; zero sizes reset to a safe default |
+| Values | Plain inline/shared text, blank stored cells, Boolean and ordinary finite decimal numeric cells with at most 15 significant digits; long identifiers must be stored as text |
+| Shared strings | Plain `<si><t>` resolved into each cell; unused strings and the entire source SST are discarded; output text uses explicit inline strings |
+| Formatting | Limited direct bold/italic/single underline, 8–72pt size, RGB colors, solid fills, basic four-side borders, left/center/right alignment, wrap, allowlisted built-in number formats, supported row heights and column widths |
+| Normalization | Source font names become Calibri; theme/indexed colors use safe defaults; metadata, source names, unused styles and print/view preferences are not retained. This is disclosed before review/export; exact Excel appearance is not claimed |
+| Formula inspection | Formula expression and supported cached value displayed/detected separately; every formula (including shared/array formula entries) blocks export; no evaluation or cache-trusting flattening |
+
+Text replacement physically removes selected characters and inserts `[REDACTED]`. A redacted numeric/Boolean cell becomes an explicit string. Literal strings beginning with `=` remain strings, never formulas. OOXML `_xHHHH_` escapes are decoded once; literal output escape-like strings and carriage returns are encoded explicitly. Invalid controls/surrogates are rejected.
+
+Each worksheet must be acknowledged, followed by final review. Selection/term/approval changes invalidate acknowledgements. At least one cell range is required in this increment; metadata-only or zero-selection cleanup is not offered. The review is raw cell data, not a rendered Excel grid: blank gaps are omitted and ordinary display formatting may differ.
+
+### Blocked features and limits
+
+The workbook may be inspected but export is blocked for formulas/caches, defined names, merges, hyperlinks, active workbook/sheet protection, grouping/inherited row/column styles, frozen/custom views, value-hiding views, conditional formatting, validation, tables, headers/footers and other recognized unsupported features. Unknown structures, rich/phonetic strings, custom number formats (including hidden `;;;` formats), unsupported/hidden styles, extensions, malformed data and unsafe relationships are rejected. Comments/notes, drawings/images/charts, embeddings, external links/connections, custom XML, calculation chains, VBA/macros and other extra package parts are rejected. No links are followed. Empty default protection/defined-name containers do not enable those features and are normalized away.
+
+XLSM/XLSB/XLS/XLTM, encrypted/OLE containers, Strict OOXML and macro content types renamed to XLSX remain unsupported. Modern Excel files with unsupported extension attributes can be rejected even if their visible cells appear simple. Full Excel/LibreOffice compatibility has not been established.
+
+Limits: 5 MiB input, 100 ZIP entries, 8 MiB declared expansion, 2 MiB per expanded archive entry, 1 MiB per XML part, 50,000 XML nodes/40 levels per part, 20 sheets, 10,000 stored cells, 10,000 row index/256 columns, 100,000 total cell/formula characters, 32,767 characters per string/formula, 32 cell styles, 64 fonts/fills/borders, 2,000 proposals and 30 custom terms of at most 200 characters. Existing 15-second worker timeout and clear/unmount termination apply. The table renders 100 review entries per page.
+
+### Export verification
+
+Output contains exactly five fixed parts plus one XML part per worksheet: content types, root relationships, workbook, workbook relationships, styles and sheet XML. Original archive entries are never copied. The writer removes source metadata, source names, shared strings, unused styles and visibility flags; it cannot write a supported export containing a formula. Runtime verification reopens the complete ZIP, checks CRC/entry set, compares every supported value/type/style/row/column property with the intended model, and searches every decompressed part plus decoded cell/name text for surviving selected strings (including XML/Xstring encodings). It emits no download on mismatch. Short/common selected strings may collide with fixed package labels and fail conservatively; choose a wider range rather than bypassing verification.
+
+Independent tests use Python zipfile/CRC/XML extraction and openpyxl 3.1.5. They inspect rebuilt output, reopen supported values/styles/visibility, import an independently authored workbook, and inspect the actual Chromium download. These checks complement the runtime parser; they are not proof of full OOXML compliance or exact desktop rendering. Source references: [Microsoft shared strings](https://learn.microsoft.com/en-us/office/open-xml/spreadsheet/working-with-the-shared-string-table), [cell/formula cached values](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.cellvalue), [Xstring escaping](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-oe376/bd0aa042-434a-4ca7-b25f-4e1fd25a954d).

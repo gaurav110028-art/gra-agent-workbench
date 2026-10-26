@@ -1,4 +1,6 @@
-# Phase 1.5 security assessment — 25 October 2026
+# GRA security assessment — Phase 1.5 and Phase 2
+
+Phase 1.5 baseline: 25 October 2026. Restricted XLSX follow-on: 26 October 2026. The original hosting/confidential-data Go/No-Go gates remain in force; XLSX support does not establish broader production readiness.
 
 ## Scope and recommendation
 
@@ -39,7 +41,7 @@ Partial email delivery is also handled explicitly: a batch with any failed/uncon
 
 | Identity | Allowed operations |
 | --- | --- |
-| viewer | Workbench and shared query/MCP metadata reads; local DOCX tool |
+| viewer | Workbench and shared query/MCP metadata reads; local restricted DOCX/XLSX tools |
 | operator | Viewer reads, workflow/MCP mutations, webhook ingest, AI and permitted HTTP calls, opt-in synthetic audit |
 | admin | All above plus email sending and shared-buffer clearing |
 | service token | Only explicit mcp:read, mcp:write and/or webhook:ingest scopes. mcp:write callers also need mcp:read to enter the MCP transport. No browser/workbench session, email or query-buffer read/clear authority. |
@@ -65,7 +67,28 @@ The upload remains browser-only, with the original 5 MiB/100,000-character limit
 
 Known metadata/settings/styles/thumbnail input parts are stripped; unsupported components and relationships are rejected. No source ZIP entry is copied. Output has exactly `[Content_Types].xml`, `_rels/.rels` and `word/document.xml`; selected strings and expected text/format model are checked after reopening. Independent Python extraction and python-docx reopening complement the same-library runtime verification.
 
-Remaining limits: inline scripts/styles are still allowed for Next hydration; this CSP is not an XSS-proof sandbox. Trusted app scripts, browser extensions/device access and browser/OS memory or swap remain in the trust boundary. Logout/expiry prevents future server/page access but cannot remotely erase an already loaded/offline document tab; Clear/unmount releases references and terminates the worker. Font/theme rendering and Word pagination are not exact. Pattern heuristics can miss confidential text. PDF/OCR/XLSX and complex DOCX remain unsupported.
+Remaining limits: inline scripts/styles are still allowed for Next hydration; this CSP is not an XSS-proof sandbox. Trusted app scripts, browser extensions/device access and browser/OS memory or swap remain in the trust boundary. Logout/expiry prevents future server/page access but cannot remotely erase an already loaded/offline document tab; Clear/unmount releases references and terminates the worker. Font/theme rendering and Word pagination are not exact. Pattern heuristics can miss confidential text. PDF/OCR and complex DOCX remain unsupported; restricted XLSX is covered below.
+
+## Phase 2 — XLSX security boundary
+
+The same authenticated `/redactor` page and network-blocked worker now inspect restricted XLSX. No route, server upload/store, provider API, runtime CDN, telemetry or new dependency was introduced. Original ZIP bytes are transferred to the worker; the UI receives only volatile review data. Sheet names, cell values, formulas, custom terms and ranges never enter server APIs, authentication, Redis, workflow stores or logs. Clear/unmount/timeout terminates the worker and releases review references; JavaScript cannot guarantee physical zeroization or prevent extension/OS access.
+
+### Format controls
+
+1. Validate `.xlsx`, MIME, ZIP signature, all archive entries/CRC/size/count, supported content types and root/workbook/worksheet relationships. Reject encryption/OLE, macro-enabled/binary/legacy/Strict formats, arbitrary parts, unknown namespaces/extensions, unsafe or external targets, duplicate/ambiguous IDs and unreferenced worksheets. Links are never followed.
+2. Parse bounded ordinary worksheet cells and plain shared strings. Display hidden/veryHidden sheet state and hidden/zero-size row/column flags alongside raw values. Every worksheet and final output policy requires human acknowledgement; decision changes invalidate it.
+3. Inspect formulas and supported cached primitives separately, but block every formula workbook from export, regardless of UI checkbox state. Do not evaluate a formula, trust a cached result as redacted output, or flatten it silently. Formula-like literal strings remain explicit string cells.
+4. Block/reject comments/notes, hyperlinks, defined names, active protection, merges, tables, validation/conditional formatting, grouping/inherited styles, custom/hidden number formats, rich/phonetic text, drawings/embeddings, external links/connections, macros and unsupported features. Recognized blocked workbooks can be shown for inspection; rejected structures produce an explicit error with no output.
+5. Rebuild all output XML and ZIP entries. Do not copy source metadata, names, shared strings, style XML, unused style records, theme/typeface labels, visibility flags or unknown components. Output sheet names are generic and all sheets/rows/columns unhidden; zero dimensions reset to defaults. Retain only allowlisted direct formatting, types, cell addresses and supported dimensions. Source print/view preferences are explicitly normalized away. See ADR 002 for exact caps and support.
+6. Verify exact output entry set (five fixed parts plus sheets), CRC, all modeled values/types/styles/dimensions, no blockers/formulas, and absence of selected strings across decoded cells/names and every decompressed XML part. Verification fails closed and emits no download. Short/common ranges can collide with static XML labels and be rejected conservatively; no bypass is provided.
+
+### Residual risks and compatibility limits
+
+This is values-only XLSX support, not a general Excel anonymizer. Formula-heavy CA workbooks cannot be exported. Modern Excel extensions and unsupported formatting can cause otherwise ordinary files to be rejected. No Excel/LibreOffice desktop rendering, full OOXML conformance, formula engine or arbitrary embedded-content sanitization is claimed. Raw review does not reproduce formatted dates/numbers or page layout; custom terms match underlying cell text, not formatted displays or fragments spread across cells. Names/addresses and other non-pattern data require manual review, and bank candidates can be false positives.
+
+The output policy deliberately changes names and hidden-state flags. A checked acknowledgement is a human attestation, not proof that all confidential data was found. At least one cell redaction is required; metadata-only cleanup is not available in this increment. Downloaded files persist on the user's device and must be opened/inspected before sharing. Direct colors/formatting can affect visual legibility, so the raw cell review and underlying-file checks matter; visual appearance is not evidence of removal.
+
+The application-wide single-workspace/localStorage/instance-memory, approval-ledger, MFA/SSO and hosting limitations above still apply. GO for isolated local synthetic testing after validation; existing hosted/confidential-data recommendations are unchanged. Before broadening XLSX support, independently review the allowlist/writer and add a separately scoped, verifiable formula/cache strategy; do not relax blockers for convenience.
 
 ## Vercel/hosting readiness requirements
 
@@ -79,7 +102,9 @@ Remaining limits: inline scripts/styles are still allowed for Next hydration; th
 
 ## Validation evidence
 
-Final local results: 49 Node tests passed; production build passed without Edge-runtime warnings; both independent Python checks passed; pnpm audit reported no known vulnerabilities; production-server/browser regression passed all three stages. See CHANGELOG.md for command details. Node tests cover core removal and security policy/failure behavior with mocked DNS/transports/Redis. `pnpm test:production` starts a built server on localhost:3100 with ephemeral synthetic users/tokens, local memory security storage, and inherited provider keys cleared. It tests anonymous denial for every API, role/scope/CSRF/CORS controls, throttling with changing forged IP headers, body limits, server session revocation, existing workflow/MCP/webhook behavior, page login/logout and the full browser DOCX flow including worker CSP. It then shuts the test server down.
+Phase 2 validation passed 68/68 Node tests, all four production-harness stages, all three independent Python checks, and the production build without Edge-runtime warnings. `pnpm audit` reported no known vulnerabilities and `git diff --check` reported no whitespace errors. The actual Chromium XLSX download is piped in memory to an independent Python ZIP/CRC/XML and openpyxl verifier; all fixtures/downloads are synthetic. Detailed command results are recorded in CHANGELOG.md.
+
+`pnpm test:production` starts a built server on localhost:3100 with ephemeral synthetic users/tokens, local memory security storage, and inherited provider keys cleared. It retains anonymous-denial, role/scope/CSRF/CORS, throttling, request-body limits, revocation, workflow/MCP/webhook and DOCX regressions. The XLSX stage tests multiple/hidden sheets, raw hidden cells, manual/custom/corrected/rejected proposals, per-sheet review, actual download and independent reopen, UI and worker export blocking, missed-duplicate verification failure, malformed/unsupported/macro/size errors, page/worker CSP, absence of document network/storage activity, and mobile width. The harness then shuts down its server. Python 3 with openpyxl is required; set GRA_TEST_PYTHON if it is not on PATH.
 
 Mocked Redis tests verify atomic command construction and failure behavior; they do not prove live multi-instance Redis/Vercel integration. No penetration test, external provider/email smoke test, high-load test, non-Chromium browser check or Word/LibreOffice visual rendering is claimed. Those gaps and the remaining architecture findings prevent a confidential production-readiness claim.
 

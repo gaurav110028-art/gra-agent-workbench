@@ -11,7 +11,7 @@
 .redactor-notice strong { color: var(--warning-fg); }
 .redactor-notice p { margin: 8px 0 0; }
 .redactor-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 24px; min-width: 0; }
-.redactor .redactor-upload label { display: grid; gap: 8px; }
+.redactor .redactor-upload label[for] { display: grid; gap: 8px; }
 .redactor-upload label span, .redactor-status { color: var(--text-muted); font-size: 12px; }
 .redactor button { border: 1px solid var(--border-strong); color: var(--text-primary); background: var(--bg-surface-2); border-radius: var(--radius-md); padding: 10px 14px; cursor: pointer; font: inherit; font-size: 13px; }
 .redactor button:hover:enabled { background: var(--bg-surface-hover); }
@@ -34,3 +34,17 @@
 .redactor-check { display: flex; gap: 12px; align-items: flex-start; line-height: 1.6; font-size: 14px; }
 .redactor-check input { margin-top: 5px; flex-shrink: 0; }
 @media (max-width: 850px) { .redactor { padding: 24px 18px 48px; } .redactor-grid { grid-template-columns: 1fr; } .redactor-intro { margin-top: 32px; } .redactor-card { padding: 18px; } }
+.xlsx-policy ul { padding-left: 20px; color: var(--text-secondary); font-size: 13px; line-height: 1.7; }
+.xlsx-policy select { width: 100%; background: var(--bg-main); color: var(--text-primary); border: 1px solid var(--border-strong); padding: 12px; border-radius: var(--radius-md); font: inherit; }
+.xlsx-table-wrap { overflow: auto; max-height: 500px; border: 1px solid var(--border); border-radius: var(--radius-md); }
+.xlsx-cells { width: 100%; border-collapse: collapse; font-size: 12px; }
+.xlsx-cells td, .xlsx-cells th { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.xlsx-cells th { background: var(--bg-surface-2); position: sticky; top: 0; z-index: 1; }
+.xlsx-cells td:first-child { min-width: 95px; }
+.xlsx-cells td:nth-child(2) { color: var(--text-secondary); min-width: 90px; }
+.xlsx-cells small { display: block; margin-top: 6px; color: var(--text-muted); }
+.xlsx-cells tr[data-selected="true"] { background: var(--accent-bg); }
+.xlsx-cell-value { min-width: 160px; max-width: 340px; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); }
+.xlsx-empty { color: var(--text-muted); }
+.xlsx-pages { margin: 16px 0; font-size: 12px; }
+.xlsx-sheet-check { margin-top: 20px; }

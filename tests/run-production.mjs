@@ -42,5 +42,6 @@ try {
   await run('tests/security.server.mjs');
   await run('tests/security.browser.mjs');
   await run('tests/redactor.browser.mjs');
+  await run('tests/xlsx.browser.mjs');
   console.log('PASS: production-server security and browser regression suite. Synthetic data only; no provider keys configured.');
 } finally { server.kill(); }

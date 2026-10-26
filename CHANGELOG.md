@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-10-26 — Phase 2: restricted secure XLSX redaction
+
+- Began on `main` with a clean working tree. Preserved the existing DOCX workflow, workbench tools, authenticated route, role/rate-limit controls and page/worker CSP. No PDF features, server upload endpoint, provider call, document persistence or new runtime dependency was added.
+- Extended the local worker with a bounded, format-specific XLSX OOXML parser and fresh-package writer using existing pinned fflate/@xmldom. Validates MIME/signature, ZIP/CRC/expansion, content types, relationship IDs/targets, source-part allowlist, sheet/cell addresses, types/styles and resource limits.
+- Added multi-sheet raw-cell review with hidden/veryHidden worksheet and hidden/zero-size row/column identification, per-cell detection, approve/reject checkboxes, manual range add/correct/remove, literal custom terms and mandatory per-worksheet plus final acknowledgement. Any decision change invalidates acknowledgements.
+- Added PAN/Aadhaar/GSTIN/TAN/IFSC/email/phone detection and conservative 9–18 digit bank-account candidates. Long account identifiers retain leading zeros when stored as text; redacted numeric/Boolean cells become explicit text. Pattern and formatting limitations are visible in the UI.
+- XLSX export rebuilds only ordinary cell values/addresses, limited direct styles and supported dimensions. It generates generic Sheet1/Sheet2 names, unhides sheets/rows/columns, strips source metadata/shared strings/unused styles/theme/typeface labels and normalizes print/view preferences. No source archive entry is copied.
+- Added post-export exact-entry/CRC/model verification and surviving-value checks across every decompressed part and decoded cell/name text. Verification failure prevents download. OOXML escape-like strings are handled explicitly, and literal formula-like text is never turned into a formula.
+- Formula expressions and supported cached values are available for review/detection, but any formula blocks export. Defined names, comments/notes, hyperlinks, custom formats, rich text, merges, validation/conditional formatting, tables, grouping/inherited styles, active protection, drawings/embeddings, external links/connections, macros/encryption/legacy/Strict formats and other unsupported structures remain blocked/rejected. This is not complete XLSX support.
+- Added synthetic core/failure tests, independently authored/reopened openpyxl fixtures, Python ZIP/CRC/XML verification, and a production browser XLSX stage that independently inspects the actual downloaded bytes. Retained all original security/DOCX regressions. Ignored Python test bytecode caches.
+- Updated AGENTS.md, README, ARCHITECTURE.md (ADR 002) and SECURITY.md with the support contract, privacy boundary, verification and remaining compatibility/readiness limits.
+
+### Phase 2 validation
+
+- `pnpm test`: 68/68 passed (49 existing tests and 19 XLSX test groups), covering successful removal, hidden/shared data, formulas/cache blockers, malformed/unsupported packages, review gates, bounds and verification failures.
+- `pnpm build`: passed; existing routes retained and no Edge-runtime warnings. `pnpm test:production`: all four stages passed (API/security, authentication browser, DOCX browser and XLSX browser), including independent verification of the actual XLSX download, privacy/CSP, mobile layout and failure/no-download checks.
+- All three independent Python commands passed: `tests/verify-independent.py`, `tests/verify-word-compatibility.py` and `tests/verify-xlsx-independent.py`. XLSX verification includes independently authored openpyxl input, ZIP/CRC/XML inspection, output reopening, cell types/basic styles and absence of selected values, metadata and hidden state.
+- `pnpm audit`: no known vulnerabilities reported. `git diff --check`: no whitespace errors. No runtime dependency or lockfile changes were needed; these checks are not a security certification.
+- Independent verification uses openpyxl 3.1.5 plus Python stdlib ZIP/CRC/XML; no desktop Excel/LibreOffice rendering or live Vercel/Redis/provider test is claimed.
+- Existing hosted/confidential-data No-Go gates remain. The next phase should independently review this restricted parser/writer and separately verify formula/cache handling and advanced workbook features before relaxing export blockers.
+
+No commits, pushes, merges or deployments were performed.
+
 ## 2026-10-25 — Phase 1.5: security hardening
 
 - Added severity-ranked findings, an egress inventory, deployment requirements, evidence limits and explicit Go/No-Go assessment in `docs/SECURITY.md`; updated AGENTS.md, architecture and setup instructions. No PDF/XLSX redaction features were added.

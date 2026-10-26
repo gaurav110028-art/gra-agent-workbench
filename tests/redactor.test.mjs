@@ -73,7 +73,7 @@ test('verification fails closed on altered text or hidden extra output entries',
   const bytes = edit(packageDocx(expected), files => { files['docProps/core.xml'] = strToU8('<secret/>'); });
   assert.throws(() => verifyExport(bytes, expected, []), /unexpected output parts/);
 });
-test('PDF, scanned PDF, XLSX and mismatched MIME are explicitly rejected', () => {
+test('DOCX importer rejects PDF, scanned PDF, XLSX and mismatched MIME', () => {
   const bytes = packageDocx(fixture());
   for (const name of ['test.pdf', 'scanned.pdf', 'test.xlsx', 'test.doc', 'test.docm']) assert.throws(() => inspectDocx(bytes, name), /unsupported|supported/);
   assert.throws(() => inspectDocx(bytes, 'test.docx', 'application/pdf'), /MIME/);
