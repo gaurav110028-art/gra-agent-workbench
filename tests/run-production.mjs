@@ -39,9 +39,9 @@ try {
     await new Promise(resolve => setTimeout(resolve, 250));
   }
   if (!ready) throw new Error(`Production server did not become ready: ${startup}`);
-  await run('tests/security.server.mjs');
-  await run('tests/security.browser.mjs');
-  await run('tests/redactor.browser.mjs');
-  await run('tests/xlsx.browser.mjs');
+  const stages = ['tests/security.server.mjs', 'tests/security.browser.mjs', 'tests/redactor.browser.mjs', 'tests/xlsx.browser.mjs', 'tests/pdf.browser.mjs'];
+  const selected = process.argv.slice(2);
+  if (selected.some(file => !stages.includes(file))) throw new Error('Unknown production regression stage.');
+  for (const file of selected.length ? selected : stages) await run(file);
   console.log('PASS: production-server security and browser regression suite. Synthetic data only; no provider keys configured.');
 } finally { server.kill(); }

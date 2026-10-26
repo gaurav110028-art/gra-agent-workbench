@@ -41,6 +41,7 @@ build/Release
 node_modules/
 __pycache__/
 *.pyc
+lib/redactor/generated/
 jspm_packages/
 
 # Snowpack dependency directory (https://snowpack.dev/)

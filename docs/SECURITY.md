@@ -1,6 +1,6 @@
-# GRA security assessment — Phase 1.5 and Phase 2
+# GRA security assessment — Phases 1.5, 2 and 3
 
-Phase 1.5 baseline: 25 October 2026. Restricted XLSX follow-on: 26 October 2026. The original hosting/confidential-data Go/No-Go gates remain in force; XLSX support does not establish broader production readiness.
+Phase 1.5 baseline: 25 October 2026. Restricted XLSX and raster-only PDF follow-ons: 26 October 2026. The original hosting/confidential-data Go/No-Go gates remain in force; format support does not establish broader production readiness.
 
 ## Scope and recommendation
 
@@ -67,7 +67,7 @@ The upload remains browser-only, with the original 5 MiB/100,000-character limit
 
 Known metadata/settings/styles/thumbnail input parts are stripped; unsupported components and relationships are rejected. No source ZIP entry is copied. Output has exactly `[Content_Types].xml`, `_rels/.rels` and `word/document.xml`; selected strings and expected text/format model are checked after reopening. Independent Python extraction and python-docx reopening complement the same-library runtime verification.
 
-Remaining limits: inline scripts/styles are still allowed for Next hydration; this CSP is not an XSS-proof sandbox. Trusted app scripts, browser extensions/device access and browser/OS memory or swap remain in the trust boundary. Logout/expiry prevents future server/page access but cannot remotely erase an already loaded/offline document tab; Clear/unmount releases references and terminates the worker. Font/theme rendering and Word pagination are not exact. Pattern heuristics can miss confidential text. PDF/OCR and complex DOCX remain unsupported; restricted XLSX is covered below.
+Remaining limits: inline scripts/styles are still allowed for Next hydration; this CSP is not an XSS-proof sandbox. Trusted app scripts, browser extensions/device access and browser/OS memory or swap remain in the trust boundary. Logout/expiry prevents future server/page access but cannot remotely erase an already loaded/offline document tab; Clear/unmount releases references and terminates the worker. Font/theme rendering and Word pagination are not exact. Pattern heuristics can miss confidential text. OCR and complex DOCX remain unsupported; restricted XLSX and PDF are covered below.
 
 ## Phase 2 — XLSX security boundary
 
@@ -90,6 +90,16 @@ The output policy deliberately changes names and hidden-state flags. A checked a
 
 The application-wide single-workspace/localStorage/instance-memory, approval-ledger, MFA/SSO and hosting limitations above still apply. GO for isolated local synthetic testing after validation; existing hosted/confidential-data recommendations are unchanged. Before broadening XLSX support, independently review the allowlist/writer and add a separately scoped, verifiable formula/cache strategy; do not relax blockers for convenience.
 
+## Phase 3 — PDF security boundary
+
+PDF support is a restricted raster sanitizer, not a PDF editor. A dedicated network-blocked worker uses pinned PDF.js with locally bundled font data; no viewer actions, source URLs, runtime fonts/CMaps/OCR providers or AI calls are used. No server route or auth/Redis/rate-limit policy was changed. Parser diagnostics are not logged or reflected; unknown errors become a static failure. DOCX/XLSX parsing modules remain unchanged.
+
+Source pages are rendered at 144 DPI, reviewed page by page, then selected RGB pixels are overwritten before fresh PDF serialization. Output has only the fixed catalog/page-tree/page/content/image object schema and opaque sanitized pixel images. Source objects and source text are never copied. Exact grammar/byte verification plus decompression/pixel equality and black-region checks must pass before a download is sent. Independent synthetic tests inspect all objects/streams with pypdf, compare source-preview masking with Pillow, and render the actual browser download with Poppler. The independent Python/Poppler verifier is a test/development check, not an additional runtime browser dependency.
+
+Scans, mixed-image pages (including ordinary logos), blank/undetectable-text pages, encryption including empty-password files, malformed/recovery-warning input, optional layers, attachments, forms, annotations/links/signatures, document actions and ambiguous/unsupported text/page transforms are rejected. A later failed page aborts the whole document. OCR has not been implemented or claimed. See ADR 003 for exact type/operator/resource limits and the output support contract. Source metadata is discarded. Digital signatures, accessibility semantics and all selectable text are lost in raster output; reimporting image-only output is currently unsupported.
+
+Residual risks: automatic boxes are conservative whole text runs, and users can shrink/reject them. Verification cannot prove the semantic completeness of selections. Misleading Unicode maps, vector-drawn text, unusual spacing, names/addresses and new identifier patterns require visual/manual review. PDF.js and browser font/graphics code remain untrusted-input attack surfaces; a terminable worker with conservative caps is not a process sandbox or guaranteed heap limit. Browser extensions, compromised app code, device access and memory/swap remain in the privacy boundary. No full PDF conformance/penetration test, multilingual/OCR accuracy guarantee or cross-browser production certification is claimed. Existing confidential-data production No-Go and hosted synthetic-test configuration gates remain unchanged.
+
 ## Vercel/hosting readiness requirements
 
 1. Set exact HTTPS `GRA_APP_ORIGIN` for the intended deployment. Do not infer security origin from Host or client-forwarded headers. Preview URLs need their own correct origin/configuration.
@@ -103,6 +113,8 @@ The application-wide single-workspace/localStorage/instance-memory, approval-led
 ## Validation evidence
 
 Phase 2 validation passed 68/68 Node tests, all four production-harness stages, all three independent Python checks, and the production build without Edge-runtime warnings. `pnpm audit` reported no known vulnerabilities and `git diff --check` reported no whitespace errors. The actual Chromium XLSX download is piped in memory to an independent Python ZIP/CRC/XML and openpyxl verifier; all fixtures/downloads are synthetic. Detailed command results are recorded in CHANGELOG.md.
+
+Phase 3 validation passed 77/77 Node tests, the production build without Edge warnings, all three existing independent DOCX/XLSX Python checks, and all five production-harness stages. The new PDF stage independently verified the actual browser download with pypdf 6.10.0/Pillow/Poppler, exercised independently authored ReportLab input, and confirmed fail-closed malformed/unsupported/encrypted/later-page, incomplete-review, invalid-region and forced-verifier-failure behavior. Pointer/numeric edits, cancellation/watchdog, page/worker CSP, absence of document network/storage activity and mobile/light layout passed. Rendered export pages and dark/light UI screenshots were visually inspected. Audit reported no known vulnerabilities; diff checking passed. The first full run had a new test assertion typo; it was fixed and the complete suite passed on rerun.
 
 `pnpm test:production` starts a built server on localhost:3100 with ephemeral synthetic users/tokens, local memory security storage, and inherited provider keys cleared. It retains anonymous-denial, role/scope/CSRF/CORS, throttling, request-body limits, revocation, workflow/MCP/webhook and DOCX regressions. The XLSX stage tests multiple/hidden sheets, raw hidden cells, manual/custom/corrected/rejected proposals, per-sheet review, actual download and independent reopen, UI and worker export blocking, missed-duplicate verification failure, malformed/unsupported/macro/size errors, page/worker CSP, absence of document network/storage activity, and mobile width. The harness then shuts down its server. Python 3 with openpyxl is required; set GRA_TEST_PYTHON if it is not on PATH.
 

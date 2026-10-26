@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-10-26 — Phase 3: restricted local PDF redaction
+
+- Confirmed `feature/secure-document-redactor` and a clean starting working tree. Preserved existing DOCX/XLSX engines, workbench tools, application authentication/authorization, rate limits, server egress and both page/worker CSP policies. No server upload endpoint or source/provider/storage integration was introduced.
+- Added pinned Apache-2.0 `pdfjs-dist` 6.4.299 for local parsing/rendering in a dedicated, terminable worker with OffscreenCanvas. Standard fonts are bundled from the installed dependency by predev/prebuild; runtime font/CMap/CDN/OCR/network fetches, system-font fallback, dynamic font faces, WASM and XFA are disabled/not used. Retained upstream/font license notices. No second PDF-writing dependency was added.
+- Added page-by-page PNG previews and extracted text, existing Indian identifier/custom-term detection mapped to conservative whole-text-run boxes, approve/reject checkboxes, pointer selection, integer-coordinate add/adjust/remove, per-page/final human review, progress and cancellation. Decisions invalidate review acknowledgements. Both dark desktop and light mobile views were visually inspected.
+- Fresh output overwrites approved RGB pixels before lossless image-only PDF serialization. It retains no source text, fonts, metadata, attachments, annotations, actions, thumbnails, hidden layers or source PDF objects. Search/copy/accessibility semantics and digital signatures are lost; 144 DPI rendering is a fidelity trade-off, not full PDF support.
+- Export verifies the entire fixed output grammar/bytes, decompresses every page image, compares all intended pixels and checks every approved region is black. Verification errors block download. Library diagnostics are not logged; source-dependent exception messages are replaced with a static failure.
+- Added limits: 5 MiB input, 20 MiB output, 10 pages, 4,096-pixel dimensions, 6 megapixels/page and 20 megapixels total, bounded text/operator/region counts and 45-second PDF watchdog. Existing DOCX/XLSX watchdogs remain 15 seconds.
+- Explicitly reject scans, mixed-image pages (including logos), blank/undetectable pages, encryption including empty passwords, malformed/recovery warnings, annotations/forms/links/signatures, attachments/portfolios, actions, optional layers, unsupported text transforms and complex rendering features. A failed later page aborts the entire import. **OCR is not implemented**; no external OCR/AI service or recognition model was introduced.
+- Added synthetic Node, real-browser and independent PDF verification/failure tests. Actual downloaded bytes are inspected with pypdf (every object/stream, zero extracted text), compared against independently masked preview pixels using Pillow, and rendered by Poppler. Tests include independently authored ReportLab input, malformed/scanned/mixed/encrypted/hidden/active-content cases, manual/custom/adjusted/rejected regions, incomplete review, forced verifier failure/no download, cancellation/watchdog, privacy/CSP and responsive layout.
+- Updated AGENTS.md, README, architecture ADR 003 and security/support limitations. OCR and broader font/layout/browser compatibility remain separately scoped work; hosted/confidential-data readiness gates are unchanged.
+
+### Phase 3 validation
+
+- `pnpm test`: 77/77 passed (68 existing plus 9 PDF test groups).
+- `pnpm build`: passed with original routes retained and no Edge-runtime warnings.
+- Existing independent DOCX ZIP/XML and python-docx checks, plus XLSX ZIP/XML/openpyxl source/output interoperability, passed.
+- `pnpm test:production`: all five stages passed (API/security, authentication browser, DOCX browser, XLSX browser and PDF browser), including independent checks of actual XLSX/PDF downloads. The PDF stage also passed forced verifier failure/no download, incomplete review/invalid regions, pointer/numeric editing, later-page failure, cancellation and accelerated watchdog tests.
+- Independent PDF verification passed with pypdf 6.10.0, Pillow and Poppler; independently generated ReportLab 4.4.9 text input imported successfully. Both rendered export pages and dark desktop/light mobile screenshots were visually inspected. No OCR, non-Chromium browser or hosted Vercel/Redis test is claimed.
+- `pnpm audit`: no known vulnerabilities reported. `git diff --check`: no whitespace errors. An initial full browser run exposed a test assertion typo (URL property called as a method); it was corrected and the complete five-stage suite rerun successfully. These checks do not constitute a security certification, OCR validation or approval for confidential production use.
+
+No commits, pushes, merges or deployments were performed.
+
 ## 2026-10-26 — Phase 2: restricted secure XLSX redaction
 
 - Began on `main` with a clean working tree. Preserved the existing DOCX workflow, workbench tools, authenticated route, role/rate-limit controls and page/worker CSP. No PDF features, server upload endpoint, provider call, document persistence or new runtime dependency was added.

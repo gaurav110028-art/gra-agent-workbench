@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { detect, mergeRanges } from '../../lib/redactor/detect.mjs';
 import './redactor.css';
 import XlsxReview from './XlsxReview';
+import PdfReview from './PdfReview';
 
 const MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
@@ -15,12 +16,13 @@ export default function RedactorPage() {
   const upload = useRef(null);
   const [text, setText] = useState('');
   const [workbook, setWorkbook] = useState(null);
+  const [pdf, setPdf] = useState(null);
   const [ranges, setRanges] = useState([]);
   const [terms, setTerms] = useState('');
   const [reviewed, setReviewed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [status, setStatus] = useState('Choose a supported DOCX or XLSX to begin.');
+  const [status, setStatus] = useState('Choose a supported DOCX, XLSX or selectable-text PDF to begin.');
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', localStorage.getItem('gra-theme') || 'dark');
@@ -30,7 +32,7 @@ export default function RedactorPage() {
   function clear() {
     worker.current?.terminate(); worker.current = null;
     clearTimeout(timer.current);
-    setText(''); setWorkbook(null); setRanges([]); setTerms(''); setReviewed(false); setError(''); setBusy(false);
+    setText(''); setWorkbook(null); setPdf(null); setRanges([]); setTerms(''); setReviewed(false); setError(''); setBusy(false);
     setStatus('Document cleared from this workspace.');
     if (upload.current) upload.current.value = '';
   }
@@ -38,31 +40,37 @@ export default function RedactorPage() {
     if (next.length > 2000) { setError('At most 2,000 proposals are supported. Use a smaller document.'); return; }
     setRanges(next); setReviewed(false); setStatus('Review the updated selections before export.');
   }
-  function deadline() {
+  function deadline(pdfProcessing = false) {
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
       worker.current?.terminate(); worker.current = null;
-      setBusy(false); setText(''); setWorkbook(null); setRanges([]); setReviewed(false);
-      setError('Processing exceeded 15 seconds. The document was closed; try a smaller supported file.');
-    }, 15000);
+      setBusy(false); setText(''); setWorkbook(null); setPdf(null); setRanges([]); setReviewed(false);
+      setError(`Processing exceeded ${pdfProcessing ? 45 : 15} seconds. The document was closed; try a smaller supported file.`);
+    }, pdfProcessing ? 45000 : 15000);
   }
   async function open(file) {
     clear();
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) { setError('Maximum file size is 5 MiB.'); return; }
-    if (!/\.(docx|xlsx)$/i.test(file.name)) {
-      setError('PDF/scans, macro-enabled, binary and legacy formats are unsupported. Choose a restricted DOCX or XLSX.'); return;
+    if (!/\.(docx|xlsx|pdf)$/i.test(file.name)) {
+      setError('Macro-enabled, binary and legacy formats are unsupported. Choose a restricted DOCX, XLSX or text PDF.'); return;
     }
     setBusy(true); setStatus('Inspecting the document locally…');
     let current;
-    try { current = new Worker(new URL('../../lib/redactor/redactor.worker.js', import.meta.url)); }
+    const isPdf = /\.pdf$/i.test(file.name);
+    try { current = isPdf ? new Worker(new URL('../../lib/redactor/pdf.worker.js', import.meta.url)) : new Worker(new URL('../../lib/redactor/redactor.worker.js', import.meta.url)); }
     catch { setBusy(false); setError('This browser could not start the local processor. Use a current browser with Web Worker support.'); return; }
     worker.current = current;
     current.onmessage = ({ data }) => {
       if (worker.current !== current) return;
+      if (data.type === 'progress') { setStatus(data.message); return; }
+      if (!['error', 'inspected', 'exported'].includes(data.type)) return;
       clearTimeout(timer.current); setBusy(false); setError('');
       if (data.type === 'error') { setError(data.message); setStatus('No output was created.'); return; }
       if (data.type === 'inspected') {
+        if (data.format === 'pdf') {
+          setPdf(data.pdf); setStatus(`${data.pdf.matches.length} proposed PDF regions across ${data.pdf.pages.length} pages. Review every page; OCR is unavailable.`); return;
+        }
         if (data.format === 'xlsx') {
           setWorkbook(data.workbook);
           setStatus(`Initial scan: ${data.workbook.matches.length} proposed redactions across ${data.workbook.sheets.length} worksheets. Review hidden data and all supported cells.`);
@@ -75,20 +83,20 @@ export default function RedactorPage() {
         } catch (e) { clear(); setError(e.message); }
       }
       if (data.type === 'exported') {
-        const url = URL.createObjectURL(new Blob([data.bytes], { type: data.format === 'xlsx' ? XLSX_MIME : MIME }));
+        const url = URL.createObjectURL(new Blob([data.bytes], { type: data.format === 'pdf' ? 'application/pdf' : data.format === 'xlsx' ? XLSX_MIME : MIME }));
         const link = document.createElement('a');
-        link.href = url; link.download = `gra-redacted-review-required.${data.format === 'xlsx' ? 'xlsx' : 'docx'}`;
+        link.href = url; link.download = `gra-redacted-review-required.${data.format === 'pdf' ? 'pdf' : data.format === 'xlsx' ? 'xlsx' : 'docx'}`;
         link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
         setReviewed(false);
-        setStatus(`Approved removals verified. Download created. Open and inspect it in ${data.format === 'xlsx' ? 'Excel' : 'Word'} before sharing; verification cannot find missed sensitive content.`);
+        setStatus(`Approved removals verified. Download created. Open and inspect it in ${data.format === 'pdf' ? 'a PDF reader' : data.format === 'xlsx' ? 'Excel' : 'Word'} before sharing; verification cannot find missed sensitive content.`);
       }
     };
     current.onerror = () => {
       if (worker.current !== current) return;
       current.terminate(); worker.current = null; clearTimeout(timer.current);
-      setBusy(false); setError('The local processor failed. Reopen a supported document.');
+      setBusy(false); setText(''); setWorkbook(null); setPdf(null); setError('The local processor failed. Reopen a supported document.');
     };
-    deadline();
+    deadline(isPdf);
     try {
       const bytes = await file.arrayBuffer();
       if (worker.current === current) current.postMessage({ type: 'inspect', bytes, name: file.name, mime: file.type }, [bytes]);
@@ -126,7 +134,7 @@ export default function RedactorPage() {
       <header className="redactor-header">
         <a href="/" className="redactor-back">← GRA Agent Workbench</a>
         <a href="/logout" className="redactor-back">Sign out</a>
-        <span className="redactor-badge">LOCAL PROCESSING · RESTRICTED DOCX / XLSX</span>
+        <span className="redactor-badge">LOCAL PROCESSING · RESTRICTED DOCX / XLSX / PDF</span>
       </header>
       <section className="redactor-intro">
         <p className="redactor-eyebrow">CONFIDENTIAL DOCUMENT TOOLS</p>
@@ -134,17 +142,23 @@ export default function RedactorPage() {
         <p>Find sensitive identifiers. Review every removal. Export a rebuilt document.</p>
       </section>
       <aside className="redactor-notice">
-        <strong>Supported: restricted DOCX and XLSX · 5 MiB maximum</strong>
-        <p>DOCX supports plain body text with basic direct formatting. Tables, images, headers, footers, comments, revisions, fields, links, hidden text and embedded/custom XML content are rejected. XLSX supports multiple sheets and ordinary cells with limited direct formatting; hidden data is exposed for review. Formulas/caches can be inspected, but formulas and unsupported workbook features block export. XLSX sheet names are replaced and output sheets, rows and columns are unhidden. Metadata is stripped. PDF/scanned, macro-enabled, encrypted and legacy formats are unsupported.</p>
+        <strong>Supported: restricted DOCX, XLSX and text PDF · 5 MiB maximum</strong>
+        <p>DOCX supports plain body text with basic direct formatting. Tables, images, headers, footers, comments, revisions, fields, links, hidden text and embedded/custom XML content are rejected. XLSX supports multiple sheets and ordinary cells with limited direct formatting; hidden data is exposed for review. Formulas/caches can be inspected, but formulas and unsupported workbook features block export. XLSX sheet names are replaced and output sheets, rows and columns are unhidden. PDF supports up to 10 ordinary text pages, exported as fresh raster-only pages with no selectable text. Scanned/mixed-image PDFs, OCR, rotated text, annotations/forms, scripts, attachments, hidden layers, encryption, macro-enabled and legacy formats are unsupported. Metadata is stripped.</p>
         <p>Document processing stays in this tab. There are no document uploads or AI calls. Detection can miss names, addresses and unusual identifiers. This is a restricted first increment, not a guarantee of anonymity.</p>
       </aside>
       <section className="redactor-card redactor-upload">
         <label htmlFor="document-upload"><strong>01 / Open document</strong><span>Choose a PDF, DOCX or XLSX; unsupported formats receive an explicit error.</span></label>
         <input ref={upload} id="document-upload" type="file" accept=".docx,.pdf,.xlsx" disabled={busy} onChange={e => open(e.target.files?.[0])} />
         <button type="button" onClick={clear}>Clear document</button>
+        {busy && <button type="button" onClick={clear}>Cancel processing</button>}
       </section>
       <p role="status" aria-live="polite" className="redactor-status">{status}</p>
       {error && <p role="alert" className="redactor-error">{error}</p>}
+      {pdf && <PdfReview pdf={pdf} busy={busy} onExport={(selections, confirmed) => {
+        if (!worker.current) { setError('Reopen the PDF before exporting.'); return; }
+        setBusy(true); setError(''); setStatus('Overwriting pixels and verifying the PDF locally…'); deadline(true);
+        worker.current.postMessage({ type: 'export', ranges: selections, reviewed: confirmed });
+      }} />}
       {workbook && <XlsxReview workbook={workbook} busy={busy} onExport={(selections, confirmed) => {
         if (!worker.current) { setError('Reopen the workbook before exporting.'); return; }
         setBusy(true); setError(''); setStatus('Rebuilding and verifying the XLSX locally…'); deadline();

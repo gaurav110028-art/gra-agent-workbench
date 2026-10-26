@@ -1,8 +1,8 @@
 # GRA Agent Workbench architecture
 
-## Current document capabilities — Phase 2
+## Current document capabilities — Phase 3
 
-`/redactor` supports the original restricted DOCX workflow and a restricted, values-only XLSX workflow. Both use the same authenticated page and CSP-constrained local worker; no upload API, provider call, telemetry channel or document persistence was added. The server hardening below remains intact. See ADR 002 for the XLSX contract; historical statements about XLSX being wholly unsupported refer to the earlier phases.
+`/redactor` supports restricted DOCX, values-only XLSX and selectable-text PDF with raster-only export. All use the same authenticated page and CSP-constrained local workers; no upload API, provider call, telemetry channel or document persistence was added. Server hardening remains intact. See ADR 002 for XLSX and ADR 003 for PDF. Historical statements about formats being wholly unsupported refer to earlier phases.
 
 ## Current security architecture — Phase 1.5
 
@@ -58,7 +58,7 @@ Review uses character offsets over paragraph text joined with newlines. Users ca
 
 ### Follow-on increments
 
-PDF requires a licensed, genuine content-removal engine, sanitization of annotations/forms/attachments/metadata and independent extraction/object checks. Scans need a local or explicitly controlled OCR pipeline and image pixel removal with verification; no rectangle overlay exports. Restricted XLSX support is now implemented in ADR 002; formulas, advanced workbook features and DOCX expansion still need their own independently tested handling.
+Restricted PDF raster reconstruction is now implemented in ADR 003; scans still require a separately verified local OCR pipeline. Restricted XLSX support is implemented in ADR 002; formulas, advanced workbook features and DOCX expansion still need their own independently tested handling.
 
 ## Verification and dependency baseline
 
@@ -111,3 +111,40 @@ Limits: 5 MiB input, 100 ZIP entries, 8 MiB declared expansion, 2 MiB per expand
 Output contains exactly five fixed parts plus one XML part per worksheet: content types, root relationships, workbook, workbook relationships, styles and sheet XML. Original archive entries are never copied. The writer removes source metadata, source names, shared strings, unused styles and visibility flags; it cannot write a supported export containing a formula. Runtime verification reopens the complete ZIP, checks CRC/entry set, compares every supported value/type/style/row/column property with the intended model, and searches every decompressed part plus decoded cell/name text for surviving selected strings (including XML/Xstring encodings). It emits no download on mismatch. Short/common selected strings may collide with fixed package labels and fail conservatively; choose a wider range rather than bypassing verification.
 
 Independent tests use Python zipfile/CRC/XML extraction and openpyxl 3.1.5. They inspect rebuilt output, reopen supported values/styles/visibility, import an independently authored workbook, and inspect the actual Chromium download. These checks complement the runtime parser; they are not proof of full OOXML compliance or exact desktop rendering. Source references: [Microsoft shared strings](https://learn.microsoft.com/en-us/office/open-xml/spreadsheet/working-with-the-shared-string-table), [cell/formula cached values](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.cellvalue), [Xstring escaping](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-oe376/bd0aa042-434a-4ca7-b25f-4e1fd25a954d).
+
+## ADR 003 — restricted local PDF raster reconstruction (26 October 2026)
+
+### Decision and privacy boundary
+
+Use pinned Apache-2.0 `pdfjs-dist` 6.4.299 to parse and render accepted PDFs entirely inside a dedicated application worker. PDF.js's parser is statically bundled and connected through its in-process loopback adapter inside that worker; rendering uses OffscreenCanvas and the internal glyph renderer. This avoids a main-thread parser, nested worker/CDN dependencies and DOM font injection. The existing worker-response CSP still has `connect-src 'none'` and `worker-src 'none'`; page CSP is unchanged. Unknown parser errors are replaced with a static message, and PDF.js diagnostics are reduced to a warning flag without retaining or printing their arguments. Any processing warning blocks import, apart from the known loopback initialization notice.
+
+`scripts/prepare-pdf-fonts.mjs` runs before `pnpm dev`/`pnpm build` and packages standard-font bytes from the pinned installed dependency into an ignored generated module. The custom BinaryDataFactory serves only those exact fonts from memory. Runtime fetch, CMaps, WASM/image decoders, system-font fallback, dynamic font faces, XFA and PDF viewer action execution are disabled/not used. Third-party licenses are retained in `PDF-LICENSES.txt`. PDF.js requires Node >=22.13 or >=24 for its tooling; no PDF server endpoint or Node PDF processing is introduced.
+
+Source bytes enter only the local worker. It validates file type/header/trailer, inspects document/page APIs and operator lists, extracts review text and renders complete pages on opaque white at 144 DPI. It destroys the PDF.js document after inspection, retaining only bounded RGB pixels in the worker and raw text/run mappings plus locally encoded PNG previews in volatile UI state. Clear, cancellation, unmount and watchdog expiry terminate the worker and release UI references. No filename, text, custom term, region or source pixel enters an API, provider, workflow store, browser storage, telemetry or log.
+
+### Supported model and review
+
+Accept ordinary unencrypted PDF 1.0–1.7 documents with 1–10 non-rotated, unit-scale pages, horizontal left-to-right selectable text, supported font mappings and simple vector drawing. Standard Helvetica/Courier/Times-family glyphs are bundled; other fonts are accepted only if local rendering completes without warnings. Font compatibility is not universal. Resource caps can reject an otherwise supported file.
+
+PAN/Aadhaar/GSTIN/TAN, email/phone, IFSC/context-labelled bank accounts and literal custom terms reuse the existing detector. Text items are joined conservatively by line/gap; automatic removals cover whole intersecting text runs, not estimated character widths. This can remove a whole line. Rotated/skewed/RTL/vertical/off-page/invalid mappings are rejected instead of approximated. Extracted text is only an aid: vector-drawn letters, missing/misleading Unicode maps, unusual positioning or identifier fragments can evade detection. The rendered page must be reviewed.
+
+`PdfReview.js` provides page selection, rendered highlights, approve/reject, editable integer pixel coordinates, pointer-drag selection, manual add/adjust/remove and custom terms. Every page and final output policy require acknowledgement, including pages with no suggestions. Changing decisions/custom terms or editing coordinates invalidates all acknowledgements. The worker separately checks all review flags and 1–2,000 selected in-bounds regions; user acknowledgement is not a durable approval ledger.
+
+### Fresh output and verification
+
+`pdf-raster.mjs` copies each RGB raster, irreversibly overwrites the selected pixels with black, and serializes a small PDF grammar: one catalog, one page tree and exactly three objects per page (page dictionary, image-placement content stream, losslessly compressed DeviceRGB image). No source PDF bytes/objects, text streams, fonts, metadata, thumbnail, annotations, attachment, optional-content group, action or incremental revision is copied. The black areas are pixels in the sole sanitized page image; there is no original image or text behind them. Rejected suggestions deliberately retain their visible pixels.
+
+Runtime verification checks the entire output against the expected fixed grammar/bytes, decompresses every image, compares all pixels with the intended sanitized model, and checks every selected region is black. No download is posted until verification passes. Independent test verification uses pypdf to inspect every in-use object and decompressed stream, checks zero extracted text/no metadata/extra objects, and Pillow to compare every image byte with separately masked preview pixels. Poppler independently renders the actual browser download, checks removal interiors and compares appearance. These different engines complement the writer's own checks; they are not an independent verifier running in every end user's browser.
+
+Trade-off: all output is image-only, including unredacted text. Search/copy, text accessibility, tags, editable forms and valid digital signatures are lost. Appearance is limited to 144 DPI and the renderer's fidelity. Downloads cannot be reopened by this increment because image-bearing input PDFs are blocked. Human inspection in an independent PDF reader remains mandatory; pixel verification proves selected regions were removed, not that all sensitive information was selected.
+
+### Blocked input and limits
+
+- Reject encrypted PDFs including empty-user-password encryption, malformed/recovered-with-warning data and PDF 2.x headers.
+- Reject any image-bearing page, whether scanned, mixed text/image, logo or signature image; also blank/no-detectable-text pages. A failure on a later page rejects the entire document with no partial output. OCR is not implemented. Shipping a recognition model without accuracy, multilingual, bounding-box, offline-asset and failure verification would be an unjustified privacy/security claim.
+- Reject annotations/links/widgets/forms/XFA, document/page scripts/actions, attachments/portfolios, signatures detected by document/form APIs, optional/hidden layers, rotated pages/text, non-unit user scale, non-fill/invisible/stroked/clipped text modes and unsupported patterns/shading/transparency groups. Other source objects are never retained by the raster-only output. This is not a complete PDF conformance validator or arbitrary-file sanitizer.
+- Input 5 MiB; output 20 MiB; at most 10 pages; 4,096 pixels per dimension, 6 megapixels per page and 20 megapixels total; physical sides 72–1,440 points. At 144 DPI, dimensions/pixel caps may impose a smaller effective physical size.
+- At most 30,000 drawing operators and 2,000 text items per page, 10,000 characters per text item, 100,000 extracted characters per document, 2,000 selected regions and 30 custom terms of at most 200 characters. Every region is an integer rectangle at least 2×2 pixels inside a page.
+- Import/export have a 45-second total watchdog, progress by page/stage and immediate worker termination on cancellation; DOCX/XLSX keep their existing 15-second watchdog. File/pixel/operator bounds and termination are not a hard browser heap quota or an OS sandbox.
+
+Next phase: independent parser/renderer review, representative synthetic font/layout corpus, zoom/region usability and accessibility improvements, cross-browser/memory/load tests. OCR needs a separate local-only, offline-model architecture and validation phase before accepting even mixed-image pages. Reference: [Mozilla PDF.js API](https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib.html), [PDF.js source/releases](https://github.com/mozilla/pdf.js).

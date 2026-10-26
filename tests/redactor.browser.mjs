@@ -60,7 +60,7 @@ try {
   await page.getByRole('button', { name: 'Clear document', exact: true }).click();
   assert.equal(await page.locator('#manual-selection').count(), 0);
   await page.locator('#document-upload').setInputFiles({ name: 'scanned.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.7 synthetic scan') });
-  await page.getByRole('alert').filter({ hasText: 'unsupported' }).waitFor();
+  await page.getByRole('alert').filter({ hasText: /Malformed or unsupported PDF|PDF processing failed|PDF must/ }).waitFor();
   await page.locator('#document-upload').setInputFiles({ name: 'malformed.xlsx', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', buffer: Buffer.from('synthetic malformed ZIP') });
   await page.getByRole('alert').filter({ hasText: 'XLSX' }).waitFor();
   await page.locator('#document-upload').setInputFiles({ name: 'malformed.docx', mimeType: 'application/octet-stream', buffer: Buffer.from('not a ZIP') });
