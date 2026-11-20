@@ -142,3 +142,10 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 .v0/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Generated PDF worker font bundle
+/lib/redactor/generated/pdf-fonts.mjs
