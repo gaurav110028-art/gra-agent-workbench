@@ -588,3 +588,27 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* The manager uses the shared Workbench palette and page rhythm. */
+.wa-shell .wa-main { max-width: var(--gra-content-width); padding-inline: var(--gra-page-gutter); }
+.wa-heading { border-bottom: 1px solid var(--border); }
+.wa-section h2 { font-size: var(--gra-heading-size); font-weight: 700; }
+.wa-main .wa-mode { padding: 5px 8px; border-radius: var(--radius-sm); background: var(--accent-bg); color: var(--accent-fg); font-weight: 650; }
+.wa-main button.primary { background: var(--accent); color: var(--text-on-accent); }
+.wa-main button.primary:is(:hover, :active):enabled { background: var(--accent-hover); }
+.wa-metrics { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--gra-panel-radius); box-shadow: var(--shadow-sm); overflow: hidden; }
+.wa-metrics button:first-child { padding-left: 16px; }
+.wa-main .wa-panel { padding: 16px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--gra-panel-radius); box-shadow: var(--shadow-sm); }
+.wa-panel > header { border-color: var(--border); }
+.wa-panel h3 { font-weight: 650; }
+.wa-main .wa-row:last-child { border-bottom: 0; }
+.wa-main table td { color: var(--text-primary); }
+.wa-main table th { background: var(--bg-surface-2); }
+.wa-main .wa-campaign-form { margin-top: 12px; }
+.wa-main .wa-steps li[aria-current] span { background: var(--accent); border-color: var(--accent); color: var(--text-on-accent); }
+.wa-main .wa-setting-icon { color: var(--accent-fg); background: var(--accent-bg); border-color: var(--accent-border); }
+@media (max-width: 620px) {
+  .wa-main .wa-panel { padding: 12px; }
+  .wa-shell .sidebar.wa-mobile-open .brand { display: none; }
+  .wa-main .wa-breadcrumb h1 { line-height: 1.25; }
+}

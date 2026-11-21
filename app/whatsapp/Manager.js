@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import * as icons from '../NavIcons';
 import { workspaceDestination, workspaceViews } from '../access-destinations';
 import * as demo from './demo.mjs';
@@ -274,7 +274,6 @@ function Overview({ directory, campaigns, reminders, logs, go }) {
 
 export default function Manager() {
   const [section, go] = useState('Overview'),
-    [theme, setTheme] = useState('dark'),
     [collapsed, collapse] = useState(false),
     [mobileNav, setMobileNav] = useState(false);
   const [directory, setDirectory] = useState(demo.contacts),
@@ -283,19 +282,9 @@ export default function Manager() {
   const [campaigns, setCampaigns] = useState(demo.campaigns),
     [reminders, setReminders] = useState(demo.reminders),
     [logs, setLogs] = useState(demo.logs);
-  useEffect(() => {
-    try {
-      if (localStorage.getItem('gra-theme') === 'light') setTheme('light');
-    } catch {}
-  }, []);
   return (
     <div
-      className={
-        'workbench wa-shell ' +
-        (collapsed ? 'sidebarCollapsed ' : '') +
-        (theme === 'light' ? 'lightTheme' : 'darkTheme')
-      }
-      data-theme={theme}
+      className={collapsed ? "workbench wa-shell sidebarCollapsed" : "workbench wa-shell"}
     >
       <a className="wa-skip" href="#wa-content">
         Skip to manager
@@ -320,7 +309,7 @@ export default function Manager() {
         >
           <icons.ChevronIcon direction={collapsed ? 'right' : 'left'} />
         </button>
-        <div className="brand" />
+        <div className="brand"><span className="graBrandMark">GRA</span><span className="graBrandName">Agent Workbench</span></div>
         <nav className="nav" aria-label="Workbench">
           {nav.map(([name, href, Icon]) => (
             <a
@@ -345,24 +334,6 @@ export default function Manager() {
             </span>
             <span className="sidebarNavLabel">Sign out</span>
           </a>
-          <button
-            className="navItem"
-            aria-label="Switch theme"
-            onClick={() => {
-              const next = theme === 'dark' ? 'light' : 'dark';
-              setTheme(next);
-              try {
-                localStorage.setItem('gra-theme', next);
-              } catch {}
-            }}
-          >
-            <span className="navIcon">
-              {theme === 'dark' ? <icons.SunIcon /> : <icons.MoonIcon />}
-            </span>
-            <span className="sidebarNavLabel">
-              {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-            </span>
-          </button>
         </div>
       </aside>
       <main className="wa-main" id="wa-content" tabIndex={-1}>

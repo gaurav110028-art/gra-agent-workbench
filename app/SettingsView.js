@@ -77,16 +77,18 @@ export default function SettingsView({ canManageWhatsApp }) {
 --------------------------------------------------------- */
 
 function WebhookSettings() {
-  const webhookUrl =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/api/webhook/whatsapp`
-      : '/api/webhook/whatsapp';
+  const path = '/api/webhook/whatsapp';
+  const [webhookUrl, setWebhookUrl] = useState(path);
 
   const [testResult, setTestResult] = useState(null);
   const [testing, setTesting] = useState(false);
 
+  useEffect(() => {
+    setWebhookUrl(new URL(path, window.location.origin).href);
+  }, []);
+
   const copyUrl = () => {
-    navigator.clipboard.writeText(webhookUrl);
+    navigator.clipboard.writeText(new URL(path, window.location.origin).href);
     setTestResult({ ok: true, message: 'Webhook URL copied to clipboard!' });
     setTimeout(() => setTestResult(null), 3000);
   };

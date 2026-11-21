@@ -20,7 +20,7 @@ try {
   await page.getByRole('button', { name: 'Sign In', exact: true }).click();
   await page.waitForURL(base + '/whatsapp');
   await page.evaluate(() =>
-    localStorage.setItem('gra-query-inbox', 'PRIVATE_MARKER_DO_NOT_RENDER'),
+    { localStorage.setItem('gra-query-inbox', 'PRIVATE_MARKER_DO_NOT_RENDER'); localStorage.setItem('gra-theme', 'dark'); },
   );
   await page.reload();
   await page.getByRole('heading', { name: 'Overview', exact: true }).waitFor();
@@ -127,7 +127,9 @@ try {
   await page.getByText('No matching records.').waitFor();
   await tab('Integrations');
   await page.getByText('Disconnected', { exact: true }).waitFor();
-  await button('Switch theme').click();
+  assert.equal(await button('Switch theme').count(), 0);
+  assert.equal(await page.locator('html').evaluate(element => getComputedStyle(element).colorScheme), 'light');
+  assert.equal(await page.evaluate(() => localStorage.getItem('gra-theme')), 'dark');
   await page.setViewportSize({ width: 390, height: 844 });
   const workbenchMenu = button('Workbench navigation');
   await workbenchMenu.focus();

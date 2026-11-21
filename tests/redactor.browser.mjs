@@ -80,6 +80,7 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await page.goto(base + '/workspace');
+  await page.getByRole('button', { name: /Workbench navigation/ }).click();
   await page.getByRole('link', { name: 'Document Redactor', exact: true }).waitFor();
   for (const name of ['Agents', 'Query Inbox', 'Runs', 'Approvals', 'Settings', 'Calendar']) assert(await page.getByRole('button', { name, exact: true }).count() > 0, name);
   assert(await page.getByRole('link', { name: 'WhatsApp Automation', exact: true }).count() > 0);

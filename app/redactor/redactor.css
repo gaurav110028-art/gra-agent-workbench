@@ -34,3 +34,18 @@
 .redactor-check { display: flex; gap: 12px; align-items: flex-start; line-height: 1.6; font-size: 14px; }
 .redactor-check input { margin-top: 5px; flex-shrink: 0; }
 @media (max-width: 850px) { .redactor { padding: 24px 18px 48px; } .redactor-grid { grid-template-columns: 1fr; } .redactor-intro { margin-top: 32px; } .redactor-card { padding: 18px; } }
+
+.redactor { max-width: var(--gra-content-width); padding: 0 var(--gra-page-gutter) 48px; }
+.redactor-header { min-height: 64px; justify-content: flex-start; padding-block: 10px; border-bottom: 1px solid var(--border); }
+.redactor-header a:first-child { color: var(--accent-fg); font-weight: 650; }
+.redactor-header .redactor-badge { margin-left: auto; border-radius: var(--radius-sm); text-transform: none; letter-spacing: 0; font-weight: 600; }
+.redactor-intro { margin: var(--gra-page-top) 0 20px; }
+.redactor h1 { font-size: var(--gra-heading-size); }
+.redactor-notice { border-left: 3px solid var(--warning); }
+.redactor-card { border-radius: var(--gra-panel-radius); box-shadow: var(--shadow-sm); }
+.redactor-upload { border-style: dashed; border-color: var(--accent-border); }
+.redactor .redactor-upload .redactor-file-details label { margin: 0 0 4px; font-size: 14px; }
+.redactor-file-details > span { color: var(--text-secondary); font-size: 13px; }
+.redactor input[type="file"] { max-width: 100%; color: var(--text-secondary); }
+.redactor input::file-selector-button { background: var(--accent-bg); color: var(--accent-fg); border: 1px solid var(--accent-border); border-radius: var(--radius-md); padding: 8px 10px; margin-right: 8px; font: inherit; cursor: pointer; }
+.redactor .redactor-primary:hover:enabled { background: var(--accent-hover); }

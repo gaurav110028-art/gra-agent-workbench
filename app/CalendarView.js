@@ -460,7 +460,17 @@ export default function CalendarView() {
             <div
               key={idx}
               className={`calCell${!day ? " calCellEmpty" : ""}${todayClass}${selectedClass}`}
+              role={day ? "button" : undefined}
+              tabIndex={day ? 0 : undefined}
+              aria-label={day ? `${MONTH_NAMES[viewMonth - 1]} ${day}, ${viewYear}. ${tasks.length} tasks, ${notes.length} notes` : undefined}
+              aria-pressed={day ? isSelected : undefined}
               onClick={() => handleDayClick(day)}
+              onKeyDown={day ? (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  handleDayClick(day);
+                }
+              } : undefined}
             >
               {day && (
                 <>

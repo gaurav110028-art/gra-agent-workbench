@@ -131,6 +131,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources, dem
 
   const [loaded, setLoaded] = useState(false);
   const [search, setSearch] = useState('');
+  const [mobileLibraryOpen, setMobileLibraryOpen] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState({});
 
   const [availableSources, setAvailableSources] = useState([]);
@@ -1817,7 +1818,10 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources, dem
 
   return (
     <div className="workflowBuilder">
-      <aside className="workflowSidebar">
+      <button type="button" className="graNodeLibraryToggle" aria-expanded={mobileLibraryOpen} aria-controls="workflow-node-library" onClick={() => setMobileLibraryOpen(open => !open)}>
+        {mobileLibraryOpen ? "Hide node library" : "Open node library"}
+      </button>
+      <aside id="workflow-node-library" className={mobileLibraryOpen ? "workflowSidebar graNodeLibraryOpen" : "workflowSidebar"}>
         <div className="workflowSidebarHeader">
           <h3>Nodes</h3>
           <span>Drag onto the canvas or click to add</span>
@@ -1976,6 +1980,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources, dem
             nodes={displayNodes}
             edges={displayEdges}
             nodeTypes={nodeTypes}
+            colorMode="light"
             onInit={setReactFlowInstance}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}

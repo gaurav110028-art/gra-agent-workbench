@@ -28,16 +28,17 @@ export default function MigrationPreview() {
   }
 
   return (
-    <main className="workspace">
+    <main className="workspace graMigration">
       <section className="settingsContainer">
-        <h1>Legacy data migration</h1>
+        <header className="graMigrationHeading"><h1>Legacy data migration</h1></header>
         <p>Inspect records in this browser profile. The preview shows counts and validation results without uploading data.</p>
         <p role="status">This screen is preview-only. Importing real records requires a reviewed approval workflow and verified private storage.</p>
-        <button type="button" className="workflowActionButton" disabled={busy} onClick={inspect}>
-          {busy ? 'Inspecting…' : 'Preview this browser'}
-        </button>
-        {' '}
-        <a className="redactor-back" href="/workspace">Return to workspace</a>
+        <div className="graMigrationActions">
+          <button type="button" className="loginBtn" disabled={busy} onClick={inspect}>
+            {busy ? 'Inspecting…' : 'Preview this browser'}
+          </button>
+          <a className="graHeaderLink" href="/workspace">Return to workspace</a>
+        </div>
         {failed && <p role="alert">Browser storage could not be inspected. The preview made no changes.</p>}
         {report && (
           <section aria-label="Browser inventory">
@@ -45,7 +46,7 @@ export default function MigrationPreview() {
             {report.categories.every(row => !(row.valid || row.invalid || row.unreadable || row.excluded)) && <p>No known legacy records were found in this profile.</p>}
             {report.exceedsBatchLimits && <p role="alert">The candidate batch exceeds the current import limits. Review it before preparing an import.</p>}
             {report.categories.some(row => row.invalid || row.unreadable) && <p>Review invalid records and unreadable data before approving any future import.</p>}
-            <table>
+            <div className="graTableScroll" tabIndex={0} role="region" aria-label="Browser inventory table"><table>
               <caption>Deferred categories receive a structural check. Unreadable counts refer to storage entries whose records could not be counted.</caption>
               <thead>
                 <tr>
@@ -69,7 +70,7 @@ export default function MigrationPreview() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </section>
         )}
       </section>

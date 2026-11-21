@@ -20,7 +20,6 @@ export default function RedactorPage() {
   const [status, setStatus] = useState('Choose a supported DOCX to begin.');
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', localStorage.getItem('gra-theme') || 'dark');
     return () => { worker.current?.terminate(); clearTimeout(timer.current); };
   }, []);
 
@@ -118,10 +117,9 @@ export default function RedactorPage() {
       <header className="redactor-header">
         <a href="/" className="redactor-back">← GRA Agent Workbench</a>
         <a href="/logout" className="redactor-back">Sign out</a>
-        <span className="redactor-badge">LOCAL PROCESSING · FIRST INCREMENT</span>
+        <span className="redactor-badge">Local processing</span>
       </header>
       <section className="redactor-intro">
-        <p className="redactor-eyebrow">CONFIDENTIAL DOCUMENT TOOLS</p>
         <h1>GRA Secure Document Redactor</h1>
         <p>Find sensitive identifiers. Review every removal. Export a rebuilt document.</p>
       </section>
@@ -131,8 +129,11 @@ export default function RedactorPage() {
         <p>Document processing stays in this tab. There are no document uploads or AI calls. Detection can miss names, addresses and unusual identifiers. This is a restricted first increment, not a guarantee of anonymity.</p>
       </aside>
       <section className="redactor-card redactor-upload">
-        <label htmlFor="document-upload"><strong>01 / Open document</strong><span>Choose a PDF, DOCX or XLSX; unsupported formats receive an explicit error.</span></label>
-        <input ref={upload} id="document-upload" type="file" accept=".docx,.pdf,.xlsx" disabled={busy} onChange={e => open(e.target.files?.[0])} />
+        <div className="redactor-file-details">
+          <label htmlFor="document-upload"><strong>Open document</strong></label>
+          <span id="document-upload-help">Choose a supported DOCX up to 5 MiB.</span>
+        </div>
+        <input ref={upload} id="document-upload" aria-describedby="document-upload-help" type="file" accept=".docx,.pdf,.xlsx" disabled={busy} onChange={e => open(e.target.files?.[0])} />
         <button type="button" onClick={clear}>Clear document</button>
       </section>
       <p role="status" aria-live="polite" className="redactor-status">{status}</p>
@@ -140,7 +141,7 @@ export default function RedactorPage() {
       {text && <>
         <div className="redactor-grid">
           <section className="redactor-card">
-            <h2>02 / Review the text</h2>
+            <h2>Review the text</h2>
             <p>Highlights are proposed removals. This text preview is not a paginated Word rendering. Offsets start at zero.</p>
             <div className="redactor-preview" aria-label="Highlighted document preview">{chunks}</div>
             <label htmlFor="manual-selection">Select text below to add a removal or correct a proposal</label>
@@ -148,7 +149,7 @@ export default function RedactorPage() {
             <button type="button" disabled={busy} onClick={() => addSelection()}>Add selected text</button>
           </section>
           <section className="redactor-card">
-            <h2>03 / Adjust removals <span className="redactor-count">{ranges.length}</span></h2>
+            <h2>Adjust removals <span className="redactor-count">{ranges.length}</span></h2>
             <p>PAN, Aadhaar, GSTIN, TAN, phone, email, labelled bank accounts and IFSC are suggested automatically.</p>
             <label htmlFor="custom-terms">Additional literal terms (one per line, case sensitive)</label>
             <textarea id="custom-terms" value={terms} onChange={e => { setTerms(e.target.value); setReviewed(false); }} autoComplete="off" spellCheck={false} maxLength={6030} disabled={busy} rows={3} placeholder="Client name or another sensitive phrase" />
@@ -167,7 +168,7 @@ export default function RedactorPage() {
           </section>
         </div>
         <section className="redactor-card redactor-export">
-          <h2>04 / Human review & verified export</h2>
+          <h2>Human review & verified export</h2>
           <p>Selected characters are replaced with [REDACTED] in a fresh DOCX package. Export is blocked if approved values survive verification. Removing a short/common fragment may therefore require a wider selection.</p>
           <label className="redactor-check"><input type="checkbox" checked={reviewed} disabled={busy} onChange={e => setReviewed(e.target.checked)} />I reviewed every paragraph and selection, added missed sensitive content, and accept the formatting limitations. I will inspect the exported file in Word before sharing.</label>
           <button type="button" className="redactor-primary" disabled={!reviewed || !ranges.length || busy} onClick={() => {

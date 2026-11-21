@@ -1,13 +1,6 @@
-/* =========================================================
-   DESIGN TOKENS  (v0-ds-foundation-start)
-   Semantic tokens consumed by every component below.
-   Dark is the default; light overrides via [data-theme="light"].
-========================================================= */
-
-:root,
-[data-theme="dark"],
-.workbench.darkTheme {
-  color-scheme: dark;
+/* Shared GRA Workbench design tokens. */
+:root {
+  color-scheme: light;
 
   /* Typography */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
@@ -17,7 +10,7 @@
 
   --text-xs: 11px;
   --text-sm: 12px;
-  --text-base: 13px;
+  --text-base: 14px;
   --text-md: 14px;
   --text-lg: 16px;
   --text-xl: 20px;
@@ -33,127 +26,51 @@
   --tracking-wide: 0.06em;
 
   /* Surfaces */
-  --bg-main: #0b0d12;
-  --bg-sidebar: #0e1017;
-  --bg-surface: #12151c;
-  --bg-surface-2: #171b24;
-  --bg-surface-3: #1c2130;
-  --bg-surface-hover: #202636;
-  --bg-muted: #2a3142;
-  --bg-surface-elevated: var(--bg-surface-2);
-  --inverse-bg: #f1f4f9;
-
-  /* Borders */
-  --border-subtle: rgba(148, 163, 184, 0.08);
-  --border: rgba(148, 163, 184, 0.14);
-  --border-strong: rgba(148, 163, 184, 0.24);
-  --border-hover: var(--border-strong);
-
-  /* Overlays (foreground-tinted) */
-  --overlay-1: rgba(148, 163, 184, 0.04);
-  --overlay-2: rgba(148, 163, 184, 0.07);
-  --overlay-3: rgba(148, 163, 184, 0.11);
-  --overlay-4: rgba(148, 163, 184, 0.18);
-
-  /* Text */
-  --text-primary: #f1f4f9;
-  --text-secondary: #a3adbf;
-  --text-muted: #6f7a90;
-  --text-faint: #4d5669;
-  --text-inverse: #0b0d12;
-  --text-on-accent: #ffffff;
-
-  /* Brand accent */
-  --accent: #6366f1;
-  --accent-hover: #7c7ff5;
-  --accent-fg: #a5b4fc;
-  --accent-bg: rgba(99, 102, 241, 0.14);
-  --accent-border: rgba(99, 102, 241, 0.38);
-  --accent-primary: var(--accent);
-  --accent-light: var(--accent-bg);
-  --accent-gradient: var(--accent);
-
-  /* Status */
-  --success: #34d399;
-  --success-fg: #34d399;
-  --success-solid: #10b981;
-  --success-bg: rgba(52, 211, 153, 0.12);
-  --success-border: rgba(52, 211, 153, 0.32);
-
-  --warning: #fbbf24;
-  --warning-fg: #fbbf24;
-  --warning-solid: #f59e0b;
-  --warning-bg: rgba(251, 191, 36, 0.12);
-  --warning-border: rgba(251, 191, 36, 0.32);
-
-  --danger: #f87171;
-  --danger-fg: #f87171;
-  --danger-solid: #ef4444;
-  --danger-bg: rgba(248, 113, 113, 0.12);
-  --danger-border: rgba(248, 113, 113, 0.32);
-
-  --info: #60a5fa;
-  --info-fg: #60a5fa;
-  --info-solid: #3b82f6;
-  --info-bg: rgba(96, 165, 250, 0.12);
-  --info-border: rgba(96, 165, 250, 0.32);
-
-  /* Shape + depth */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 14px -2px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 16px 48px -8px rgba(0, 0, 0, 0.6);
-  --card-shadow: var(--shadow-md);
-  --focus-ring: 0 0 0 3px var(--accent-bg);
-  --minimap-mask: rgba(11, 13, 18, 0.7);
-  --code-bg: rgba(0, 0, 0, 0.28);
-  --backdrop: rgba(0, 0, 0, 0.7);
-
-  --transition-fast: 120ms cubic-bezier(0.2, 0, 0, 1);
-  --transition-base: 180ms cubic-bezier(0.2, 0, 0, 1);
-}
-
-[data-theme="light"],
-.workbench.lightTheme {
-  color-scheme: light;
-
-  --bg-main: #f5f6fa;
+  --bg-main: #f6f8fc;
   --bg-sidebar: #ffffff;
   --bg-surface: #ffffff;
   --bg-surface-2: #f8f9fc;
   --bg-surface-3: #f1f3f8;
   --bg-surface-hover: #e9ecf3;
   --bg-muted: #d9dee8;
+  --bg-surface-elevated: var(--bg-surface-2);
   --inverse-bg: #0f172a;
 
-  --border-subtle: rgba(15, 23, 42, 0.07);
-  --border: rgba(15, 23, 42, 0.11);
-  --border-strong: rgba(15, 23, 42, 0.2);
+  /* Borders */
+  --border-subtle: #eff3f8;
+  --border: #e4eaf2;
+  --border-strong: #c3d0e2;
+  --border-hover: var(--border-strong);
 
+  /* Overlays (foreground-tinted) */
   --overlay-1: rgba(15, 23, 42, 0.03);
   --overlay-2: rgba(15, 23, 42, 0.05);
   --overlay-3: rgba(15, 23, 42, 0.08);
   --overlay-4: rgba(15, 23, 42, 0.14);
 
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  --text-faint: #94a3b8;
+  /* Text */
+  --text-primary: #17243a;
+  --text-secondary: #64748b;
+  --text-secondary-on-canvas: #607089;
+  --text-muted: #596983;
+  --text-faint: #64748b;
   --text-inverse: #ffffff;
+  --text-on-accent: #ffffff;
 
-  --accent: #4f46e5;
-  --accent-hover: #4338ca;
-  --accent-fg: #4f46e5;
-  --accent-bg: rgba(79, 70, 229, 0.09);
-  --accent-border: rgba(79, 70, 229, 0.32);
+  /* Brand accent */
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-fg: #1d4ed8;
+  --accent-bg: #eaf1ff;
+  --accent-border: #b8d0fc;
+  --accent-primary: var(--accent);
+  --accent-light: var(--accent-bg);
+  --accent-gradient: var(--accent);
 
-  --success: #059669;
-  --success-fg: #047857;
-  --success-solid: #059669;
+  /* Status */
+  --success: #16a34a;
+  --success-fg: #166534;
+  --success-solid: #16a34a;
   --success-bg: rgba(5, 150, 105, 0.1);
   --success-border: rgba(5, 150, 105, 0.3);
 
@@ -175,12 +92,23 @@
   --info-bg: rgba(37, 99, 235, 0.08);
   --info-border: rgba(37, 99, 235, 0.3);
 
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 4px 14px -2px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 16px 48px -8px rgba(15, 23, 42, 0.16);
+  /* Shape + depth */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  --shadow-sm: 0 1px 2px rgba(23, 36, 58, 0.04);
+  --shadow-md: 0 6px 20px rgba(23, 36, 58, 0.07);
+  --shadow-lg: 0 18px 56px rgba(23, 36, 58, 0.14);
+  --card-shadow: var(--shadow-md);
+  --focus-ring: 0 0 0 3px var(--accent-bg);
   --minimap-mask: rgba(245, 246, 250, 0.72);
   --code-bg: #f1f3f8;
   --backdrop: rgba(15, 23, 42, 0.45);
+
+  --transition-fast: 120ms cubic-bezier(0.2, 0, 0, 1);
+  --transition-base: 180ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 /* =========================================================
@@ -6510,7 +6438,7 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(ellipse at 30% 20%, #1a0533 0%, var(--bg-main) 60%);
+  background: var(--bg-main);
   padding: 24px;
 }
 
@@ -6522,7 +6450,7 @@ textarea:focus-visible {
   width: 100%;
   max-width: 420px;
   backdrop-filter: blur(18px);
-  box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+  box-shadow: var(--shadow-lg);
   animation: loginFadeIn 0.4s ease;
 }
 
@@ -9383,21 +9311,21 @@ textarea:focus-visible {
 
 .navItemArchitect {
   margin-bottom: 8px !important;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(99, 102, 241, 0.14)) !important;
+  background: var(--accent-bg) !important;
   border: 1px solid rgba(16, 185, 129, 0.35) !important;
-  color: #34d399 !important;
+  color: var(--success-fg) !important;
   font-weight: 600;
 }
 
 .navItemArchitect:hover {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(99, 102, 241, 0.25)) !important;
-  border-color: #34d399 !important;
+  background: var(--accent-bg) !important;
+  border-color: var(--success-fg) !important;
   color: #ffffff !important;
   box-shadow: 0 0 14px rgba(16, 185, 129, 0.3);
 }
 
 .navItemArchitect.active {
-  background: linear-gradient(135deg, #10b981, #6366f1) !important;
+  background: var(--accent) !important;
   color: #ffffff !important;
   border-color: #6ee7b7 !important;
   box-shadow: 0 0 18px rgba(16, 185, 129, 0.4);
@@ -9421,24 +9349,24 @@ textarea:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(99, 102, 241, 0.2)) !important;
+  background: var(--accent-bg) !important;
   border: 1px solid rgba(16, 185, 129, 0.45) !important;
-  color: #34d399 !important;
+  color: var(--success-fg) !important;
   font-weight: 600;
   box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
   transition: all 0.2s ease;
 }
 
 .gauravArchitectToggleBtn:hover {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.28), rgba(99, 102, 241, 0.32)) !important;
-  border-color: #34d399 !important;
+  background: var(--accent-bg) !important;
+  border-color: var(--success-fg) !important;
   color: #ffffff !important;
   box-shadow: 0 0 18px rgba(16, 185, 129, 0.3);
   transform: translateY(-1px);
 }
 
 .gauravArchitectToggleBtn.active {
-  background: linear-gradient(135deg, #10b981, #6366f1) !important;
+  background: var(--accent);
   border-color: #6ee7b7 !important;
   color: #ffffff !important;
   box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
@@ -9499,7 +9427,7 @@ textarea:focus-visible {
   width: 42px;
   height: 42px;
   border-radius: 10px;
-  background: #0f172a;
+  background: var(--bg-surface-2);
   border: 1px solid rgba(16, 185, 129, 0.4);
   display: flex;
   align-items: center;
@@ -9562,13 +9490,13 @@ textarea:focus-visible {
 
 .gauravModeBadge.isLive {
   background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
+  color: var(--success-fg);
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .gauravModeBadge.isDev {
   background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
+  color: var(--warning-fg);
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
@@ -9611,7 +9539,7 @@ textarea:focus-visible {
   border-bottom: 1px solid rgba(99, 102, 241, 0.2);
   padding: 8px 16px;
   font-size: 11px;
-  color: #a5b4fc;
+  color: var(--accent-fg);
 }
 
 /* Suggestions Section */
@@ -9672,7 +9600,7 @@ textarea:focus-visible {
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  color: #34d399;
+  color: var(--success-fg);
   letter-spacing: 0.04em;
 }
 
@@ -9715,7 +9643,7 @@ textarea:focus-visible {
   width: 30px;
   height: 30px;
   border-radius: 8px;
-  background: #0f172a;
+  background: var(--bg-surface-2);
   border: 1px solid rgba(16, 185, 129, 0.3);
   display: flex;
   align-items: center;
@@ -9767,7 +9695,7 @@ textarea:focus-visible {
   margin: 12px 0 6px 0;
   font-size: 13px;
   font-weight: 700;
-  color: #34d399;
+  color: var(--success-fg);
   letter-spacing: -0.01em;
 }
 
@@ -9785,7 +9713,7 @@ textarea:focus-visible {
 }
 
 .gauravBulletDot {
-  color: #34d399;
+  color: var(--success-fg);
   font-size: 14px;
   line-height: 1.3;
 }
@@ -9808,7 +9736,7 @@ textarea:focus-visible {
   height: 18px;
   border-radius: 4px;
   background: rgba(16, 185, 129, 0.18);
-  color: #34d399;
+  color: var(--success-fg);
   font-size: 10px;
   font-weight: 700;
   display: flex;
@@ -9934,7 +9862,7 @@ textarea:focus-visible {
 .gauravPhase2Pill {
   font-size: 10px;
   font-weight: 600;
-  color: #34d399;
+  color: var(--success-fg);
 }
 
 /* Loading bubble */
@@ -9988,8 +9916,8 @@ textarea:focus-visible {
 }
 
 .gauravInputWrapper:focus-within {
-  border-color: #a855f7;
-  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
 }
 
 .gauravTextarea {
@@ -10012,7 +9940,7 @@ textarea:focus-visible {
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
+  background: var(--accent);
   border: none;
   color: #ffffff;
   font-size: 16px;
@@ -10073,7 +10001,7 @@ textarea:focus-visible {
 .gauravBlueprintTitle span {
   font-size: 12px;
   font-weight: 700;
-  color: #34d399;
+  color: var(--success-fg);
   letter-spacing: -0.01em;
 }
 
@@ -10099,7 +10027,7 @@ textarea:focus-visible {
   padding: 3px 8px;
   border-radius: 12px;
   background: rgba(16, 185, 129, 0.18);
-  color: #34d399;
+  color: var(--success-fg);
   border: 1px solid rgba(16, 185, 129, 0.4);
 }
 
@@ -10140,7 +10068,7 @@ textarea:focus-visible {
   justify-content: center;
   border-radius: 6px;
   background: var(--bg-surface-3);
-  color: #34d399;
+  color: var(--success-fg);
   font-size: 12px;
   font-weight: 700;
 }
@@ -10192,7 +10120,7 @@ textarea:focus-visible {
 .gauravApplyBtn {
   flex: 1;
   padding: 8px 14px;
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: var(--accent);
   border: 1px solid #34d399;
   border-radius: 7px;
   color: #ffffff;
@@ -10208,7 +10136,7 @@ textarea:focus-visible {
 }
 
 .gauravApplyBtn:hover {
-  background: linear-gradient(135deg, #059669, #047857);
+  background: var(--accent);
   box-shadow: 0 4px 14px rgba(16, 185, 129, 0.5);
   transform: translateY(-1px);
 }
@@ -10276,7 +10204,7 @@ textarea:focus-visible {
 }
 
 .gauravNodeConfigTitle code {
-  color: #34d399;
+  color: var(--success-fg);
   font-size: 10px;
 }
 
@@ -10345,7 +10273,7 @@ textarea:focus-visible {
 
 .gauravActionBadge.isExecuted {
   background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
+  color: var(--success-fg);
   border: 1px solid rgba(16, 185, 129, 0.4);
 }
 

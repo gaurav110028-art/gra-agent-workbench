@@ -18,8 +18,6 @@ import {
   ApprovalsIcon,
   SettingsIcon,
   CalendarIcon,
-  SunIcon,
-  MoonIcon,
   InfoIcon,
   LockIcon,
   ChevronIcon,
@@ -59,14 +57,10 @@ export default function Workbench({ demo = false, initialView = 'dashboard', can
   const [agentName, setAgentName] = useState('');
   const [agentStatus, setAgentStatus] = useState('paused');
   const [selectedTemplateId, setSelectedTemplateId] = useState('blank');
-  const [theme, setTheme] = useState('dark');
+  const [mobileNav, setMobileNav] = useState(false);
 
   useEffect(() => {
     if (demo) return;
-    const savedTheme = localStorage.getItem('gra-theme') || 'dark';
-    setTheme(savedTheme);
-    document.documentElement.setAttribute('data-theme', savedTheme);
-
     const savedAgents = localStorage.getItem('gra-agents');
     const seeded = localStorage.getItem('gra-agents-seeded');
 
@@ -205,13 +199,6 @@ export default function Workbench({ demo = false, initialView = 'dashboard', can
     setOpenMenuId(null);
   };
 
-  const toggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    if (!demo) localStorage.setItem('gra-theme', next);
-    document.documentElement.setAttribute('data-theme', next);
-  };
-
   const toggleAgentStatus = (agent) => {
     const updatedStatus =
       agent.status === 'running'
@@ -294,15 +281,13 @@ export default function Workbench({ demo = false, initialView = 'dashboard', can
   const InboxNav = demo || !canManageWhatsApp ? 'a' : 'button';
 
   return (
-    <main
-      className={`workbench ${
-        sidebarCollapsed
-          ? 'sidebarCollapsed'
-          : ''
-      } ${theme === 'light' ? 'lightTheme' : 'darkTheme'}`}
-      data-theme={theme}
-    >
-      <aside className="sidebar">
+    <div className={sidebarCollapsed ? "workbench sidebarCollapsed" : "workbench"}>
+      <a className="graSkipLink" href="#workbench-content">Skip to content</a>
+      <button className="graMobileNav" type="button" aria-expanded={mobileNav} aria-controls="workbench-sidebar" onClick={() => setMobileNav(open => !open)}>
+        <span className="graBrandMark">GRA</span><span>Workbench navigation</span>
+        <ChevronIcon direction={mobileNav ? "left" : "right"} />
+      </button>
+      <aside id="workbench-sidebar" className={mobileNav ? "sidebar graMobileOpen" : "sidebar"}>
         <button
           className="sidebarToggle"
           onClick={toggleSidebar}
@@ -320,9 +305,9 @@ export default function Workbench({ demo = false, initialView = 'dashboard', can
           <ChevronIcon direction={sidebarCollapsed ? 'right' : 'left'} />
         </button>
 
-        <div className="brand" />
+        <div className="brand"><span className="graBrandMark">GRA</span><span className="graBrandName">Agent Workbench</span></div>
 
-        <nav className="nav">
+        <nav className="nav" aria-label="Workbench" onClick={(event) => { if (event.target.closest("button, a")) setMobileNav(false); }}>
           <a className="navItem" href="/redactor" title="Secure Document Redactor">
             <span className="navIcon"><InfoIcon /></span>
             <span className="sidebarNavLabel">Document Redactor</span>
@@ -485,28 +470,10 @@ export default function Workbench({ demo = false, initialView = 'dashboard', can
 
         <div className="sidebarBottom">
           {demo ? (
-            <a className="navItem" href="/workspace" title="Sign in to workspace"><span className="sidebarNavLabel">Sign in to workspace</span></a>
+            <a className="navItem" href="/workspace" title="Sign in to workspace"><span className="navIcon"><LockIcon /></span><span className="sidebarNavLabel">Sign in to workspace</span></a>
           ) : (
-            <a className="navItem" href="/logout" title="Sign out"><span className="sidebarNavLabel">Sign out</span></a>
+            <a className="navItem" href="/logout" title="Sign out"><span className="navIcon"><LockIcon /></span><span className="sidebarNavLabel">Sign out</span></a>
           )}
-          <button
-            className="themeToggleButton"
-            onClick={toggleTheme}
-            title={
-              theme === 'dark'
-                ? 'Switch to Light Mode'
-                : 'Switch to Dark Mode'
-            }
-          >
-            <span className="themeToggleIcon">
-              {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-            </span>
-
-            <span className="sidebarNavLabel">
-              {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-            </span>
-          </button>
-
           <button
             className="siteInfoButton"
             onClick={() =>
@@ -529,7 +496,9 @@ export default function Workbench({ demo = false, initialView = 'dashboard', can
         </div>
       </aside>
 
-      <section
+      <main
+        id="workbench-content"
+        tabIndex={-1}
         className="workspace"
         onClick={() => {
           if (openMenuId) {
@@ -537,6 +506,10 @@ export default function Workbench({ demo = false, initialView = 'dashboard', can
           }
         }}
       >
+        <header className="graWorkspaceBar">
+          <span>GRA Workbench <span aria-hidden="true">/</span> {demo ? "Public demo" : "Operations"}</span>
+          {demo ? <a className="graHeaderLink" href="/workspace">Open private workspace</a> : <a className="graHeaderLink" href="/">Public demo</a>}
+        </header>
         {!demo && canManageWhatsApp && activeView === 'queryInbox' ? (
           <QueryInbox />
         ) : !demo && activeView === 'settings' ? (
@@ -552,14 +525,7 @@ export default function Workbench({ demo = false, initialView = 'dashboard', can
             <div className="workspaceTopbar">
               <div className="workspaceHeading">
                 <h1>Agents</h1>
-                {demo && <span>Simulation only · use sample data</span>}
-
-                <span>
-                  {agents.length}{' '}
-                  {agents.length === 1
-                    ? 'agent'
-                    : 'agents'}
-                </span>
+                <p>{demo ? "Explore an agent template and test its workflow with sample data." : "Build, inspect and manage your automation agents."}</p>
               </div>
 
               <button
@@ -573,6 +539,12 @@ export default function Workbench({ demo = false, initialView = 'dashboard', can
               </button>
             </div>
 
+            <dl className="graAgentSummary" aria-label="Agent inventory">
+              <div><dt>Total agents</dt><dd>{agents.length}</dd></div>
+              <div><dt>Running</dt><dd>{agents.filter(agent => agent.status === "running").length}</dd></div>
+              <div><dt>Paused</dt><dd>{agents.filter(agent => agent.status !== "running").length}</dd></div>
+            </dl>
+            {demo && <p className="graDemoNotice"><span className="navIcon"><InfoIcon /></span><span><strong>Simulation only</strong> · Use sample data. Changes are temporary and live actions are disabled.</span></p>}
             {agents.length === 0 ? (
               <div className="emptyDashboard">
                 <img
@@ -719,9 +691,7 @@ export default function Workbench({ demo = false, initialView = 'dashboard', can
                         {agent.category || 'Agent workspace'}
                       </span>
 
-                      <span className="openAgentText">
-                        Open Agent →
-                      </span>
+                      <button type="button" className="openAgentText" aria-label={"Open " + agent.name} onClick={(event) => { event.stopPropagation(); openAgent(agent); }}>Open agent <span aria-hidden="true">→</span></button>
                     </div>
                   </article>
                 ))}
@@ -816,7 +786,7 @@ export default function Workbench({ demo = false, initialView = 'dashboard', can
             </div>
           </div>
         )}
-      </section>
+      </main>
 
       {showAddAgent && (
         <div
@@ -982,6 +952,6 @@ export default function Workbench({ demo = false, initialView = 'dashboard', can
         agentId={selectedAgent?.id || 'global'}
         agentName={selectedAgent?.name || 'GRA Workspace'}
       />}
-    </main>
+    </div>
   );
 }

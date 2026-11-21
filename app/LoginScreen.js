@@ -31,13 +31,13 @@ export default function LoginScreen({ onLogin }) {
   };
 
   return (
-    <div className="loginOverlay">
-      <div className="loginCard">
+    <main className="loginOverlay">
+      <section className="loginCard" aria-labelledby="login-title">
         <div className="loginBrand">
           <div className="loginLogo">GRA</div>
           <p className="loginSubtitle">Agent Workbench</p>
         </div>
-        <h2 className="loginHeading">Welcome back</h2>
+        <h1 className="loginHeading" id="login-title">Welcome back</h1>
         <p className="loginHint">Sign in to your workspace</p>
         <form className="loginForm" onSubmit={handleSubmit}>
           <div className="loginField">
@@ -69,7 +69,7 @@ export default function LoginScreen({ onLogin }) {
                 type="button"
                 className="loginShowPass"
                 onClick={() => setShowPass((s) => !s)}
-                tabIndex={-1}
+                aria-pressed={showPass}
               >
                 {showPass ? "Hide" : "Show"}
               </button>
@@ -86,7 +86,8 @@ export default function LoginScreen({ onLogin }) {
           </button>
         </form>
         <p className="loginDefaultHint">Server accounts are provisioned by your administrator. There is no default password.</p>
-      </div>
-    </div>
+        <a className="graLoginReturn" href="/">Return to public demo</a>
+      </section>
+    </main>
   );
 }

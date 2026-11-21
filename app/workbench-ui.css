@@ -1,0 +1,838 @@
+/* Shared light application surfaces. Route styles retain their domain-specific layout. */
+:root {
+  --gra-page-gutter: clamp(16px, 3vw, 48px);
+  --gra-content-width: 1536px;
+  --gra-control-height: 40px;
+  --gra-panel-radius: 14px;
+  --gra-heading-size: clamp(28px, 2.7vw, 32px);
+  --gra-page-top: 28px;
+}
+
+:is(.workspace, .wa-main, .redactor) {
+  --text-secondary: var(--text-secondary-on-canvas);
+}
+
+:where(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.workbench {
+  grid-template-columns: 232px minmax(0, 1fr);
+}
+.workbench.sidebarCollapsed {
+  grid-template-columns: 64px minmax(0, 1fr);
+}
+.workbench > .sidebar {
+  height: 100dvh;
+  border-color: var(--border);
+  padding: 16px 12px;
+}
+.sidebar .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 2px 14px;
+  padding: 3px 0 16px;
+  border-bottom: 1px solid var(--border);
+  min-height: 56px;
+}
+.sidebar .brand::before {
+  display: none;
+}
+.graBrandMark,
+.loginLogo {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--text-on-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.025em;
+}
+.graBrandName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+.sidebarCollapsed .graBrandName {
+  display: none;
+}
+.sidebarCollapsed .sidebar .brand {
+  margin-inline: auto;
+  padding-inline: 0;
+  border: 0;
+}
+.sidebar :is(.navItem, .siteInfoButton) {
+  height: 40px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--text-secondary);
+}
+.sidebar .navItem.active {
+  color: var(--accent-fg);
+  background: var(--accent-bg);
+  border-color: transparent;
+  font-weight: 650;
+}
+.sidebar .navItem.active::before {
+  display: none;
+}
+.sidebar .sidebarBottom {
+  border-color: var(--border);
+}
+.sidebar .sidebarToggle {
+  box-shadow: var(--shadow-sm);
+}
+.sidebar .sidebarNavLabel {
+  overflow-wrap: anywhere;
+}
+.graMobileNav {
+  display: none;
+}
+.graSkipLink {
+  position: fixed;
+  z-index: 1200;
+  top: 8px;
+  left: 8px;
+  transform: translateY(-200%);
+  padding: 8px 16px;
+  color: var(--accent-fg);
+  background: var(--bg-surface);
+}
+.graSkipLink:focus {
+  transform: none;
+}
+
+.workbench > .workspace {
+  min-width: 0;
+  width: 100%;
+  max-width: var(--gra-content-width);
+  margin-inline: auto;
+  padding: 0 var(--gra-page-gutter) 48px;
+}
+.graWorkspaceBar {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: var(--gra-page-top);
+  padding-block: 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.graWorkspaceBar > span > span {
+  margin-inline: 4px;
+  color: var(--text-primary);
+}
+.graHeaderLink,
+.graLoginReturn {
+  color: var(--accent-fg);
+  text-decoration: none;
+  font-weight: 600;
+}
+.graHeaderLink:hover,
+.graLoginReturn:hover {
+  text-decoration: underline;
+}
+.workspace
+  :is(
+    .workspaceTopbar,
+    .runsTopbar,
+    .approvalsTopbar,
+    .queryInboxHeader,
+    .settingsHeader,
+    .calendarHeader
+  ) {
+  margin-bottom: 20px;
+}
+.workspace
+  :is(
+    .workspaceHeading h1,
+    .runsTopbar h1,
+    .approvalsTopbar h1,
+    .queryInboxTitle h1,
+    .settingsHeader h1,
+    .calendarTitle
+  ),
+.graMigrationHeading h1 {
+  font-size: var(--gra-heading-size);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+.workspace .workspaceTopbar {
+  align-items: flex-start;
+  flex-wrap: wrap;
+  padding: 0;
+}
+.workspace .workspaceHeading {
+  display: block;
+}
+.workspaceHeading p {
+  color: var(--text-secondary);
+  margin: 6px 0 0;
+}
+.workspace .workspaceAddAgent {
+  min-height: var(--gra-control-height);
+  padding-inline: 16px;
+  border-radius: var(--radius-md);
+}
+.graAgentSummary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0 0 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--gra-panel-radius);
+  box-shadow: var(--shadow-sm);
+}
+.graAgentSummary > div {
+  padding: 14px 20px;
+}
+.graAgentSummary > div + div {
+  border-left: 1px solid var(--border);
+}
+.graAgentSummary dt {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.graAgentSummary dd {
+  margin: 2px 0 0;
+  font-size: 25px;
+  font-weight: 675;
+  font-variant-numeric: tabular-nums;
+}
+.graDemoNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 14px;
+  margin: 0 0 20px;
+  color: var(--accent-fg);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+}
+.graDemoNotice .navIcon {
+  flex: none;
+}
+.workspace .agentGrid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
+}
+.workspace .agentPanel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 206px;
+  height: auto;
+  border-radius: var(--gra-panel-radius);
+  box-shadow: var(--shadow-sm);
+  background: var(--bg-surface);
+}
+.workspace .agentPanel.clickable:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent-border);
+  transform: none;
+}
+.workspace .panelHeader {
+  padding: 16px 16px 8px;
+}
+.workspace .panelHeader strong {
+  color: var(--text-primary);
+  font-size: 15px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.workspace .panelBody {
+  padding: 4px 16px 14px;
+  flex: 1;
+}
+.workspace .agentPanel .panelBody {
+  background: var(--bg-surface);
+}
+.workspace .panelFooter {
+  min-height: 50px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-surface-2);
+  padding: 4px 14px;
+  gap: 8px;
+}
+.workspace .openAgentText {
+  flex: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--accent-fg);
+  min-height: 36px;
+  padding-inline: 6px;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+.workspace .openAgentText:hover {
+  background: var(--accent-bg);
+}
+.workspace .agentTemplateSummary {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+.workspace .agentTemplateTags span {
+  color: var(--text-secondary);
+  border-color: var(--border);
+  background: var(--bg-surface-2);
+}
+.workspace .emptyDashboard {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--gra-panel-radius);
+  background: var(--bg-surface);
+}
+.workspace .agentWorkspaceHeader {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: 14px;
+  border-radius: var(--gra-panel-radius);
+  flex-wrap: wrap;
+}
+.workspace .agentIdentity {
+  min-width: 0;
+}
+.workspace .agentIdentity strong {
+  overflow-wrap: anywhere;
+}
+.workspace .agentTabs {
+  margin-block: 12px;
+}
+.workspace .agentTabs button.activeTab {
+  color: var(--accent-fg);
+}
+
+.workspace .workflowBuilder {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--gra-panel-radius);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+.workspace .workflowBoard {
+  min-width: 0;
+  background: var(--bg-surface);
+}
+.workspace .workflowBoardTopbar {
+  align-items: center;
+  border-color: var(--border);
+  background: var(--bg-surface);
+}
+.workspace :is(.workflowSidebar, .workflowInspector, .workflowExecutionPanel) {
+  background: var(--bg-surface);
+  border-color: var(--border);
+}
+.workspace .workflowCanvasShell {
+  background: #f2f6fc;
+  box-shadow: none;
+}
+.workspace .workflowCanvasShell::after {
+  display: none;
+}
+.workspace .react-flow__controls,
+.workspace .react-flow__minimap {
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.workspace .react-flow__controls-button {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+.workspace .react-flow__controls-button:hover {
+  background: var(--accent-bg);
+}
+.workspace .workflowNode {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+}
+.workspace .workflowNode.selected {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 2px var(--accent-border),
+    var(--shadow-sm) !important;
+}
+.workspace .workflowNodeText strong {
+  color: var(--text-primary);
+}
+.workspace .workflowLibraryItem {
+  border-color: var(--border);
+  background: var(--bg-surface);
+}
+.workspace .workflowLibraryItem:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+.workspace .workflowActionButton:not(:disabled) {
+  min-height: 36px;
+}
+.graNodeLibraryToggle {
+  display: none;
+}
+
+.workspace
+  :is(
+    .runCard,
+    .approvalCard,
+    .queryStatCard,
+    .settingsCard,
+    .sourceCard,
+    .runsEmpty,
+    .approvalsEmpty,
+    .queryListPanel,
+    .queryDetailPanel,
+    .calModalCard,
+    .calNoteFormCard
+  ) {
+  background: var(--bg-surface);
+  border-color: var(--border);
+  border-radius: var(--gra-panel-radius);
+  box-shadow: var(--shadow-sm);
+}
+.workspace :is(.runsEmpty, .approvalsEmpty) {
+  border-style: dashed;
+  border-color: var(--border-strong);
+}
+.workspace :is(.runsFilters, .approvalsFilters) {
+  flex-wrap: wrap;
+}
+.workspace
+  :is(
+    .runsFilters button,
+    .approvalsFilters button,
+    .queryFilterTab,
+    .calFilterBtn
+  ) {
+  border-radius: var(--radius-md);
+  min-height: 36px;
+}
+.workspace
+  :is(
+    .runsList,
+    .approvalsList,
+    .queryListPanel,
+    .queryDetailPanel,
+    .sourcesHeader,
+    .settingsLayout,
+    .calendarHeaderLeft
+  ) {
+  min-width: 0;
+}
+.workspace :is(.calDrawer, .calModalCard, .calNoteItemCard) {
+  box-shadow: var(--shadow-md);
+}
+.workspace .calGrid {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  background: var(--border);
+  border-color: var(--border);
+}
+.workspace .calCell {
+  min-width: 0;
+  background: var(--bg-surface);
+}
+.workspace .calCellToday {
+  background: var(--accent-bg);
+}
+.workspace .calCellItems {
+  min-width: 0;
+}
+.sidebar .navItemArchitect,
+.workspace .gauravArchitectToggleBtn {
+  background: var(--bg-surface) !important;
+  border-color: var(--border) !important;
+  color: var(--accent-fg) !important;
+  box-shadow: none;
+  transform: none;
+  transition: background-color var(--transition-fast);
+}
+.sidebar .navItemArchitect:is(:hover, .active),
+.workspace .gauravArchitectToggleBtn:is(:hover, .active) {
+  background: var(--accent-bg) !important;
+  border-color: var(--accent-border) !important;
+}
+.gauravDrawerOverlay {
+  background: var(--backdrop);
+  backdrop-filter: none;
+}
+.gauravDrawerContainer {
+  max-width: 100%;
+  height: 100dvh;
+  box-shadow: var(--shadow-lg);
+}
+.gauravDrawerHeader {
+  background: var(--bg-surface);
+}
+.gauravAvatar,
+.gauravEmptyLogo {
+  background: var(--accent-bg);
+  box-shadow: none;
+  border-color: var(--accent-border);
+}
+.gauravPulseDot {
+  background: var(--success);
+  box-shadow: none;
+  animation: none;
+}
+.gauravModeBadge.isLive {
+  color: var(--success-fg);
+  background: var(--success-bg);
+}
+.gauravModeBadge.isDev {
+  color: var(--warning-fg);
+  background: var(--warning-bg);
+}
+
+.loginOverlay {
+  background: var(--bg-main);
+  min-height: 100dvh;
+  padding: 24px 16px;
+}
+.loginCard {
+  max-width: 442px;
+  padding: clamp(24px, 6vw, 40px);
+  border-radius: 18px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  backdrop-filter: none;
+  box-shadow: var(--shadow-lg);
+  animation: none;
+}
+.loginBrand {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.loginLogo {
+  background: var(--accent);
+  -webkit-text-fill-color: var(--text-on-accent);
+}
+.loginSubtitle {
+  margin: 0;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 650;
+}
+.loginHeading {
+  text-align: left;
+  font-size: var(--gra-heading-size);
+  letter-spacing: -0.035em;
+}
+.loginHint {
+  text-align: left;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-block: 8px 24px;
+}
+.loginField label {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+}
+.loginField input {
+  border-color: var(--border-strong);
+  background: var(--bg-surface);
+}
+.loginField input:focus {
+  box-shadow: var(--focus-ring);
+}
+.loginShowPass {
+  color: var(--accent-fg);
+}
+.loginDefaultHint {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-top: 18px;
+  text-align: left;
+}
+.loginBtn {
+  min-height: 44px;
+  border-radius: var(--radius-md);
+}
+.loginBtn:hover:enabled {
+  background: var(--accent-hover);
+  opacity: 1;
+}
+.loginCard > :is(.graLoginReturn, .redactor-back) {
+  display: block;
+  margin-top: 16px;
+  font-size: 13px;
+}
+
+.workspace.graMigration {
+  max-width: 1080px;
+  margin: auto;
+  padding: 24px var(--gra-page-gutter) 48px;
+}
+.graMigration .settingsContainer {
+  padding: 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--gra-panel-radius);
+  box-shadow: var(--shadow-sm);
+}
+.graMigrationHeading h1 {
+  margin: 12px 0;
+}
+.graMigrationActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+.graMigrationActions .loginBtn {
+  margin: 0;
+  font-size: 14px;
+}
+.graMigration [role="status"] {
+  background: var(--accent-bg);
+  color: var(--accent-fg);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+.graTableScroll {
+  max-width: 100%;
+  overflow: auto;
+  margin-top: 16px;
+}
+.graTableScroll table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 630px;
+  font-size: 13px;
+}
+.graTableScroll caption {
+  text-align: left;
+  padding: 8px 0;
+  color: var(--text-secondary);
+}
+.graTableScroll :is(th, td) {
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.graTableScroll thead {
+  background: var(--bg-surface-2);
+}
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  .workbench {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+  .sidebar .brand {
+    justify-content: center;
+    margin-inline: 0;
+  }
+  .sidebar .graBrandName {
+    display: none;
+  }
+  .sidebar .nav {
+    margin-top: 0;
+  }
+  .sidebar :is(.navItem, .siteInfoButton) {
+    justify-content: center;
+    width: 40px;
+    padding: 0;
+    margin-inline: auto;
+  }
+  .sidebar .sidebarNavLabel {
+    position: absolute;
+    clip-path: inset(50%);
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .sidebar .sidebarToggle {
+    display: none;
+  }
+}
+@media (max-width: 760px) {
+  .workbench:has(.graMobileNav),
+  .workbench.sidebarCollapsed:has(.graMobileNav) {
+    display: block;
+  }
+  .graMobileNav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 58px;
+    padding: 8px 16px;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    text-align: left;
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+  .graMobileNav > svg {
+    width: 18px;
+    height: 18px;
+    margin-left: auto;
+  }
+  .workbench:has(.graMobileNav) > .sidebar {
+    display: none;
+  }
+  .workbench:has(.graMobileNav) > .sidebar.graMobileOpen {
+    display: flex;
+    position: static;
+    height: auto;
+    padding: 12px;
+  }
+  .graMobileOpen :is(.brand, .sidebarToggle) {
+    display: none;
+  }
+  .workbench .graMobileOpen :is(.nav, .sidebarBottom) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    margin: 0;
+  }
+  .workbench .graMobileOpen :is(.navItem, .siteInfoButton) {
+    justify-content: flex-start;
+    width: 100%;
+    height: 44px;
+    padding: 4px 8px;
+    margin: 0;
+    gap: 8px;
+  }
+  .workbench .graMobileOpen .sidebarNavLabel {
+    position: static;
+    clip: auto;
+    width: auto;
+    height: auto;
+    margin: 0;
+    opacity: 1;
+    white-space: normal;
+    overflow: visible;
+  }
+  .graWorkspaceBar {
+    min-height: 48px;
+    margin-bottom: 20px;
+  }
+  .graAgentSummary > div {
+    padding: 10px;
+  }
+  .graAgentSummary dt {
+    font-size: 12px;
+  }
+  .workspace .agentGrid {
+    grid-template-columns: 1fr;
+  }
+  .workspace .workflowBuilder {
+    height: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .graNodeLibraryToggle {
+    display: block;
+    min-height: 44px;
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-surface);
+    color: var(--accent-fg);
+    text-align: left;
+    padding-inline: 14px;
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+  .workspace .workflowSidebar {
+    display: none;
+  }
+  .workspace .workflowSidebar.graNodeLibraryOpen {
+    display: flex;
+    height: auto;
+    max-height: 260px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .workspace .workflowBoard {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .workspace .workflowCanvasShell {
+    height: 410px;
+    min-height: 0;
+    flex: none;
+  }
+  .workspace .workflowBoardActions {
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+  .workspace .workflowExecutionPanel {
+    max-height: 55dvh;
+  }
+  .workspace .workflowCanvasShell .react-flow__minimap {
+    width: 86px;
+    height: 58px;
+    margin: 0 8px 8px 0;
+  }
+  .workspace
+    :is(
+      .calendarHeader,
+      .calendarHeaderRight,
+      .queryInboxHeader,
+      .sourcesHeader,
+      .runsTopbar,
+      .approvalsTopbar
+    ) {
+    flex-wrap: wrap;
+  }
+  .workspace .calDayName {
+    padding-inline: 2px;
+    letter-spacing: 0;
+  }
+  .workspace .calCell {
+    padding: 6px 3px;
+    min-height: 76px;
+  }
+  .workspace .calCellPill {
+    padding-inline: 2px;
+    gap: 2px;
+  }
+  .workspace .calTodayBadge {
+    display: none;
+  }
+  .graMigration .settingsContainer {
+    padding: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.workbench, .loginOverlay, .redactor, .graMigration),
+  :is(.workbench, .loginOverlay, .redactor, .graMigration) *,
+  :is(.workbench, .loginOverlay, .redactor, .graMigration) *::before,
+  :is(.workbench, .loginOverlay, .redactor, .graMigration) *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

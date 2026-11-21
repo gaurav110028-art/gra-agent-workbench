@@ -1,5 +1,6 @@
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import "./workbench-ui.css";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -19,10 +20,8 @@ export const metadata = {
 };
 
 export const viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#0b0d12" },
-    { media: "(prefers-color-scheme: light)", color: "#f6f7fb" },
-  ],
+  themeColor: "#F6F8FC",
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }) {
@@ -30,7 +29,6 @@ export default function RootLayout({ children }) {
     <html
       lang="en"
       className={`${inter.variable} ${jetbrainsMono.variable} bg-app`}
-      suppressHydrationWarning
     >
       <body>{children}</body>
     </html>

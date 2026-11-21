@@ -1,5 +1,17 @@
 # GRA Workbench interface guidelines
 
+## Workbench 2.0
+
+The application renders in light mode from the first response. The old `gra-theme` value is retained as legacy data. The layout and page components no longer read or write it.
+
+Use the shared tokens in `app/globals.css` for surfaces, text, control borders and status colors. The canvas, cards and sidebar use the same visual hierarchy with distinct surfaces. `app/workbench-ui.css` defines the shared content width, responsive gutters, page title scale and control rhythm. Keep route styles focused on each screen’s layout.
+
+Use the slightly darker secondary text token over the tinted content canvas. The standard secondary token remains available for white surfaces.
+
+Use an outlined secondary control beside a blue primary action. Pair status colors with explicit text. Use the full-width navigation disclosure on mobile. Keep wide data tables within their own scroll region. On mobile, open the node library on demand so workflow controls and the canvas remain easy to reach.
+
+Review at 1440, 1024 and 390 pixels. Check keyboard focus, reduced motion and dark system preference with a legacy theme value in browser storage. Use a synthetic administrator session to review protected routes.
+
 ## Operational screens
 
 Use the Workbench font, theme tokens, logo, icons and destination links. Keep page chrome quiet. The module name belongs in the header and the active task is the page’s main visual heading. Use the theme accent for navigation and focus, a high-contrast solid button for the primary action and status colours only alongside written outcomes.
@@ -20,11 +32,11 @@ Use native inputs, visible labels, immediate keyboard focus and text feedback. G
 
 ## Data and access
 
-The designated server-authenticated administrator opens the manager. The browser holds synthetic records in React state. Only the Workbench theme preference uses local storage. Approved languages and message bodies stay unconfirmed until supplied. A PDF URL is validated as text. No provider request verifies its contents. The reminder clock advances from every simulated attempt, including failures.
+The designated server-authenticated administrator opens the manager. The browser holds synthetic records in React state. Approved languages and message bodies stay unconfirmed until supplied. A PDF URL is validated as text. No provider request verifies its contents. The reminder clock advances from every simulated attempt, including failures.
 
 ## Review practice
 
-Compare all seven screens in both themes at 1440, 1280, 768 and 390 pixels. Check long and multilingual names, empty results, missing variables, a 500-row synthetic import, focus return, errors and disabled actions. Test the existing login, authorization, public simulation and Redactor flows against the local production build.
+Compare all seven screens at desktop, tablet and mobile widths. Check long and multilingual names, empty results, missing variables, a 500-row synthetic import, focus return, errors and disabled actions. Test the existing login, authorization, public simulation and Redactor flows against the local production build.
 
 The Phase 2A.1 review used the upstream skill files directly. Hallmark's existing-design workflow supplied the before/after and wiring checks. Emil and Jakub informed pressure-testing and interaction feedback. Ibelick informed control names, focus and dialog behavior. Cloudflare's focused guidance was used to trace server authorization, private data access and rendering sinks. The protected route was rendered with authenticated local Playwright sessions. Static sloplint checked temporary JSX-named copies of the Next.js components and route CSS.
 
