@@ -1,0 +1,590 @@
+/* Hallmark · existing application redesign · GRA Workbench operations */
+.wa-shell {
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  transition: none;
+}
+.wa-shell .navItem {
+  text-decoration: none;
+}
+.wa-shell .navItem.active::before {
+  display: none;
+}
+.wa-shell .navItem.active {
+  background: var(--accent-bg);
+  color: var(--accent-fg);
+}
+.wa-main {
+  width: 100%;
+  max-width: 1520px;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 3vw, 48px) 48px;
+}
+.wa-heading,
+.wa-breadcrumb,
+.wa-section,
+.wa-panel > header,
+.wa-row,
+.wa-mode,
+.wa-actions,
+.wa-tools,
+.wa-choices,
+.wa-reminder > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.wa-heading,
+.wa-section,
+.wa-panel > header,
+.wa-row,
+.wa-reminder > div:first-child {
+  justify-content: space-between;
+}
+.wa-heading {
+  min-height: 64px;
+}
+.wa-breadcrumb {
+  min-width: 0;
+  font-size: 13px;
+}
+.wa-breadcrumb a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+.wa-breadcrumb h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: normal;
+}
+.wa-heading h1,
+.wa-section h2 {
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+.wa-mode {
+  gap: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.wa-mode svg,
+.wa-mobile-menu svg {
+  width: 16px;
+  height: 16px;
+}
+.wa-main button,
+.wa-mobile-menu {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 550;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  min-height: 34px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.wa-main button:active:not(:disabled),
+.wa-mobile-menu:active {
+  background: var(--overlay-4);
+}
+.wa-main button.primary {
+  background: var(--text-primary);
+  color: var(--bg-main);
+  border-color: transparent;
+}
+.wa-main button.primary:active:not(:disabled) {
+  background: var(--text-secondary);
+}
+.wa-main button:disabled {
+  opacity: 0.54;
+  cursor: not-allowed;
+}
+.wa-shell
+  :is(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent-fg);
+  outline-offset: 2px;
+}
+.wa-tabs {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  border-bottom: 1px solid var(--border-strong);
+}
+.wa-tabs button {
+  flex: none;
+  border: 0;
+  border-radius: 0;
+  padding: 8px 0;
+  min-height: 40px;
+  background: transparent;
+  color: var(--text-secondary);
+}
+.wa-tabs button[aria-current] {
+  color: var(--text-primary);
+  box-shadow: inset 0 -2px var(--accent-fg);
+}
+.wa-tabs button:focus-visible,
+.wa-metrics button:focus-visible {
+  outline-offset: -3px;
+}
+.wa-section {
+  align-items: flex-start;
+  margin: 28px 0 20px;
+  flex-wrap: wrap;
+}
+.wa-section h2 {
+  margin: 0;
+  font-size: clamp(24px, 2vw, 30px);
+  line-height: 1.2;
+}
+.wa-main p,
+.wa-main small {
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.wa-main p {
+  margin: 8px 0 12px;
+  font-size: 13px;
+}
+.wa-main .wa-note {
+  margin: 4px 0 0;
+}
+.wa-metrics {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  margin: 0 0 28px;
+  border-block: 1px solid var(--border-strong);
+}
+.wa-metrics button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 12px 16px;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+}
+.wa-metrics button:first-child {
+  padding-left: 0;
+}
+.wa-metrics button:last-child {
+  border-right: 0;
+}
+.wa-metrics span {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.wa-metrics strong {
+  font-weight: 550;
+  font-size: 26px;
+  line-height: 1.2;
+}
+.wa-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.wa-panel {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  margin: 0 0 24px;
+}
+.wa-panel > header {
+  min-height: 40px;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-strong);
+}
+.wa-panel h3,
+.wa-panel h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.wa-panel h4 {
+  margin-block: 12px 4px;
+  font-size: 14px;
+}
+.wa-main button.wa-link {
+  color: var(--accent-fg);
+  border-color: transparent;
+  background: transparent;
+  padding-inline: 4px;
+}
+.wa-row {
+  min-width: 0;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.wa-row-body {
+  flex: 1;
+  min-width: 0;
+}
+.wa-row strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+.wa-row small,
+.wa-cell-stack small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+}
+.wa-row-end {
+  text-align: right;
+  font-size: 12px;
+}
+.wa-date,
+.wa-setting-icon {
+  flex: none;
+  width: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+}
+.wa-date {
+  padding: 4px;
+  line-height: 1.2;
+}
+.wa-date span {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.wa-date b {
+  font-size: 18px;
+  font-weight: 550;
+}
+.wa-setting-icon {
+  height: 42px;
+  color: var(--text-secondary);
+}
+.wa-setting-icon svg {
+  width: 20px;
+  height: 20px;
+}
+.wa-setting-state {
+  font-weight: 550;
+  font-size: 13px;
+}
+.wa-status {
+  display: inline-block;
+  width: max-content;
+  max-width: 100%;
+  font-size: 12px;
+  padding: 2px 8px;
+  font-weight: 550;
+  border-radius: 4px;
+  background: var(--overlay-2);
+  color: var(--text-secondary);
+}
+.wa-status.good {
+  color: var(--success-fg);
+  background: var(--success-bg);
+}
+.wa-status.bad {
+  color: var(--danger-fg);
+  background: var(--danger-bg);
+}
+.wa-actions,
+.wa-tools,
+.wa-choices {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.wa-tools {
+  align-items: flex-end;
+  margin-block: 16px;
+}
+.wa-tools .wa-field:first-child {
+  flex: 1 1 200px;
+  max-width: 460px;
+}
+.wa-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+  gap: 16px;
+  margin: 16px 0;
+}
+.wa-field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.wa-field label,
+.wa-field > span {
+  font-weight: 550;
+}
+.wa-tools .wa-field {
+  margin: 0;
+}
+.wa-main input:not([type='checkbox']),
+.wa-main select,
+.wa-main textarea {
+  min-width: 0;
+  width: 100%;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  min-height: 36px;
+  padding: 8px 12px;
+  font: inherit;
+}
+.wa-main textarea {
+  min-height: 88px;
+}
+.wa-main input[type='checkbox'] {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+}
+.wa-main fieldset {
+  min-width: 0;
+  margin: 16px 0;
+  padding: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+.wa-choices label {
+  padding: 4px;
+}
+.wa-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.wa-main table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.wa-main th,
+.wa-main td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.wa-main th {
+  font-size: 12px;
+  font-weight: 550;
+  color: var(--text-secondary);
+  background: var(--bg-surface-2);
+  white-space: nowrap;
+}
+.wa-main td {
+  overflow-wrap: break-word;
+  min-width: 7ch;
+}
+.wa-main td time {
+  white-space: nowrap;
+  font-size: 12px;
+}
+.wa-main td:first-child {
+  font-weight: 550;
+}
+.wa-cell-stack {
+  min-width: 14ch;
+  max-width: 32ch;
+  overflow-wrap: anywhere;
+}
+.wa-main td strong {
+  font-weight: 550;
+}
+.wa-main code {
+  font: 12px var(--font-mono);
+  padding: 4px 8px;
+  background: var(--overlay-2);
+  border-radius: 4px;
+}
+.wa-empty {
+  padding: 20px 0;
+}
+.wa-main .wa-error,
+.wa-main .wa-field-error {
+  color: var(--danger-fg);
+}
+.wa-main .wa-filter-count {
+  font-size: 12px;
+}
+.wa-skip {
+  position: fixed;
+  inset: 8px auto auto 8px;
+  transform: translateY(-200%);
+  z-index: 10;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+}
+.wa-skip:focus {
+  transform: none;
+}
+.wa-mobile-menu {
+  display: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .wa-main button:not(:disabled):hover {
+    background: var(--overlay-3);
+  }
+  .wa-main button.primary:not(:disabled):hover {
+    background: var(--text-secondary);
+  }
+  .wa-breadcrumb a:hover,
+  .wa-main button.wa-link:hover {
+    text-decoration: underline;
+  }
+  .wa-main tbody tr:hover {
+    background: var(--overlay-1);
+  }
+}
+@media (max-width: 1000px) {
+  .wa-tabs { gap: 12px; }
+  .wa-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .wa-metrics button:nth-child(3n) {
+    border-right: 0;
+  }
+  .wa-metrics button:nth-child(n + 4) {
+    border-top: 1px solid var(--border);
+  }
+  .wa-metrics button:first-child {
+    padding-left: 16px;
+  }
+  .wa-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 620px) {
+  .workbench.wa-shell,
+  .workbench.wa-shell.sidebarCollapsed {
+    display: block;
+  }
+  .wa-mobile-menu {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 16px;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+  }
+  .wa-mobile-menu svg:last-child {
+    margin-left: auto;
+  }
+  .wa-shell .sidebar {
+    display: none;
+  }
+  .wa-shell .sidebar.wa-mobile-open {
+    display: flex;
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 12px;
+    background: var(--bg-sidebar);
+  }
+  .wa-shell .sidebar.wa-mobile-open .sidebarNavLabel {
+    position: static;
+    clip: auto;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    margin: 0;
+    opacity: 1;
+  }
+  .wa-shell .sidebar.wa-mobile-open :is(.nav, .sidebarBottom) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .wa-shell .sidebar.wa-mobile-open .navItem {
+    justify-content: flex-start;
+    width: 100%;
+    height: 44px;
+    padding: 4px 8px;
+  }
+  .wa-shell .sidebarToggle,
+  .wa-shell .brand {
+    display: none;
+  }
+  .wa-main {
+    padding: 0 16px 32px;
+  }
+  .wa-heading {
+    min-height: 52px;
+    gap: 8px;
+  }
+  .wa-breadcrumb {
+    gap: 8px;
+    font-size: 12px;
+  }
+  .wa-breadcrumb h1 {
+    font-size: 14px;
+  }
+  .wa-section {
+    margin: 20px 0 16px;
+  }
+  .wa-tabs {
+    gap: 16px;
+  }
+  .wa-main button,
+  .wa-main select,
+  .wa-main input:not([type='checkbox']) {
+    min-height: 44px;
+  }
+  .wa-metrics {
+    margin-bottom: 20px;
+  }
+  .wa-metrics button {
+    padding: 8px;
+  }
+  .wa-metrics button:first-child {
+    padding-left: 8px;
+  }
+  .wa-metrics strong {
+    font-size: 22px;
+  }
+  .wa-row {
+    gap: 8px;
+  }
+  .wa-main td {
+    min-width: 10ch;
+  }
+  .wa-scroll table {
+    width: max-content;
+    min-width: 100%;
+    max-width: 900px;
+  }
+  .wa-tools .wa-field {
+    flex: 1 1 140px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wa-shell,
+  .wa-shell *,
+  .wa-shell *::before,
+  .wa-shell *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

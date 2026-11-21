@@ -10,7 +10,7 @@ export default function LogoutPage() {
     {error && <p role="alert" className="loginError">{error}</p>}
     <button className="loginBtn" disabled={busy} onClick={async () => {
       setBusy(true); setError('');
-      try { await logoutUser(); window.location.assign('/login'); }
+      try { await logoutUser(); window.location.replace('/'); }
       catch (e) { setError(e.message); setBusy(false); }
     }}>{busy ? 'Signing out…' : 'Confirm sign out'}</button>
     <a className="redactor-back" href="/">Return to workbench</a>

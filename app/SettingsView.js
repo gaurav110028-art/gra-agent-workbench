@@ -26,8 +26,8 @@ const ROLES = ['Staff', 'Senior', 'Partner'];
    MAIN COMPONENT
 --------------------------------------------------------- */
 
-export default function SettingsView() {
-  const [activeSection, setActiveSection] = useState('webhook');
+export default function SettingsView({ canManageWhatsApp }) {
+  const [activeSection, setActiveSection] = useState(canManageWhatsApp ? 'webhook' : 'team');
 
   return (
     <div className="settingsContainer">
@@ -47,7 +47,7 @@ export default function SettingsView() {
             ['sheets', <SheetIcon key="i" />, 'Google Sheets'],
             ['notifications', <BellIcon key="i" />, 'Notifications'],
             ['about', <InfoIcon key="i" />, 'About'],
-          ].map(([id, icon, label]) => (
+          ].filter(([id]) => id !== 'webhook' || canManageWhatsApp).map(([id, icon, label]) => (
             <button
               key={id}
               className={`settingsNavItem ${activeSection === id ? 'active' : ''}`}
@@ -61,7 +61,7 @@ export default function SettingsView() {
 
         {/* Settings Content */}
         <div className="settingsContent">
-          {activeSection === 'webhook' && <WebhookSettings />}
+          {canManageWhatsApp && activeSection === 'webhook' && <WebhookSettings />}
           {activeSection === 'team' && <TeamSettings />}
           {activeSection === 'sheets' && <SheetsSettings />}
           {activeSection === 'notifications' && <NotificationSettings />}

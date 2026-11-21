@@ -10,6 +10,15 @@ const base = {
   focusable: false,
 };
 
+export function LockIcon() {
+  return (
+    <svg {...base}>
+      <rect x="5" y="10" width="14" height="11" rx="2" />
+      <path d="M8 10V7a4 4 0 0 1 8 0v3m-4 2v4" />
+    </svg>
+  );
+}
+
 export function WebhookIcon() {
   return (
     <svg {...base}>

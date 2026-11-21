@@ -506,7 +506,7 @@ const templates = {
           'Client Email Received',
           40,
           260,
-          { mailbox: 'queries@gra-advisory.in', subjectContains: '' },
+          { mailbox: 'queries@workbench.example', subjectContains: '' },
           'Fires on each inbound client email'
         ),
         node(

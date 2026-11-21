@@ -259,6 +259,7 @@ export default function NodeInspector({
   upstreamNodes,
   prevNode,
   availableSources,
+  demo = false,
   onChangeField,
   onChangeConfig,
   onPatchConfig,
@@ -392,6 +393,9 @@ export default function NodeInspector({
   };
 
   const renderField = (field) => {
+    if (demo && ['csv', 'source'].includes(field.type)) {
+      return <span className="auditUploadNotice">{field.label} is available in the private workspace.</span>;
+    }
     if (field.type === 'csv') {
       return (
         <>
@@ -412,7 +416,7 @@ export default function NodeInspector({
             value={config[field.key] || ''}
             onChange={(event) => onChangeConfig(field.key, event.target.value)}
           >
-            {field.options?.map((option) => (
+            {field.options?.filter(option => !demo || option !== 'Uploaded CSV / JSON').map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>

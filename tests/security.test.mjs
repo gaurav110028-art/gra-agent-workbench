@@ -7,6 +7,8 @@ import { createStore, digest } from '../lib/security/store.mjs';
 import { boundedRequest, secure } from '../lib/security/route.mjs';
 import { publicAddress, resolveTarget, createSafeFetch, cleanHeaders } from '../lib/security/egress.mjs';
 import { mcpStream } from '../lib/security/sse.mjs';
+import { requireWhatsAppAdmin } from '../lib/security/whatsapp.mjs';
+import { loginDestination } from '../app/access-destinations.js';
 
 const ORIGIN = 'http://localhost:3199';
 const password = 'synthetic-only-long-password-2026';
@@ -15,6 +17,25 @@ const user = { id: 'synthetic-admin', email: 'admin@example.test', name: 'Synthe
 const env = { GRA_APP_ORIGIN: ORIGIN, GRA_SESSION_PASSWORD: 'synthetic-session-key-'.repeat(3), GRA_AUTH_USERS_JSON: JSON.stringify([user]), GRA_SECURITY_STORE: 'memory' };
 const store = createStore({ env });
 const request = (path, method = 'GET', body, cookie) => new Request(ORIGIN + path, { method, headers: { Origin: ORIGIN, ...(cookie ? { Cookie: cookie } : {}), ...(body ? { 'Content-Type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
+
+test('WhatsApp authorization requires the designated server admin ID', () => {
+  const other = { ...user, id: 'another-admin', email: 'other-admin@example.test' };
+  const config = { users: [user, other] };
+  const designation = { GRA_WHATSAPP_ADMIN_ID: user.id };
+  requireWhatsAppAdmin({ ...user, config }, designation);
+  for (const principal of [other, { ...user, role: 'operator' }, { id: user.id, role: 'service' }]) {
+    assert.throws(() => requireWhatsAppAdmin({ ...principal, config }, designation), { status: 403 });
+  }
+  assert.throws(() => requireWhatsAppAdmin({ ...user, config }, {}), { status: 503 });
+  assert.throws(() => requireWhatsAppAdmin({ ...user, config }, { GRA_WHATSAPP_ADMIN_ID: 'unknown' }), { status: 503 });
+});
+
+test('login uses a closed allowlist of complete internal destinations', () => {
+  for (const target of ['/whatsapp', '/redactor', '/workspace?view=runs']) assert.equal(loginDestination(target), target);
+  for (const target of [null, 'https://external.example', '//external.example', '/workspace?view=unknown', '/whatsapp?next=//external.example', '/%2fexternal.example']) {
+    assert.equal(loginDestination(target), '/workspace');
+  }
+});
 
 test('no default credentials, weak secrets or invalid roles accepted', () => {
   assert.throws(() => authConfig({}));

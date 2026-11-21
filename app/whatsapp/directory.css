@@ -1,0 +1,244 @@
+.wa-editor {
+  width: min(38rem, calc(100% - 28px));
+  max-height: calc(100dvh - 40px);
+  margin: auto;
+  padding: 20px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-lg);
+  overflow-wrap: anywhere;
+}
+.wa-editor::backdrop {
+  background: var(--backdrop);
+}
+.wa-editor-head,
+.wa-editor-footer,
+.wa-directory-foot,
+.wa-directory-foot nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wa-editor-head {
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.wa-editor-head h3 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+.wa-editor-footer {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+.wa-editor-footer button:first-child:nth-last-child(3) {
+  margin-right: auto;
+}
+.wa-field-error {
+  color: var(--danger-fg);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+.wa-editor [aria-invalid='true'] {
+  border-color: var(--danger-fg);
+}
+.wa-editor input[type='file'] {
+  width: 100%;
+}
+.wa-editor select {
+  text-overflow: ellipsis;
+}
+.wa-csv-results {
+  max-height: 14rem;
+  overflow: auto;
+  margin-block: 12px;
+}
+.wa-csv-results th {
+  position: sticky;
+  top: 0;
+}
+.wa-directory .wa-tools {
+  gap: 12px;
+}
+.wa-directory .wa-tools .wa-field:first-child {
+  flex: 1;
+  min-width: min(100%, 180px);
+}
+.wa-directory .wa-tools .wa-field:nth-child(2) {
+  min-width: 110px;
+}
+.wa-directory .wa-tools > button {
+  margin-left: auto;
+}
+.wa-directory table {
+  min-width: 455px;
+}
+.wa-directory td:first-child,
+.wa-directory th:first-child {
+  width: 34px;
+}
+.wa-directory td:nth-child(2) {
+  width: 40%;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.wa-directory td:nth-child(3) {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.wa-directory td:last-child,
+.wa-directory th:last-child {
+  text-align: right;
+}
+.wa-directory .wa-cell-action,
+.wa-schedule .wa-schedule-actions button {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--text-secondary);
+}
+.wa-directory-foot {
+  padding-top: 12px;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  flex-wrap: wrap;
+}
+.wa-directory-foot nav {
+  margin-left: auto;
+}
+.wa-schedule {
+  padding: 16px 0;
+  border-top: 1px solid var(--border);
+}
+.wa-schedule-summary {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.15fr) minmax(0, 1fr) minmax(6em, 0.45fr)
+    auto;
+  gap: 16px;
+  align-items: start;
+}
+.wa-schedule h4 {
+  margin: 0 0 4px;
+  font-size: var(--text-md);
+}
+.wa-schedule-summary > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.wa-schedule-summary > div:first-child > span,
+.wa-schedule-label,
+.wa-schedule-times {
+  color: var(--text-secondary);
+}
+.wa-schedule-label {
+  font-size: var(--text-sm);
+}
+.wa-schedule-summary > .wa-status {
+  justify-self: end;
+}
+.wa-template-name {
+  overflow-wrap: anywhere;
+}
+.wa-schedule-times,
+.wa-schedule-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.wa-schedule-times {
+  margin: 12px 0 4px;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+.wa-schedule-actions {
+  gap: 2px;
+}
+.wa-schedule .wa-schedule-actions button {
+  padding-inline: 8px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .wa-directory .wa-cell-action:hover,
+  .wa-schedule .wa-schedule-actions button:hover:enabled {
+    background: var(--bg-surface-hover);
+    color: var(--text-primary);
+  }
+}
+@media (max-width: 700px) {
+  .wa-schedule-summary {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.75fr);
+    gap: 12px;
+  }
+  .wa-schedule-summary > .wa-status {
+    justify-self: start;
+  }
+  .wa-editor {
+    max-height: calc(100dvh - 16px);
+    padding: 16px;
+  }
+  .wa-editor input:not([type='checkbox']),
+  .wa-editor select,
+  .wa-editor textarea {
+    font-size: 16px;
+  }
+}
+.wa-contact-identity {
+  display: grid;
+}
+.wa-contact-identity small {
+  display: none;
+}
+@media (max-width: 700px) {
+  .wa-directory table {
+    min-width: 0;
+  }
+  .wa-directory td:nth-child(3),
+  .wa-directory th:nth-child(3) {
+    display: none;
+  }
+  .wa-directory td:nth-child(2) {
+    width: auto;
+  }
+  .wa-contact-identity small {
+    display: block;
+    font-variant-numeric: tabular-nums;
+    font-weight: 400;
+  }
+  .wa-directory td,
+  .wa-directory th {
+    padding-inline: 4px;
+  }
+}
+
+@media (max-width: 620px) {
+  .wa-main .wa-directory table {
+    width: 100%;
+    table-layout: fixed;
+  }
+  .wa-main .wa-directory :is(th, td) {
+    min-width: 0;
+    padding-inline: 4px;
+  }
+  .wa-main .wa-directory :is(th, td):first-child {
+    width: 32px;
+  }
+  .wa-main .wa-directory :is(th, td):nth-child(4) {
+    width: 82px;
+  }
+  .wa-main .wa-directory :is(th, td):last-child {
+    width: 48px;
+  }
+  .wa-main .wa-directory .wa-cell-action {
+    padding-inline: 4px;
+  }
+}

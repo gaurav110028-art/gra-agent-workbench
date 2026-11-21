@@ -1,4 +1,5 @@
 import { secure } from '../../../../lib/security/route.mjs';
+import { requireWhatsAppAdmin } from '../../../../lib/security/whatsapp.mjs';
 /* =========================================================
    WHATSAPP WEBHOOK ENDPOINT
    Receives messages from WhatsApp Web Extension or
@@ -83,7 +84,6 @@ async function handlePOST(request, principal) {
     return Response.json(
       {
         ok: true,
-        query,
         message: 'Query received and synced to workbench buffer.',
       },
       { headers: CORS_HEADERS }
@@ -123,10 +123,17 @@ async function handleDELETE(request, principal) {
   );
 }
 
-export const GET = secure({"permission":"queries:read","limit":120}, handleGET);
+export const GET = secure({ permission: 'queries:read', limit: 120, authorize: requireWhatsAppAdmin }, handleGET);
 
-export const POST = secure({"permission":"webhook:ingest","limit":60}, handlePOST);
+// The existing scoped integration remains write-only. Browser test submissions require the designated admin.
+export const POST = secure({
+  permission: 'webhook:ingest',
+  limit: 60,
+  authorize: principal => {
+    if (principal.role !== 'service') requireWhatsAppAdmin(principal);
+  },
+}, handlePOST);
 
-export const DELETE = secure({"permission":"admin:manage","limit":10}, handleDELETE);
+export const DELETE = secure({ permission: 'admin:manage', limit: 10, authorize: requireWhatsAppAdmin }, handleDELETE);
 
 export const OPTIONS = secure({"preflight":true}, handleOPTIONS);

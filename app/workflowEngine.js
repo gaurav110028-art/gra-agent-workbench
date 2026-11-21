@@ -107,8 +107,8 @@ export function parseRowsInput(text) {
 const sampleClients = [
   {
     client_name: 'Sharma Traders Pvt Ltd',
-    email: 'accounts@sharmatraders.in',
-    phone: '+919812345601',
+    email: 'accounts@client-one.example',
+    phone: '+12025550101',
     gstin: '27AABCS1234A1Z5',
     pan: 'AABCS1234A',
     firm: 'Sharma Traders Pvt Ltd',
@@ -128,8 +128,8 @@ const sampleClients = [
   },
   {
     client_name: 'Mehta & Sons',
-    email: 'finance@mehtasons.co.in',
-    phone: '+919812345602',
+    email: 'finance@client-two.example',
+    phone: '+12025550102',
     gstin: '07AAEFM4321B1Z2',
     pan: 'AAEFM4321B',
     firm: 'Mehta & Sons',
@@ -149,8 +149,8 @@ const sampleClients = [
   },
   {
     client_name: 'Verma Textiles LLP',
-    email: 'cfo@vermatextiles.com',
-    phone: '+919812345603',
+    email: 'cfo@client-three.example',
+    phone: '+12025550103',
     gstin: '09AAIFV5678C1Z9',
     pan: 'AAIFV5678C',
     firm: 'Verma Textiles LLP',
@@ -170,8 +170,8 @@ const sampleClients = [
   },
   {
     client_name: 'Iyer Consultants',
-    email: 'hello@iyerconsultants.in',
-    phone: '+919812345604',
+    email: 'hello@client-four.example',
+    phone: '+12025550104',
     gstin: '33AACFI9012D1Z1',
     pan: 'AACFI9012D',
     firm: 'Iyer Consultants',
@@ -554,7 +554,7 @@ export async function executeNode({ node, ctx, mode, services = {} }) {
 
     case 'emailTrigger': {
       const sample = {
-        from: 'rakesh@sharmatraders.in',
+        from: 'rakesh@client-one.example',
         fromName: 'Rakesh Sharma',
         subject: `${config.subjectContains || 'GST notice received'} - need urgent help`,
         body:

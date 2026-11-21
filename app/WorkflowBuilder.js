@@ -33,6 +33,7 @@ import {
 } from './workflowVersions';
 
 import { getAgentSources, getSourceFile, subscribeToSources } from './sourceStore';
+import { materializeTemplate } from './workflowTemplates';
 
 import {
   nodeCatalog,
@@ -118,7 +119,8 @@ function AutoFit({ signal }) {
    COMPONENT
 ========================================================= */
 
-export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
+export default function WorkflowBuilder({ agentId, agentName, onOpenSources, demoWorkflows, templateId }) {
+  const demo = Boolean(demoWorkflows);
   const storageKey = `gra-workflow-${agentId}`;
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -157,27 +159,32 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
   const runnerRef = useRef(null);
   const waitingNodeIdRef = useRef(null);
   const auditPlanRef = useRef([]);
+  const invalidSavedWorkflow = useRef(false);
 
   /* ---------- load / persist ---------- */
 
   useEffect(() => {
     setLoaded(false);
 
-    const saved = localStorage.getItem(storageKey);
-
-    if (saved) {
+    invalidSavedWorkflow.current = false;
+    if (demo) {
+      const graph = demoWorkflows.get(agentId) || materializeTemplate(templateId, agentId);
+      setNodes(graph.nodes);
+      setEdges(graph.edges);
+    } else {
+      const saved = localStorage.getItem(storageKey);
       try {
-        const parsed = JSON.parse(saved);
-        setNodes(parsed.nodes || []);
-        setEdges(parsed.edges || []);
+        const parsed = saved ? JSON.parse(saved) : { nodes: [], edges: [] };
+        const savedNodes = parsed.nodes || [];
+        const savedEdges = parsed.edges || [];
+        if (!Array.isArray(savedNodes) || !Array.isArray(savedEdges)) throw new Error('Invalid stored workflow');
+        setNodes(savedNodes);
+        setEdges(savedEdges);
       } catch {
-        localStorage.removeItem(storageKey);
+        invalidSavedWorkflow.current = true;
         setNodes([]);
         setEdges([]);
       }
-    } else {
-      setNodes([]);
-      setEdges([]);
     }
 
     setSelectedNodeId(null);
@@ -194,12 +201,13 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
     runnerRef.current = null;
     waitingNodeIdRef.current = null;
 
-    setVersionState(getWorkflowVersionState(agentId));
+    setVersionState(demo || invalidSavedWorkflow.current ? null : getWorkflowVersionState(agentId));
     setPublishMessage('');
     setLoaded(true);
-  }, [agentId, storageKey, setNodes, setEdges]);
+  }, [agentId, storageKey, setNodes, setEdges, demo, demoWorkflows, templateId]);
 
   useEffect(() => {
+    if (demo) return;
     let active = true;
 
     const refreshSources = async () => {
@@ -223,10 +231,14 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
       active = false;
       unsubscribe();
     };
-  }, [agentId]);
+  }, [agentId, demo]);
 
   useEffect(() => {
-    if (!loaded) return;
+    if (!loaded || invalidSavedWorkflow.current) return;
+    if (demo) {
+      demoWorkflows.set(agentId, { nodes, edges });
+      return;
+    }
 
     localStorage.setItem(storageKey, JSON.stringify({ nodes, edges }));
 
@@ -238,7 +250,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
 
     setVersionState(updated);
     setPublishMessage('');
-  }, [agentId, nodes, edges, loaded, storageKey]);
+  }, [agentId, nodes, edges, loaded, storageKey, demo, demoWorkflows]);
 
   /* ---------- derived ---------- */
 
@@ -562,7 +574,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
       const config = node.data.config || {};
 
       schema.forEach((field) => {
-        if (!field.required) return;
+        if (!field.required || (demo && field.type === 'source')) return;
 
         if (type === 'bulkEmail' && field.key === 'to' && config.dataSource === 'Uploaded CSV / JSON' && !config.csvRows?.length) {
           issues.push({
@@ -581,10 +593,10 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
 
       const normalizedNodeName = String(node.data?.name || '').toLowerCase();
 
-      if (
+      if (!demo && (
         normalizedNodeName.includes('read & extract audit documents') ||
         normalizedNodeName.includes('read and extract audit documents')
-      ) {
+      )) {
         [
           ['financialStatementsSourceId', 'Last-year Signed Financial Statements'],
           ['trialBalanceSourceId', 'Current-year Trial Balance'],
@@ -644,7 +656,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
       : { ...current, status, steps, ...extra };
 
     currentRunRef.current = next;
-    saveRun(next);
+    if (!demo) saveRun(next);
   };
 
   const setStepsSnapshot = (steps, historyStatus = null, extra = {}) => {
@@ -673,7 +685,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
       durationMs: undefined,
     }));
 
-    const latest = getWorkflowVersionState(agentId);
+    const latest = demo || invalidSavedWorkflow.current ? null : getWorkflowVersionState(agentId);
 
     const run = {
       ...createRun({
@@ -692,7 +704,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
     currentApprovalRef.current = null;
     waitingNodeIdRef.current = null;
 
-    saveRun(run);
+    if (!demo) saveRun(run);
 
     setRunSteps(initialSteps);
     setPanelMode('run');
@@ -707,7 +719,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
   /* ---------- live services ---------- */
 
   const services = useMemo(
-    () => ({
+    () => demo ? {} : ({
       sendEmail: async (message) => {
         try {
           const payload = await postJson('/api/send-email', {
@@ -751,7 +763,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
         }
       },
     }),
-    []
+    [demo]
   );
 
   /* ---------- approval helpers ---------- */
@@ -827,6 +839,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
   };
 
   const sendPostApprovalEmail = async (approval) => {
+    if (demo) return null;
     const action = approval?.postApprovalAction;
     if (!action) return null;
 
@@ -859,6 +872,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
   /* ---------- engine run (Test Run / Run Workflow) ---------- */
 
   const startEngineRun = async (mode) => {
+    if (demo && mode !== 'test') return;
     const issues = validateWorkflow(false);
 
     if (issues.length > 0) {
@@ -920,7 +934,9 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
         onPause: (node, result, durationMs, ctx) => {
           const reviewer = result.output.approver || 'Reviewer';
 
-          const approval = createApprovalRequest({
+          const approval = demo
+            ? { id: crypto.randomUUID(), requestedAt: new Date().toISOString() }
+            : createApprovalRequest({
             runId: currentRunRef.current?.id,
             agentId,
             agentName: agentName || 'Agent',
@@ -1120,6 +1136,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
   };
 
   const runAuditDemo = async () => {
+    if (demo) return;
     const issues = validateWorkflow(false);
 
     if (issues.length > 0) {
@@ -1261,7 +1278,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
 
     let approvalDecision = null;
 
-    if (currentApprovalRef.current?.id) {
+    if (!demo && currentApprovalRef.current?.id) {
       approvalDecision = decideApproval({
         approvalId: currentApprovalRef.current.id,
         decision: 'Approved',
@@ -1408,7 +1425,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
 
     let approvalDecision = null;
 
-    if (currentApprovalRef.current?.id) {
+    if (!demo && currentApprovalRef.current?.id) {
       approvalDecision = decideApproval({
         approvalId: currentApprovalRef.current.id,
         decision: 'Rejected',
@@ -1446,6 +1463,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
   /* ---------- publish ---------- */
 
   const publishCurrentWorkflow = () => {
+    if (demo || invalidSavedWorkflow.current) return;
     const issues = validateWorkflow(false);
 
     if (issues.length > 0) {
@@ -1494,7 +1512,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
     </div>
   );
 
-  const auditExtras = selectedNode ? (
+  const auditExtras = !demo && selectedNode ? (
     <>
       {selectedIsAuditIntake && (
         <>
@@ -1534,7 +1552,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
     </>
   ) : null;
 
-  const footerNotice =
+  const footerNotice = demo ? 'Simulation only. Use sample data. Changes last until this page is reloaded.' :
     selectedIsAuditIntake || selectedIsAuditExtractor || selectedIsOpeningReconciliation
       ? 'Sources are stored in this browser for the MVP. Audit Demo sends selected sources to Anthropic and requires synthetic-only confirmation; maximum 3 MiB total. After Senior CA approval, a configured Send Email step can send through Resend.'
       : 'Test Run simulates every step with sample data and renders {{variables}} without sending. Run Workflow executes AI Agent and HTTP nodes live and sends email through Resend after any Approval Gate.';
@@ -1593,6 +1611,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
 
   const handleApplyBlueprint = useCallback(
     ({ nodes: newNodes, edges: newEdges, summary }, mode = 'replace') => {
+      if (demo) return;
       if (!Array.isArray(newNodes) || newNodes.length === 0) return;
 
       if (mode === 'append' && nodes.length > 0) {
@@ -1644,12 +1663,12 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
         validateWorkflow(false);
       }, 150);
     },
-    [nodes, edges, agentId, setNodes, setEdges]
+    [nodes, edges, agentId, setNodes, setEdges, demo]
   );
 
   const handleExecuteControlAction = useCallback(
     async (actionIntent) => {
-      if (!actionIntent || !actionIntent.type) return;
+      if (demo || !actionIntent?.type) return;
 
       switch (actionIntent.type) {
         case 'SCHEDULE_DAILY': {
@@ -1787,7 +1806,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
           console.warn('Unknown control action:', actionIntent.type);
       }
     },
-    [startEngineRun, approveHumanStep, rejectHumanStep, validateWorkflow, agentId, agentName, nodes, edges]
+    [startEngineRun, approveHumanStep, rejectHumanStep, validateWorkflow, agentId, agentName, nodes, edges, demo]
   );
 
   const busy = runStatus === 'running' || auditProcessing;
@@ -1874,7 +1893,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
           </div>
 
           <div className="workflowBoardActions">
-            <div className="workflowVersionControls">
+            {demo ? <span className="workflowDraftStatus">Simulation only</span> : <div className="workflowVersionControls">
               <span className={`workflowVersionBadge ${versionState?.isDirty ? 'draft' : 'published'}`}>
                 {versionState?.isDirty
                   ? `Draft v${versionState?.draftVersion || 1}`
@@ -1887,12 +1906,12 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
                 </span>
               )}
 
-              <span className="workflowDraftStatus">Saved locally</span>
+              <span className="workflowDraftStatus">{invalidSavedWorkflow.current ? 'Saved workflow requires recovery' : 'Saved locally'}</span>
 
               {publishMessage && <span className="workflowPublishMessage">{publishMessage}</span>}
-            </div>
+            </div>}
 
-            <button
+            {!demo && <button
               type="button"
               className={`workflowActionButton gauravArchitectToggleBtn ${showGauravDrawer ? 'active' : ''}`}
               onClick={() => setShowGauravDrawer((current) => !current)}
@@ -1900,22 +1919,22 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
             >
               <img src="/gra-ai-logo.png" alt="GRA AI Architect" className="topbarAiLogo" />
               <strong>GRA AI Architect</strong>
-            </button>
+            </button>}
 
             <button type="button" className="workflowActionButton" onClick={() => validateWorkflow(true)} disabled={busy}>
               ✓ Validate
             </button>
 
-            <button
+            {!demo && <button
               type="button"
               className="workflowActionButton workflowPublishButton"
               onClick={publishCurrentWorkflow}
-              disabled={busy || nodes.length === 0 || versionState?.isDirty === false}
+              disabled={busy || invalidSavedWorkflow.current || nodes.length === 0 || versionState?.isDirty === false}
             >
               ↑ Publish
-            </button>
+            </button>}
 
-            {isAuditWorkflow && (
+            {!demo && isAuditWorkflow && (
               <button
                 type="button"
                 className="workflowActionButton workflowAuditDemoButton"
@@ -1936,7 +1955,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
               {busy && runMode === 'test' ? 'Running...' : 'Test Run'}
             </button>
 
-            <button
+            {!demo && <button
               type="button"
               className="workflowActionButton workflowLiveButton"
               onClick={() => startEngineRun('live')}
@@ -1944,7 +1963,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
               title="Execute AI, HTTP and Resend steps for real"
             >
               {busy && runMode === 'live' ? 'Running live...' : 'Run Workflow'}
-            </button>
+            </button>}
 
             <button type="button" className="workflowActionButton" onClick={clearWorkflow} disabled={busy}>
               Clear
@@ -2010,6 +2029,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
               upstreamNodes={upstreamNodes}
               prevNode={prevNode}
               availableSources={availableSources}
+              demo={demo}
               onChangeField={updateNodeField}
               onChangeConfig={updateNodeConfig}
               onPatchConfig={patchNodeConfig}
@@ -2036,12 +2056,13 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
             onSelectNode={(nodeId) => setSelectedNodeId(nodeId)}
             onApprove={approveHumanStep}
             onReject={rejectHumanStep}
+            demo={demo}
             auditPanel={auditPanel}
           />
         )}
       </section>
 
-      <GauravChatDrawer
+      {!demo && <GauravChatDrawer
         isOpen={showGauravDrawer}
         onClose={() => setShowGauravDrawer(false)}
         agentId={agentId}
@@ -2051,7 +2072,7 @@ export default function WorkflowBuilder({ agentId, agentName, onOpenSources }) {
         onApplyBlueprint={handleApplyBlueprint}
         onExecuteControlAction={handleExecuteControlAction}
         runStatus={runStatus}
-      />
+      />}
     </div>
   );
 }

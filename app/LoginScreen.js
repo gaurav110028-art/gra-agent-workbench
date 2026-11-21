@@ -11,13 +11,6 @@ export default function LoginScreen({ onLogin }) {
 
   useEffect(() => {
     let active = true;
-    // Legacy browser records have no server authority and must not retain passwords.
-    localStorage.removeItem('gra-auth-session');
-    const stored = localStorage.getItem('gra-auth-users');
-    if (stored) {
-      try { localStorage.setItem('gra-auth-users', JSON.stringify(JSON.parse(stored).map(({ passwordHash, ...user }) => user))); }
-      catch { localStorage.removeItem('gra-auth-users'); }
-    }
     getSession().then(session => { if (active && session) onLogin(session); }).catch(e => { if (active) setError(e.message); });
     return () => { active = false; };
   }, [onLogin]);

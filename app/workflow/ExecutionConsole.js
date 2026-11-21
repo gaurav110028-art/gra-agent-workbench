@@ -58,6 +58,7 @@ export default function ExecutionConsole({
   onSelectNode,
   onApprove,
   onReject,
+  demo = false,
   auditPanel,
 }) {
   const [openSteps, setOpenSteps] = useState({});
@@ -239,7 +240,7 @@ export default function ExecutionConsole({
                         </button>
 
                         <span className="consoleApprovalHint">
-                          Also available in the Approvals tab.
+                          {demo ? 'Simulated approval for this run.' : 'Also available in the Approvals tab.'}
                         </span>
                       </div>
                     )}

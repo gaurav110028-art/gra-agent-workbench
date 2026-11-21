@@ -9,7 +9,9 @@
     "start": "next start",
     "test": "node --test tests/*.test.mjs",
     "test:browser": "node tests/redactor.browser.mjs",
-    "test:production": "node tests/run-production.mjs"
+    "test:production": "node tests/run-production.mjs",
+    "test:postgres": "node tests/postgres.integration.mjs",
+    "db:migrate": "node scripts/db-migrate.mjs"
   },
   "dependencies": {
     "@xmldom/xmldom": "0.9.12",
@@ -18,6 +20,7 @@
     "ipaddr.js": "2.5.0",
     "iron-session": "9.0.1",
     "next": "16.4.6",
+    "pg": "8.23.1",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   },

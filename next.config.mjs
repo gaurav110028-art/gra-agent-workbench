@@ -27,6 +27,8 @@ export default {
       { key: 'Referrer-Policy', value: 'no-referrer' },
       { key: 'X-Content-Type-Options', value: 'nosniff' },
       { key: 'Cache-Control', value: 'no-store' },
-    ] }, ...['/', '/login', '/logout', '/api/:path*'].map(source => ({ source, headers: [{ key: 'Cache-Control', value: 'no-store' }] }))];
+    ] }, ...['/', '/workspace/migration'].map(source => ({ source, headers: [
+      { key: 'Content-Security-Policy', value: "connect-src 'none'; form-action 'none'; base-uri 'none'" },
+    ] })), ...['/', '/workspace/:path*', '/whatsapp/:path*', '/login', '/logout', '/api/:path*'].map(source => ({ source, headers: [{ key: 'Cache-Control', value: 'no-store' }] }))];
   },
 };

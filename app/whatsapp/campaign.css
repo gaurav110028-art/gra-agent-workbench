@@ -1,0 +1,166 @@
+/* Campaign workflow and template detail surfaces share the Workbench palette. */
+.wa-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 12px 0 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.wa-steps li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.wa-steps li span {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.wa-steps li[aria-current] {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.wa-steps li[aria-current] span {
+  color: var(--bg-main);
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+.wa-campaign-form {
+  max-width: 78ch;
+}
+
+.wa-campaign-form h4:focus-visible {
+  outline: 2px solid var(--accent-fg);
+  outline-offset: 3px;
+}
+
+.wa-form-actions,
+.wa-variable-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wa-form-actions {
+  justify-content: flex-end;
+  border-top: 1px solid var(--border);
+  margin-top: 16px;
+  padding-top: 16px;
+}
+
+.wa-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  margin: 12px 0;
+}
+
+.wa-details > div {
+  min-width: 0;
+}
+.wa-details dt {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.wa-details dd {
+  margin: 4px 0 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.wa-main .wa-field-error {
+  margin: 4px 0 8px;
+  color: var(--danger-fg);
+}
+.wa-main [aria-invalid='true'] {
+  border-color: var(--danger-fg);
+}
+.wa-save-status:empty {
+  display: none;
+}
+.wa-template-name {
+  overflow-wrap: anywhere;
+}
+.wa-campaign-form .wa-recipient-list {
+  overflow: auto;
+  max-height: 23rem;
+  padding: 0 12px;
+}
+
+.wa-recipient-list label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.wa-recipient-list label:last-child {
+  border: 0;
+}
+.wa-recipient-list label span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.wa-recipient-list small {
+  margin-inline-start: auto;
+  white-space: nowrap;
+}
+.wa-catalog-dialog {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  margin: auto;
+  width: min(30rem, calc(100% - 24px));
+  max-height: calc(100dvh - 32px);
+  padding: 20px;
+  overflow: auto;
+}
+.wa-catalog-dialog::backdrop {
+  background: var(--backdrop);
+}
+.wa-catalog-dialog header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+}
+.wa-catalog-dialog h3,
+.wa-catalog-dialog h4 {
+  margin: 0 0 8px;
+}
+.wa-catalog-dialog header h3 {
+  margin: 0;
+}
+.wa-variable-strip {
+  margin-block: 12px;
+}
+@media (max-width: 620px) {
+  .wa-steps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .wa-recipient-list label {
+    min-height: 44px;
+  }
+  .wa-catalog-dialog {
+    padding: 16px;
+  }
+}
