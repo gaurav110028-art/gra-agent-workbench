@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { workspaceDestination } from './access-destinations';
 import WorkflowBuilder from './WorkflowBuilder';
+import FirmLogo from './FirmLogo';
 import RunsView from './RunsView';
 import ApprovalsView from './ApprovalsView';
 import SourcesView from './SourcesView';
@@ -283,8 +284,8 @@ export default function Workbench({ demo = false, initialView = 'dashboard', can
   return (
     <div className={sidebarCollapsed ? "workbench sidebarCollapsed" : "workbench"}>
       <a className="graSkipLink" href="#workbench-content">Skip to content</a>
-      <button className="graMobileNav" type="button" aria-expanded={mobileNav} aria-controls="workbench-sidebar" onClick={() => setMobileNav(open => !open)}>
-        <span className="graBrandMark">GRA</span><span>Workbench navigation</span>
+      <button className="graMobileNav" type="button" aria-label="Workbench navigation" aria-expanded={mobileNav} aria-controls="workbench-sidebar" onClick={() => setMobileNav(open => !open)}>
+        <FirmLogo /><span>Workbench navigation</span>
         <ChevronIcon direction={mobileNav ? "left" : "right"} />
       </button>
       <aside id="workbench-sidebar" className={mobileNav ? "sidebar graMobileOpen" : "sidebar"}>
@@ -305,7 +306,7 @@ export default function Workbench({ demo = false, initialView = 'dashboard', can
           <ChevronIcon direction={sidebarCollapsed ? 'right' : 'left'} />
         </button>
 
-        <div className="brand"><span className="graBrandMark">GRA</span><span className="graBrandName">Agent Workbench</span></div>
+        <div className="brand"><FirmLogo /></div>
 
         <nav className="nav" aria-label="Workbench" onClick={(event) => { if (event.target.closest("button, a")) setMobileNav(false); }}>
           <a className="navItem" href="/redactor" title="Secure Document Redactor">

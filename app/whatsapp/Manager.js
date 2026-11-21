@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import FirmLogo from '../FirmLogo';
 import * as icons from '../NavIcons';
 import { workspaceDestination, workspaceViews } from '../access-destinations';
 import * as demo from './demo.mjs';
@@ -291,11 +292,12 @@ export default function Manager() {
       </a>
       <button
         className="wa-mobile-menu"
+        aria-label="Workbench navigation"
         aria-expanded={mobileNav}
         aria-controls="wa-workbench-nav"
         onClick={() => setMobileNav(!mobileNav)}
       >
-        <icons.AgentsIcon /> Workbench navigation{' '}
+        <FirmLogo /> <span>Workbench navigation</span>
         <icons.ChevronIcon direction={mobileNav ? 'left' : 'right'} />
       </button>
       <aside
@@ -309,7 +311,7 @@ export default function Manager() {
         >
           <icons.ChevronIcon direction={collapsed ? 'right' : 'left'} />
         </button>
-        <div className="brand"><span className="graBrandMark">GRA</span><span className="graBrandName">Agent Workbench</span></div>
+        <div className="brand"><FirmLogo /></div>
         <nav className="nav" aria-label="Workbench">
           {nav.map(([name, href, Icon]) => (
             <a

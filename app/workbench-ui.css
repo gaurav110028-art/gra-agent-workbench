@@ -6,6 +6,7 @@
   --gra-panel-radius: 14px;
   --gra-heading-size: clamp(28px, 2.7vw, 32px);
   --gra-page-top: 28px;
+  --gra-sidebar-compact-width: 100px;
 }
 
 :is(.workspace, .wa-main, .redactor) {
@@ -21,7 +22,7 @@
   grid-template-columns: 232px minmax(0, 1fr);
 }
 .workbench.sidebarCollapsed {
-  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-columns: var(--gra-sidebar-compact-width) minmax(0, 1fr);
 }
 .workbench > .sidebar {
   height: 100dvh;
@@ -31,16 +32,28 @@
 .sidebar .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
   margin: 0 2px 14px;
-  padding: 3px 0 16px;
+  padding: 8px 0 16px;
   border-bottom: 1px solid var(--border);
-  min-height: 56px;
+  min-height: 60px;
+  background: var(--bg-sidebar);
 }
 .sidebar .brand::before {
   display: none;
 }
-.graBrandMark,
+.graFirmLogo {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.workbench :is(.graMobileNav, .wa-mobile-menu) {
+  background: var(--bg-sidebar);
+}
+.workbench :is(.graMobileNav, .wa-mobile-menu) .graFirmLogo {
+  flex: none;
+  width: clamp(100px, 34vw, 152px);
+}
 .loginLogo {
   display: inline-grid;
   flex: none;
@@ -54,19 +67,13 @@
   font-weight: 800;
   letter-spacing: 0.025em;
 }
-.graBrandName {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-primary);
-  white-space: nowrap;
-}
-.sidebarCollapsed .graBrandName {
-  display: none;
-}
 .sidebarCollapsed .sidebar .brand {
-  margin-inline: auto;
-  padding-inline: 0;
-  border: 0;
+  height: auto;
+  opacity: 1;
+  pointer-events: auto;
+}
+.sidebarCollapsed .sidebar .nav {
+  margin-top: 0;
 }
 .sidebar :is(.navItem, .siteInfoButton) {
   height: 40px;
@@ -638,14 +645,11 @@
 
 @media (min-width: 761px) and (max-width: 1100px) {
   .workbench {
-    grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-columns: var(--gra-sidebar-compact-width) minmax(0, 1fr);
   }
   .sidebar .brand {
     justify-content: center;
     margin-inline: 0;
-  }
-  .sidebar .graBrandName {
-    display: none;
   }
   .sidebar .nav {
     margin-top: 0;
